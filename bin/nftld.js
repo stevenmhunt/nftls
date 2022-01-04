@@ -95,18 +95,19 @@ const decodeCommands = {
     },
     'tld': async function term_decode_tld(filepath) {
         const data = await tld.decodeImage(filepath);
-        console.log(`NFTLD Token '${data.id}':\n`);
-        console.log('  Claims:\n');
-        console.log(`    ${data.claims.split('\r\n').join(EOL + '    ')}\n`);
-        console.log('  Claims Signature:\n');
-        console.log(`    ${data.sig}`);
-        console.log(`    address: ${data.sigAddress}\n`);
-        console.log('  Image:\n');
-        console.log(`    Nonce: ${data.nonce}`);
-        console.log(`    SHA-256: ${data.imageHash}\n`);
-        console.log('  Signature Mark:\n');
-        console.log(`    ${data.sigmark}`);
-        console.log(`    address: ${data.sigmarkAddress}\n`);
+        console.log('NFTLD:');
+        console.log('    Token:')
+        console.log('        Claims:');
+        console.log(`            ${data.claims.split('\r\n').join(EOL + '            ')}`);
+        console.log('        Signed Claim:');
+        console.log(`            ${data.sig}`);
+        console.log(`            address: ${data.sigAddress}`);
+        console.log('    Image:');
+        console.log(`        Nonce: ${data.nonce}`);
+        console.log(`        SHA-256: ${data.imageHash}`);
+        console.log('    Signed Image:');
+        console.log(`        ${data.sigmark}`);
+        console.log(`        address: ${data.sigmarkAddress}`);
     }
 }
 
@@ -132,7 +133,7 @@ const verifyCommands = {
 }
 
 async function main() {
-    try {
+   try {
         if (argv.c || argv.create) {
             const target = argv.c || argv.create;
             if (createCommands[target]) {

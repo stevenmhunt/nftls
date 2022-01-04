@@ -56,7 +56,7 @@ async function buildTokenImage(token) {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE);
 
-    image = drawSignatureMark(image, token.imageSig, MARK_X, MARK_Y, MARK_W, MARK_H);
+    image = await drawSignatureMark(image, token.imageSig, MARK_X, MARK_Y, MARK_W, MARK_H);
 
     // write nonce as color.
     image = image.scan(TOKEN_WIDTH - HEADER_SIZE + PADDING,
