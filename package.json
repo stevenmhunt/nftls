@@ -1,0 +1,16 @@
+{
+  "name": "nftld",
+  "version": "0.0.1",
+  "dependencies": {
+    "eth-crypto": "^2.1.0",
+    "eth-signature-mark": "^1.0.0",
+    "fs-extra": "^10.0.0",
+    "jimp": "^0.16.1",
+    "keccak": "^3.0.1",
+    "lodash": "^4.17.21",
+    "minimist": "^1.2.5",
+    "png-stash": "^1.0.1",
+    "randombytes": "^2.0.6",
+    "secp256k1": "^3.8.0"
+  }
+}
