@@ -1,23 +1,13 @@
-const crypto = require('crypto');
 const fs = require('fs-extra');
 const platforms = require('./platforms');
 const { buildTokenImage, encodeImageData, decodeImageData,
     extractImageNonce, extractImageSignature, extractImageHash } = require('./imaging/tld');
+const { SEPARATOR, generateNonce, buildTokenClaims } = require('./common');
 
-// using CRLF in order to maintain compatibility with https://etherscan.io/verifySig
-const SEPARATOR = "\r\n";
 const TLD_TOKEN_CLAIM = "NFTLD TLD Token: AllowSigning, AllowSubDomains, VerifyIdentity";
-
-function generateNonce() {
-    return crypto.randomBytes(4).readUInt32BE();
-}
 
 function buildImageMessage(token) {
     return `${token.path}${SEPARATOR}${token.platform}${SEPARATOR}NFTLD${SEPARATOR}${token.nonce}`;
-}
-
-function buildTokenClaims(claims) {
-    return claims.join(SEPARATOR);
 }
 
 async function createImage(token, key, output) {
@@ -89,7 +79,7 @@ async function decodeImage(filepath) {
 }
 
 async function verifyImage(filepath, addr) {
-    const data = await decodeImage(filepath);
+    const data = _.isString(filepath) ? await decodeImage(filepath) : filepath;
 
     if (data.expectedImageHash !== data.imageHash) {
         return `The SHA-256 hash '${data.expectedImageHash}' does not match actual hash value '${data.imageHash}'.`;
