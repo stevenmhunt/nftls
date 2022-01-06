@@ -2,20 +2,20 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const platforms = require('../platforms');
 const { buildTokenImage, encodeImageData, decodeImageData,
-    extractImageNonce, extractImageSignature, extractImageHash } = require('../imaging/wildcard');
-const { SEPARATOR, generateNonce, buildTokenClaims, extractTokenClaims } = require('../common');
-
-const WILDCARD_TOKEN_TYPE = 'NFTLS Wildcard'
-const WILDCARD_TOKEN_GRANTS = 'AllowSigningWildcards, AllowSigningItems, AllowVerify'
+    extractImageCode, extractImageSignature, extractImageHash } = require('../imaging/wildcard');
+const { SEPARATOR, generateCode, generateSerialNumber, buildTokenClaims, extractTokenClaims } = require('../common');
 
 function buildImageMessage(token) {
-    return `${token.path}${token.version ? ' (' + token.version + ')' : ''}${SEPARATOR}${token.platform}${SEPARATOR}NFTLS.IO${SEPARATOR}${token.nonce}`;
+    return `${token.path}${token.version ? ' (' + token.version + ')' : ''}${SEPARATOR}${token.platform}${SEPARATOR}NFTLS.IO${SEPARATOR}${token.code}`;
 }
 
 async function createImage(token, key, output) {
+    if (token.claims && (token.claims.path || token.claims.platform || token.claims.imageHash)) {
+        throw new Error('Invalid claims options.');
+    }
     const platform = platforms[token.platform];
     token.id = `${token.path}@${token.platform}`;
-    token.nonce = generateNonce();
+    token.code = generateCode();
     token.imageSig = platform.signMessage(key, buildImageMessage(token)).toString('hex');
 
     // get image hash.
@@ -23,14 +23,15 @@ async function createImage(token, key, output) {
     const imageHash = await extractImageHash(tmpImage, false);
 
     // build initial encoded token string.
-    const tokenValue = buildTokenClaims({
-        id: token.id,
-        type: WILDCARD_TOKEN_TYPE, grants: WILDCARD_TOKEN_GRANTS,
+    const tokenValue = buildTokenClaims(Object.assign({}, {
+        path: token.path,
+        platform: token.platform,
+        serialNumber: generateSerialNumber(),
         imageHash
-    });
+    }, token.claims || {}));
 
     // get signature.
-    const sig = platform.signMessage(key, `${token.nonce}${SEPARATOR}${tokenValue}`);
+    const sig = platform.signMessage(key, `${token.code}${SEPARATOR}${tokenValue}`);
 
     // build final encoded token string.
     const finalTokenValue = `${tokenValue}${SEPARATOR}${sig}`;
@@ -44,7 +45,7 @@ async function createImage(token, key, output) {
 async function inspectImage(filepath) {
     const encodedData = await decodeImageData(filepath);
     const actualImageHash = await extractImageHash(filepath);
-    const nonce = await extractImageNonce(filepath);
+    const code = await extractImageCode(filepath);
     const sigmark = await extractImageSignature(filepath);
 
     if (!encodedData) {
@@ -52,56 +53,55 @@ async function inspectImage(filepath) {
     }
 
     const sig = encodedData.split(SEPARATOR).slice(-1)[0];
-    const claimData = extractTokenClaims(encodedData);
-    const { type, grants, id, imageHash } = claimData;
-    const [path, platformName] = id.split('@');
-    const platform = platforms[platformName];
-    const claims = buildTokenClaims(claimData);
+    const claims = extractTokenClaims(encodedData);
+    const platform = platforms[claims.platform];
+    const claimsData = buildTokenClaims(claims);
 
     const imageSigMsg = buildImageMessage({
-        nonce, platform: platformName, path
+        code, platform: claims.platform, path: claims.path
     });
 
-    const sigMsg = `${nonce}${SEPARATOR}${claims}`;
+    const sigMsg = `${code}${SEPARATOR}${claimsData}`;
 
-    let sigAddress = null;
-    try { sigAddress = platform.recoverAddress(sig, sigMsg); } catch (e) { }
-    let sigmarkAddress = null;
-    try { sigmarkAddress = platform.recoverAddress(sigmark, imageSigMsg); } catch (e) { }
+    let sigAddr = null;
+    try { sigAddr = platform.recoverAddress(sig, sigMsg); } catch (e) { }
+    let sigmarkAddr = null;
+    try { sigmarkAddr = platform.recoverAddress(sigmark, imageSigMsg); } catch (e) { }
 
     return {
-        id,
-        type,
-        platform: platformName,
-        grants,
         claims,
-        expectedImageHash: imageHash,
-        imageHash: actualImageHash,
-        nonce,
-        sig,
-        sigAddress,
-        sigmark,
-        sigmarkAddress
+        signature: {
+            value: sig,
+            address: sigAddr,    
+        },
+        image: {
+            imageHash: actualImageHash,
+            code,
+            signature: {
+                value: sigmark,
+                address: sigmarkAddr
+            }
+        }
     };
 }
 
 async function verifyImage(filepath, addr) {
     const data = _.isString(filepath) ? await inspectImage(filepath) : filepath;
 
-    if (data.expectedImageHash !== data.imageHash) {
-        return `The SHA-256 hash '${data.expectedImageHash}' does not match actual hash value '${data.imageHash}'.`;
+    if (data.claims.imageHash !== data.image.imageHash) {
+        return `The SHA-256 hash in the claims does not match actual hash of the image.`;
     }
 
-    if (data.sigAddress !== data.sigmarkAddress) {
-        return `The claims signature and signature mark addresses do not match!`;
+    if (data.signature.address !== data.image.signature.address) {
+        return `The claims signature and image signature addresses do not match!`;
     }
 
     if (addr) {
-        if (data.sigAddress !== addr.toLowerCase()) {
+        if (data.signature.address !== addr.toLowerCase()) {
             return `Invalid embedded signature address.`;
         }
 
-        if (data.sigmarkAddress !== addr.toLowerCase()) {
+        if (data.image.signature.address !== addr.toLowerCase()) {
             return `Invalid signature mark address.`;
         }
     }

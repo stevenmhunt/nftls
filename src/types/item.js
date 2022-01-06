@@ -1,13 +1,13 @@
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const platforms = require('../platforms');
-    const { SEPARATOR, generateNonce, buildTokenClaims } = require('../common');
+    const { SEPARATOR, generateCode, buildTokenClaims } = require('../common');
 
 const DOMAIN_TOKEN_CLAIM = "NFTLS Item Token: AllowVerify";
 
 async function createSignature(token, key) {
     const platformName = token.id.split('@')[1];
     const platform = platforms[platformName];
-    const nonce = generateNonce();
+    const nonce = generateCode();
 
     // build initial encoded token string.
     const tokenValue = buildTokenClaims([DOMAIN_TOKEN_CLAIM, token.id, ...(token.claims || [])]);
@@ -27,13 +27,13 @@ async function verifySignature({ id, claims }, signature, addr, nonce = null) {
     const expectedToken = buildTokenClaims([DOMAIN_TOKEN_CLAIM, id, ...(claims || [])]);
     const prefix = nonce ? `${nonce}${SEPARATOR}` : '';
     const expectedMsg = `${prefix}${expectedToken}`;
-    const sigAddress = platform.recoverAddress(signature, expectedMsg);
+    const signatureAddress = platform.recoverAddress(signature, expectedMsg);
 
     if (!addr) {
-        return sigAddress;
+        return signatureAddress;
     }
 
-    if (sigAddress !== addr.toLowerCase()) {
+    if (signatureAddress !== addr.toLowerCase()) {
         return `Invalid signature address.`;
     }
 

@@ -14,6 +14,7 @@ const wildcard = require('../src/types/wildcard');
 const item = require('../src/types/item');
 const eth = require('../src/platforms/eth');
 const { downloadTokenChain } = require('../src/chain');
+const { extractTokenClaims, SEPARATOR, buildTokenClaims } = require('../src/common');
 
 async function readLineSecure(prompt) {
     return new Promise((resolve) => {
@@ -39,20 +40,20 @@ async function readLineSecure(prompt) {
     });
 }
 
-async function processDomainClaims(param) {
+async function processClaims(param) {
     if (!param || !_.isString(param)) {
-        return [];
+        return {};
     }
     if (param.startsWith('file://')) {
-        return (await fs.readFile(param.substring(param.indexOf(':') + '://'.length), 'utf-8')).split(EOL);
+        return extractTokenClaims((await fs.readFile(param.substring(param.indexOf(':') + '://'.length), 'utf-8')).split(EOL).join(SEPARATOR));
     }
-    return param.split(';');
+    return extractTokenClaims(param.split(';').join(SEPARATOR));
 }
 
 const createCommands = {
-    'wildcard': async function term_create_wildcard(id, image, key) {
+    'certificate': async function term_create_wildcard(id, image, key) {
         if (!id || !image) {
-            console.log('nftls --create <type> <path>@<platform> <base image> (-o <output image>) (-k <private key>)');
+            console.log('nftls --create <type> <path>@<platform> <base image> (--claims "<claim1: ...; claim2: ...>") (-o <output image>) (<private key>)');
             process.exit(1);
         }
         const [tokenPath, platform] = id.split('@');
@@ -61,10 +62,11 @@ const createCommands = {
         }
         const keyAddress = eth.getAddress(key);
         const output = argv.o || argv.output || path.basename(image);
+        const claims = await processClaims(argv.claims);
         let result = null;
         for (let i = 0; i < 5; i++) {
             await wildcard.createImage({
-                path: tokenPath, platform, image
+                path: tokenPath, platform, image, claims
             }, key, output);
             result = await wildcard.verifyImage(output, keyAddress);
             if (result == 'Verified') {
@@ -78,7 +80,7 @@ const createCommands = {
         if (!key) {
             key = await readLineSecure('<<<====DANGER====>>>\nPrivate Key: ');
         }
-        const claims = await processDomainClaims(argv.claims);
+        const claims = await processClaims(argv.claims);
         const coordinates = (argv.coordinates || '6,6,6,6').split(',').filter(i => i).map(i => parseInt(i, 10));
         const { signature, nonce } = await item.createImage({
             id, claims, coordinates, nonce: argv.nonce === true
@@ -104,16 +106,16 @@ const inspectCommands = {
         console.log(result);
     },
     'claims': async function term_inspect_claims(filepath) {
-        const claims = (await wildcardImaging.decodeImageData(filepath)).split('\r\n').slice(0,-1);
+        const claims = (await wildcardImaging.decodeImageData(filepath)).split(SEPARATOR).slice(0,-1);
         console.log(claims.join(EOL));
     },
     'signature': async function term_inspect_sig(filepath) {
-        const data = (await wildcardImaging.decodeImageData(filepath)).split('\r\n');
+        const data = (await wildcardImaging.decodeImageData(filepath)).split(SEPARATOR);
         console.log(data[data.length - 1]);
     },
-    'nonce': async function term_inspect_nonce(filepath) {
-        const nonce = await wildcardImaging.extractImageNonce(filepath);
-        console.log(nonce);
+    'code': async function term_inspect_code(filepath) {
+        const code = await wildcardImaging.extractImageCode(filepath);
+        console.log(code);
     },
     'hash': async function term_inspect_hash(filepath) {
         const hash = await wildcardImaging.extractImageHash(filepath, true);
@@ -121,34 +123,44 @@ const inspectCommands = {
     },
     'certificate': async function term_inspect_certificate(filepath) {
         const data = await wildcard.inspectImage(filepath);
-        console.log('Certificate:');
-        console.log('    Claims:');
-        console.log(`        ${data.claims.split('\r\n').join(EOL + '        ')}`);
-        console.log('    Signature:');
-        console.log(`        ${data.sig}`);
-        console.log(`        Address: ${data.sigAddress}`);
-        console.log('    Image:');
-        console.log(`        Nonce: ${data.nonce}`);
-        console.log(`        SHA-256: ${data.imageHash}`);
-        console.log('        Signature:');
-        console.log(`            ${data.sigmark}`);
-        console.log(`            Address: ${data.sigmarkAddress}`);
+        const claims = buildTokenClaims(data.claims);
+        const format = argv.f || argv.format || 'text';
+        if (format === 'text') {
+            console.log('Certificate:');
+            console.log('    Claims:');
+            console.log(`        ${claims.split(SEPARATOR).join(EOL + '        ')}`);
+            console.log('    Signature:');
+            console.log(`        ${data.signature.value}`);
+            console.log(`        Address: ${data.signature.address}`);
+            console.log('    Image:');
+            console.log(`        Code: ${data.image.code}`);
+            console.log(`        SHA-256: ${data.image.imageHash}`);
+            console.log('        Signature:');
+            console.log(`            ${data.image.signature.value}`);
+            console.log(`            Address: ${data.image.signature.address}`);
+        }
+        else if (format === 'compact-json') {
+            console.log(JSON.stringify(data));
+        }
+        else if (format === 'json') {
+            console.log(JSON.stringify(data, null, 4));
+        }
     }
 }
 
 const recoverCommands = {
     'signature': async function (filepath) {
-        const nonce = await wildcardImaging.extractImageNonce(filepath);
-        const data = (await wildcardImaging.decodeImageData(filepath)).split('\r\n');
+        const code = await wildcardImaging.extractImageCode(filepath);
+        const data = (await wildcardImaging.decodeImageData(filepath)).split(SEPARATOR);
         const claims = data.slice(0,-1);
         const sig = data[data.length - 1];
-        const msg = [nonce, ...claims].join('\r\n');
+        const msg = [code, ...claims].join(SEPARATOR);
         console.log(eth.recoverAddress(sig, msg));
     }
 }
 
 const verifyCommands = {
-    'wildcard': async function term_verify_wildcard(filepath, address) {
+    'certificate': async function term_verify_wildcard(filepath, address) {
         const token = await wildcard.inspectImage(filepath);
         const result = await wildcard.verifyImage(token, address);
         console.log(` ${(result === 'Verified' ? '✓' : 'x')} ${result}`);
@@ -164,14 +176,14 @@ const verifyCommands = {
                     return process.exit(1);
                 }
             }
-            if (token.sigAddress != chain[0].address.toLowerCase()) {
+            if (token.signatureAddress != chain[0].address.toLowerCase()) {
                 console.log(` x The signature address does not match the token chain address.`);
                 return process.exit(1);
             }
         }
     },
-    'item': async function term_verify_domain(id, filepath, addr) {
-        const claims = await processDomainClaims(argv.claims);
+    'signature': async function term_verify_signature(id, filepath, addr) {
+        const claims = await processClaims(argv.claims);
         const coordinates = (argv.coordinates || '6,6,6,6').split(',').filter(i => i).map(i => parseInt(i, 10));
         const nonce = argv.nonce !== undefined ? argv.nonce : null;
 

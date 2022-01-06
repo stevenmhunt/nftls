@@ -4,8 +4,12 @@ const crypto = require('crypto');
 // using CRLF in order to maintain compatibility with https://etherscan.io/verifySig
 const SEPARATOR = "\r\n";
 
-function generateNonce() {
+function generateCode() {
     return crypto.randomBytes(4).readUInt32BE();
+}
+
+function generateSerialNumber() {
+    return crypto.randomBytes(16).toString('hex');    
 }
 
 function buildTokenClaims(claims) {
@@ -20,7 +24,7 @@ function extractTokenClaims(data) {
     const result = {};
     data.split(SEPARATOR).forEach((item) => {
         if (item.indexOf(':') >= 0) {
-            const key = item.substring(0, item.indexOf(':'));
+            const key = item.substring(0, item.indexOf(':')).trim();
             result[key] = item.substring(item.indexOf(':') + 1).trim();
             if (result[key] && result[key].indexOf(',') >= 0) {
                 result[key] = result[key].split(',').map(i => i.trim());
@@ -32,7 +36,8 @@ function extractTokenClaims(data) {
 
 module.exports = {
     SEPARATOR,
-    generateNonce,
+    generateCode,
+    generateSerialNumber,
     buildTokenClaims,
     extractTokenClaims
 };

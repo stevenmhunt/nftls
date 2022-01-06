@@ -6,7 +6,7 @@ SHA256_HEX_LENGTH = 64;
 STRLEN_LENGTH = 3;
 
 const STASH_OFFSET = 16384;
-const STASH_MAXLENGTH = 16384;
+const STASH_MAXLENGTH = 65536;
 const NULL_CHAR = '0';
 
 async function encodeImageData(filepath, message, output) {

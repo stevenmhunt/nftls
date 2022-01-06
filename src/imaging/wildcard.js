@@ -23,8 +23,8 @@ async function buildTokenImage(token) {
     let image = await Jimp.read(token.image);
     const resultImage = path.join('./bin', `~${path.basename(token.image)}`);
     const font = await Jimp.loadFont(HEADER_FONT);
-    const nonceColor = token.nonce.toString(16).padEnd(8, 'f');
-    const headerColor = nonceColor.substring(2);
+    const codeColor = token.code.toString(16).padEnd(8, 'f');
+    const headerColor = codeColor.substring(2);
     
     // draw header and footer.
     image = image.quality(100)
@@ -45,7 +45,7 @@ async function buildTokenImage(token) {
 
     // write text to the bottom.
     image = image.print(font, 0, TOKEN_HEIGHT - HEADER_SIZE, {
-            text: `${token.nonce}`,
+            text: `${token.code}`,
             alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE)
@@ -57,12 +57,12 @@ async function buildTokenImage(token) {
 
     image = await drawSignatureMark(image, token.imageSig, MARK_X, MARK_Y, MARK_W, MARK_H);
 
-    // write nonce as color.
+    // write code as color.
     image = image.scan(TOKEN_WIDTH - HEADER_SIZE + PADDING,
         TOKEN_HEIGHT - HEADER_SIZE + PADDING,
         HEADER_SIZE - PADDING * 2,
         HEADER_SIZE - PADDING * 2,
-        fillWithColor(nonceColor));
+        fillWithColor(codeColor));
 
     await image.writeAsync(resultImage);
     return resultImage;
@@ -86,7 +86,7 @@ async function extractImageSignature(filepath) {
     return extractSignatureMark(image, MARK_X, MARK_Y, MARK_W, MARK_H);
 }
 
-async function extractImageNonce(filepath) {
+async function extractImageCode(filepath) {
     const image = await Jimp.read(filepath);
     return image.getPixelColor(TOKEN_WIDTH - PADDING * 2, TOKEN_HEIGHT - PADDING * 2);
 }
@@ -96,6 +96,6 @@ module.exports = {
     decodeImageData,
     buildTokenImage,
     extractImageHash,
-    extractImageNonce,
+    extractImageCode,
     extractImageSignature
 };
