@@ -51,7 +51,7 @@ async function buildTokenImage(token) {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE)
         .print(font, PADDING, TOKEN_HEIGHT - HEADER_SIZE, {
-            text: 'NFTLD',
+            text: 'NFTLS',
             alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE);

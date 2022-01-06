@@ -1,5 +1,5 @@
 {
-  "name": "nftld",
+  "name": "nftls",
   "version": "0.0.1",
   "dependencies": {
     "eth-crypto": "^2.1.0",

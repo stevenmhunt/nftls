@@ -9,9 +9,9 @@ const sigmark = require('eth-signature-mark');
 const argv = require('mri')(process.argv.slice(2));
 const package = require('../package.json');
 
-const tldImage = require('../src/imaging/tld');
-const tld = require('../src/tld');
-const domain = require('../src/domain');
+const wildcardImaging = require('../src/imaging/wildcard');
+const wildcard = require('../src/types/wildcard');
+const item = require('../src/types/item');
 const eth = require('../src/platforms/eth');
 const { downloadTokenChain } = require('../src/chain');
 
@@ -50,9 +50,9 @@ async function processDomainClaims(param) {
 }
 
 const createCommands = {
-    'tld': async function term_create_tld(id, image, key) {
+    'wildcard': async function term_create_wildcard(id, image, key) {
         if (!id || !image) {
-            console.log('nftld --create <type> <path>@<platform> <base image> (-o <output image>) (-k <private key>)');
+            console.log('nftls --create <type> <path>@<platform> <base image> (-o <output image>) (-k <private key>)');
             process.exit(1);
         }
         const [tokenPath, platform] = id.split('@');
@@ -63,10 +63,10 @@ const createCommands = {
         const output = argv.o || argv.output || path.basename(image);
         let result = null;
         for (let i = 0; i < 5; i++) {
-            await tld.createImage({
-                type: 'tld', path: tokenPath, platform, image
+            await wildcard.createImage({
+                path: tokenPath, platform, image
             }, key, output);
-            result = await tld.verifyImage(output, keyAddress);
+            result = await wildcard.verifyImage(output, keyAddress);
             if (result == 'Verified') {
                 console.log(" ✓ Token generated and verified.");
                 return;
@@ -80,7 +80,7 @@ const createCommands = {
         }
         const claims = await processDomainClaims(argv.claims);
         const coordinates = (argv.coordinates || '').split(',').filter(i => i).map(i => parseInt(i, 10));
-        const { signature, nonce } = await domain.createImage({
+        const { signature, nonce } = await item.createImage({
             id, claims, coordinates, nonce: argv.nonce === true
         }, key, image);
         console.log(signature);
@@ -99,29 +99,29 @@ const inspectCommands = {
             result = await sigmark.extractSignatureMark(image, ...coordinates);
         }
         else {
-            result = await tldImage.extractImageSignature(filepath);
+            result = await wildcardImaging.extractImageSignature(filepath);
         }
         console.log(result);
     },
     'claims': async function term_inspect_claims(filepath) {
-        const claims = (await tldImage.decodeImageData(filepath)).split('\r\n').slice(0,-1);
+        const claims = (await wildcardImaging.decodeImageData(filepath)).split('\r\n').slice(0,-1);
         console.log(claims.join(EOL));
     },
     'signature': async function term_inspect_sig(filepath) {
-        const data = (await tldImage.decodeImageData(filepath)).split('\r\n');
+        const data = (await wildcardImaging.decodeImageData(filepath)).split('\r\n');
         console.log(data[data.length - 1]);
     },
     'nonce': async function term_inspect_nonce(filepath) {
-        const nonce = await tldImage.extractImageNonce(filepath);
+        const nonce = await wildcardImaging.extractImageNonce(filepath);
         console.log(nonce);
     },
     'hash': async function term_inspect_hash(filepath) {
-        const hash = await tldImage.extractImageHash(filepath, true);
+        const hash = await wildcardImaging.extractImageHash(filepath, true);
         console.log(hash);
     },
-    'tld': async function term_inspect_tld(filepath) {
-        const data = await tld.decodeImage(filepath);
-        console.log('NFTLD:');
+    'wildcard': async function term_inspect_wildcard(filepath) {
+        const data = await wildcard.inspectImage(filepath);
+        console.log('NFTLS:');
         console.log('    Token:')
         console.log('        Claims:');
         console.log(`            ${data.claims.split('\r\n').join(EOL + '            ')}`);
@@ -139,8 +139,8 @@ const inspectCommands = {
 
 const recoverCommands = {
     'signature': async function (filepath) {
-        const nonce = await tldImage.extractImageNonce(filepath);
-        const data = (await tldImage.decodeImageData(filepath)).split('\r\n');
+        const nonce = await wildcardImaging.extractImageNonce(filepath);
+        const data = (await wildcardImaging.decodeImageData(filepath)).split('\r\n');
         const claims = data.slice(0,-1);
         const sig = data[data.length - 1];
         const msg = [nonce, ...claims].join('\r\n');
@@ -149,9 +149,9 @@ const recoverCommands = {
 }
 
 const verifyCommands = {
-    'tld': async function term_verify_tld(filepath, address) {
-        const token = await tld.decodeImage(filepath);
-        const result = await tld.verifyImage(token, address);
+    'wildcard': async function term_verify_wildcard(filepath, address) {
+        const token = await wildcard.inspectImage(filepath);
+        const result = await wildcard.verifyImage(token, address);
         console.log(` ${(result === 'Verified' ? '✓' : 'x')} ${result}`);
         if (result !== 'Verified') {
             return process.exit(1);
@@ -159,7 +159,7 @@ const verifyCommands = {
         if (argv.chain === true) {
             const chain = await downloadTokenChain(token.id);
             for (let link in chain) {
-                const linkResult = await tld.verifyImage(link.token, link.address);
+                const linkResult = await wildcard.verifyImage(link.token, link.address);
                 if (linkResult !== 'Verified') {
                     console.log(` x ${linkResult}`);
                     return process.exit(1);
@@ -176,7 +176,7 @@ const verifyCommands = {
         const coordinates = (argv.coordinates || '').split(',').filter(i => i).map(i => parseInt(i, 10));
         const nonce = argv.nonce !== undefined ? argv.nonce : null;
 
-        const result = await domain.verifyImage({ id, claims, coordinates }, filepath, addr, nonce);
+        const result = await item.verifyImage({ id, claims, coordinates }, filepath, addr, nonce);
         if (argv.chain === true && !addr) {
             const addrToCheck = result;
             return verifyCertificateChain(id, addrToCheck);

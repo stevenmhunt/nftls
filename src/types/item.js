@@ -1,8 +1,8 @@
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
-const platforms = require('./platforms');
-    const { SEPARATOR, generateNonce, buildTokenClaims } = require('./common');
+const platforms = require('../platforms');
+    const { SEPARATOR, generateNonce, buildTokenClaims } = require('../common');
 
-const DOMAIN_TOKEN_CLAIM = "NFTLD Domain Token: VerifyIdentity";
+const DOMAIN_TOKEN_CLAIM = "NFTLS Item Token: VerifyIdentity";
 
 async function createSignature(token, key) {
     const platformName = token.id.split('@')[1];

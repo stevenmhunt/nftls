@@ -1,13 +1,14 @@
+const _ = require('lodash');
 const fs = require('fs-extra');
-const platforms = require('./platforms');
+const platforms = require('../platforms');
 const { buildTokenImage, encodeImageData, decodeImageData,
-    extractImageNonce, extractImageSignature, extractImageHash } = require('./imaging/tld');
-const { SEPARATOR, generateNonce, buildTokenClaims } = require('./common');
+    extractImageNonce, extractImageSignature, extractImageHash } = require('../imaging/wildcard');
+const { SEPARATOR, generateNonce, buildTokenClaims } = require('../common');
 
-const TLD_TOKEN_CLAIM = "NFTLD TLD Token: AllowSigning, AllowSubDomains, VerifyIdentity";
+const WILDCARD_TOKEN_CLAIM = "NFTLS Wildcard Token: AllowSigning, AllowSubDomains, VerifyIdentity";
 
 function buildImageMessage(token) {
-    return `${token.path}${SEPARATOR}${token.platform}${SEPARATOR}NFTLD${SEPARATOR}${token.nonce}`;
+    return `${token.path}${SEPARATOR}${token.platform}${SEPARATOR}NFTLS${SEPARATOR}${token.nonce}`;
 }
 
 async function createImage(token, key, output) {
@@ -21,7 +22,7 @@ async function createImage(token, key, output) {
     const imageHash = await extractImageHash(tmpImage, false);
 
     // build initial encoded token string.
-    const tokenValue = buildTokenClaims([TLD_TOKEN_CLAIM, token.id, imageHash]);
+    const tokenValue = buildTokenClaims([WILDCARD_TOKEN_CLAIM, token.id, imageHash]);
 
     // get signature.
     const sig = platform.signMessage(key, `${token.nonce}${SEPARATOR}${tokenValue}`);
@@ -35,7 +36,7 @@ async function createImage(token, key, output) {
     return resultImage;
 }
 
-async function decodeImage(filepath) {
+async function inspectImage(filepath) {
     const encodedData = await decodeImageData(filepath);
     const imageHash = await extractImageHash(filepath);
     const nonce = await extractImageNonce(filepath);
@@ -79,7 +80,7 @@ async function decodeImage(filepath) {
 }
 
 async function verifyImage(filepath, addr) {
-    const data = _.isString(filepath) ? await decodeImage(filepath) : filepath;
+    const data = _.isString(filepath) ? await inspectImage(filepath) : filepath;
 
     if (data.expectedImageHash !== data.imageHash) {
         return `The SHA-256 hash '${data.expectedImageHash}' does not match actual hash value '${data.imageHash}'.`;
@@ -104,6 +105,6 @@ async function verifyImage(filepath, addr) {
 
 module.exports = {
     createImage,
-    decodeImage,
+    inspectImage,
     verifyImage
 };

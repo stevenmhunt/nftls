@@ -1,6 +1,7 @@
-const tld = require('./src/tld');
+const wildcard = require('./src/types/wildcard');
 
 module.exports = {
-    buildTldImage: tld.buildImage,
-    verifyTldImage: tld.verifyImage
+    createWildcardImage: wildcard.createImage,
+    inspectWildcardImage: wildcard.inspectImage,
+    verifyWildcardImage: wildcard.verifyImage
 };
