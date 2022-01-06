@@ -3,12 +3,13 @@ const fs = require('fs-extra');
 const platforms = require('../platforms');
 const { buildTokenImage, encodeImageData, decodeImageData,
     extractImageNonce, extractImageSignature, extractImageHash } = require('../imaging/wildcard');
-const { SEPARATOR, generateNonce, buildTokenClaims } = require('../common');
+const { SEPARATOR, generateNonce, buildTokenClaims, extractTokenClaims } = require('../common');
 
-const WILDCARD_TOKEN_CLAIM = "NFTLS Wildcard Token: AllowSigning, AllowSubDomains, VerifyIdentity";
+const WILDCARD_TOKEN_TYPE = 'NFTLS Wildcard'
+const WILDCARD_TOKEN_GRANTS = 'AllowSigningWildcards, AllowSigningItems, AllowVerify'
 
 function buildImageMessage(token) {
-    return `${token.path}${SEPARATOR}${token.platform}${SEPARATOR}NFTLS${SEPARATOR}${token.nonce}`;
+    return `${token.path}${token.version ? ' (' + token.version + ')' : ''}${SEPARATOR}${token.platform}${SEPARATOR}NFTLS.IO${SEPARATOR}${token.nonce}`;
 }
 
 async function createImage(token, key, output) {
@@ -22,7 +23,11 @@ async function createImage(token, key, output) {
     const imageHash = await extractImageHash(tmpImage, false);
 
     // build initial encoded token string.
-    const tokenValue = buildTokenClaims([WILDCARD_TOKEN_CLAIM, token.id, imageHash]);
+    const tokenValue = buildTokenClaims({
+        id: token.id,
+        type: WILDCARD_TOKEN_TYPE, grants: WILDCARD_TOKEN_GRANTS,
+        imageHash
+    });
 
     // get signature.
     const sig = platform.signMessage(key, `${token.nonce}${SEPARATOR}${tokenValue}`);
@@ -38,7 +43,7 @@ async function createImage(token, key, output) {
 
 async function inspectImage(filepath) {
     const encodedData = await decodeImageData(filepath);
-    const imageHash = await extractImageHash(filepath);
+    const actualImageHash = await extractImageHash(filepath);
     const nonce = await extractImageNonce(filepath);
     const sigmark = await extractImageSignature(filepath);
 
@@ -46,13 +51,12 @@ async function inspectImage(filepath) {
         throw new Error('No encoded data was located. The provided file is not a valid token.');
     }
 
-    const [header, id, hash, sig] = encodedData.split(SEPARATOR);
-    const headerData = header.split(':');
-    const type = headerData[0];
-    const grants = headerData[1].split(',').map(i => i.trim());
+    const sig = encodedData.split(SEPARATOR).slice(-1)[0];
+    const claimData = extractTokenClaims(encodedData);
+    const { type, grants, id, imageHash } = claimData;
     const [path, platformName] = id.split('@');
     const platform = platforms[platformName];
-    const claims = buildTokenClaims([header, id, hash]);
+    const claims = buildTokenClaims(claimData);
 
     const imageSigMsg = buildImageMessage({
         nonce, platform: platformName, path
@@ -60,8 +64,10 @@ async function inspectImage(filepath) {
 
     const sigMsg = `${nonce}${SEPARATOR}${claims}`;
 
-    const sigAddress = platform.recoverAddress(sig, sigMsg);
-    const sigmarkAddress = platform.recoverAddress(sigmark, imageSigMsg);
+    let sigAddress = null;
+    try { sigAddress = platform.recoverAddress(sig, sigMsg); } catch (e) { }
+    let sigmarkAddress = null;
+    try { sigmarkAddress = platform.recoverAddress(sigmark, imageSigMsg); } catch (e) { }
 
     return {
         id,
@@ -69,8 +75,8 @@ async function inspectImage(filepath) {
         platform: platformName,
         grants,
         claims,
-        expectedImageHash: hash,
-        imageHash,
+        expectedImageHash: imageHash,
+        imageHash: actualImageHash,
         nonce,
         sig,
         sigAddress,

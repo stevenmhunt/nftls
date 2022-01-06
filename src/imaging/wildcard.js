@@ -1,29 +1,28 @@
-const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
 const Jimp = require('jimp');
 
-const { fillWithColor } = require('./common');
+const { fillWithColor, sha256 } = require('./common');
 const { encodeImageData, decodeImageData } = require('./steganography');
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 
-const TOKEN_WIDTH = 256;
-const TOKEN_HEIGHT = 256;
-const HEADER_SIZE = 21;
-const PADDING = 3;
+const TOKEN_WIDTH = 512;
+const TOKEN_HEIGHT = 512;
+const HEADER_SIZE = 42;
+const PADDING = 6;
 
-const MARK_X = 3;
-const MARK_Y = 3;
-const MARK_W = 3;
-const MARK_H = 3;
+const MARK_X = 6;
+const MARK_Y = 6;
+const MARK_W = 6;
+const MARK_H = 6;
 
-const HEADER_FONT = 'FONT_SANS_16_WHITE';
+const HEADER_FONT = path.join(__dirname, '../../fonts', 'OpenSansCondensed-Bold.fnt');
 
 async function buildTokenImage(token) {
     let image = await Jimp.read(token.image);
     const resultImage = path.join('./bin', `~${path.basename(token.image)}`);
-    const font = await Jimp.loadFont(Jimp[HEADER_FONT]);
+    const font = await Jimp.loadFont(HEADER_FONT);
     const nonceColor = token.nonce.toString(16).padEnd(8, 'f');
     const headerColor = nonceColor.substring(2);
     
@@ -34,7 +33,7 @@ async function buildTokenImage(token) {
 
     // write text to the top.
     image = image.print(font, 0, 0, {
-            text: token.path,
+            text: `${token.path}${token.version ? ' (' + token.version + ')' : ''}`,
             alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE);
@@ -51,7 +50,7 @@ async function buildTokenImage(token) {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE)
         .print(font, PADDING, TOKEN_HEIGHT - HEADER_SIZE, {
-            text: 'NFTLS',
+            text: 'NFTLS.IO',
             alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE);
@@ -79,7 +78,7 @@ async function extractImageHash(filepath, useTempFile = true) {
     if (useTempFile) {
         await fs.unlink(tmpfile);
     }
-    return crypto.createHash('sha256').update(image).digest().toString('hex');
+    return sha256(image);
 }
 
 async function extractImageSignature(filepath) {

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 
 function fillWithColor(color) {
     const r = parseInt(color.substring(0, 2), 16);
@@ -12,6 +13,11 @@ function fillWithColor(color) {
     }
 }
 
+function sha256(val) {
+    return crypto.createHash('sha256').update(val).digest().toString('hex');
+}
+
 module.exports = {
-    fillWithColor
+    fillWithColor,
+    sha256
 };

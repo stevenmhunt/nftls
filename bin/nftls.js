@@ -68,18 +68,18 @@ const createCommands = {
             }, key, output);
             result = await wildcard.verifyImage(output, keyAddress);
             if (result == 'Verified') {
-                console.log(" ✓ Token generated and verified.");
+                console.log(` ✓ Token ${id} generated and verified.`);
                 return;
             }
         }
         throw new Error(result);
     },
-    'domain': async function term_create_domain(id, image, key) {
+    'item': async function term_create_domain(id, image, key) {
         if (!key) {
             key = await readLineSecure('<<<====DANGER====>>>\nPrivate Key: ');
         }
         const claims = await processDomainClaims(argv.claims);
-        const coordinates = (argv.coordinates || '').split(',').filter(i => i).map(i => parseInt(i, 10));
+        const coordinates = (argv.coordinates || '6,6,6,6').split(',').filter(i => i).map(i => parseInt(i, 10));
         const { signature, nonce } = await item.createImage({
             id, claims, coordinates, nonce: argv.nonce === true
         }, key, image);
@@ -95,7 +95,7 @@ const inspectCommands = {
         let result = null;
         if (argv.coordinates !== undefined) {
             const image = await Jimp.read(filepath);
-            const coordinates = (argv.coordinates || '').split(',').filter(i => i).map(i => parseInt(i, 10));
+            const coordinates = (argv.coordinates || '6,6,6,6').split(',').filter(i => i).map(i => parseInt(i, 10));
             result = await sigmark.extractSignatureMark(image, ...coordinates);
         }
         else {
@@ -119,15 +119,14 @@ const inspectCommands = {
         const hash = await wildcardImaging.extractImageHash(filepath, true);
         console.log(hash);
     },
-    'wildcard': async function term_inspect_wildcard(filepath) {
+    'certificate': async function term_inspect_certificate(filepath) {
         const data = await wildcard.inspectImage(filepath);
-        console.log('NFTLS:');
-        console.log('    Token:')
-        console.log('        Claims:');
-        console.log(`            ${data.claims.split('\r\n').join(EOL + '            ')}`);
-        console.log('        Signature:');
-        console.log(`            ${data.sig}`);
-        console.log(`            Address: ${data.sigAddress}`);
+        console.log('Certificate:');
+        console.log('    Claims:');
+        console.log(`        ${data.claims.split('\r\n').join(EOL + '        ')}`);
+        console.log('    Signature:');
+        console.log(`        ${data.sig}`);
+        console.log(`        Address: ${data.sigAddress}`);
         console.log('    Image:');
         console.log(`        Nonce: ${data.nonce}`);
         console.log(`        SHA-256: ${data.imageHash}`);
@@ -165,15 +164,15 @@ const verifyCommands = {
                     return process.exit(1);
                 }
             }
+            if (token.sigAddress != chain[0].address.toLowerCase()) {
+                console.log(` x The signature address does not match the token chain address.`);
+                return process.exit(1);
+            }
         }
-        if (token.sigAddress != chain[0].address.toLowerCase()) {
-            console.log(` x The signature address does not match the token chain address.`);
-            return process.exit(1);
-}
     },
-    'domain': async function term_verify_domain(id, filepath, addr) {
+    'item': async function term_verify_domain(id, filepath, addr) {
         const claims = await processDomainClaims(argv.claims);
-        const coordinates = (argv.coordinates || '').split(',').filter(i => i).map(i => parseInt(i, 10));
+        const coordinates = (argv.coordinates || '6,6,6,6').split(',').filter(i => i).map(i => parseInt(i, 10));
         const nonce = argv.nonce !== undefined ? argv.nonce : null;
 
         const result = await item.verifyImage({ id, claims, coordinates }, filepath, addr, nonce);

@@ -2,7 +2,7 @@ const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark'
 const platforms = require('../platforms');
     const { SEPARATOR, generateNonce, buildTokenClaims } = require('../common');
 
-const DOMAIN_TOKEN_CLAIM = "NFTLS Item Token: VerifyIdentity";
+const DOMAIN_TOKEN_CLAIM = "NFTLS Item Token: AllowVerify";
 
 async function createSignature(token, key) {
     const platformName = token.id.split('@')[1];
@@ -42,12 +42,12 @@ async function verifySignature({ id, claims }, signature, addr, nonce = null) {
 
 async function createImage(token, key, output) {
     const { signature, nonce } = await createSignature(token, key);
-    await drawSignatureMark(output, signature, ...(token.coordinates || []));
+    await drawSignatureMark(output, signature, ...(token.coordinates || [6, 6, 6, 6]));
     return { signature, nonce };
 }
 
 async function verifyImage({ id, claims, coordinates }, filepath, nonce = null, addr = null) {
-    const signature = await extractSignatureMark(filepath, ...(coordinates || []));
+    const signature = await extractSignatureMark(filepath, ...(coordinates || [6, 6, 6, 6]));
     return verifySignature({ id, claims }, signature, nonce, addr);
 }
 
