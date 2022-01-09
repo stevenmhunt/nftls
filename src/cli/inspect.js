@@ -33,7 +33,7 @@ async function defaultCommand(args) {
         console.log(`        Date Requested: ${certificate.dateRequested}`);
         console.log('    Issuer:');
         _.keys(certificate.issuer).forEach((s) => {
-            console.log(`        ${_.startCase(s)}: ${certificate.subject[s]}`);
+            console.log(`        ${_.startCase(s)}: ${certificate.issuer[s]}`);
         });
         console.log(`        Email: ${certificate.issuerEmail}`);
         console.log(`        Date Issued: ${certificate.dateIssued}`);
