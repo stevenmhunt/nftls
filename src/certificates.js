@@ -4,7 +4,7 @@ const platforms = require('./platforms');
 const { gzip, ungzip } = require('node-gzip');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
-const { SEPARATOR, generateIdentifier, shortenPath } = require('./utils');
+const { SEPARATOR, generateSerialNumber, shortenPath } = require('./utils');
 
 const NO_IMAGE_HASH = 'N/A';
 const requestTypes = {
@@ -82,6 +82,7 @@ async function issueCertificate(request, { id, issuer, email }, key) {
         issuer,
         issuerEmail: email,
         dateIssued: new Date().toISOString(),
+        serialNumber: generateSerialNumber()
     }));
 
     // digitally sign the issued certificate.

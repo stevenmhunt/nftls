@@ -8,7 +8,7 @@ function generateCode() {
     return crypto.randomBytes(4).readUInt32BE();
 }
 
-function generateIdentifier() {
+function generateSerialNumber() {
     return crypto.randomBytes(16).toString('hex');    
 }
 
@@ -22,6 +22,6 @@ function shortenPath(path) {
 module.exports = {
     SEPARATOR,
     generateCode,
-    generateIdentifier,
+    generateSerialNumber,
     shortenPath
 };
