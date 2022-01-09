@@ -6,7 +6,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log('    Inspects the contents of a certificate or signed token.');
     console.log('\nUsage:');
-    console.log('     nftls --inspect <file>');
+    console.log('     nftls inspect <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
     console.log('        certificate code:  ( --code <number>)');
 }
@@ -52,11 +52,15 @@ async function defaultCommand(args) {
             console.log(`        ${signature}`);
             console.log(`        Address: ${signatureAddress}`);
             console.log('    Image:');
-            console.log(`        Code: ${code}`);
+            if (code) {
+                console.log(`        Code: ${code}`);
+            }
             console.log(`        SHA-256: ${imageHash}`);
-            console.log('        Signature:');
-            console.log(`            ${signatureMark}`);
-            console.log(`            Address: ${signatureMarkAddress}`);
+            if (signatureMark) {
+                console.log('        Signature:');
+                console.log(`            ${signatureMark}`);
+                console.log(`            Address: ${signatureMarkAddress}`);
+            }
         }
     }
 }

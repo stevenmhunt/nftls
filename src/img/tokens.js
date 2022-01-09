@@ -19,10 +19,10 @@ const MARK_H = 6;
 
 const HEADER_FONT = path.join(__dirname, '../../fonts', 'OpenSansCondensed-Bold.fnt');
 
-async function buildTokenImage(token, output) {
+async function renderDomainTokenImage(token, output) {
     let image = await Jimp.read(token.image);
     const font = await Jimp.loadFont(HEADER_FONT);
-    const codeColor = token.code.toString(16).padEnd(8, 'f');
+    const codeColor = token.code.toString(16).padStart(8, '0');
     const headerColor = codeColor.substring(2);
     
     // draw header and footer.
@@ -93,7 +93,7 @@ async function extractImageCode(filepath) {
 module.exports = {
     encodeImageData,
     decodeImageData,
-    buildTokenImage,
+    renderDomainTokenImage,
     extractImageHash,
     extractImageCode,
     extractImageSignature

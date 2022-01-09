@@ -7,7 +7,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log('    Renders the specified image types.');
     console.log('\nUsage:');
-    console.log('     nftls --render <domain-token> (<private key>)');
+    console.log('     nftls render <domain-token> (<private key>)');
     console.log('        token name:  --name <path>@<platform>')
     console.log('        base image:  --image <file>');
     console.log('        output file: --output [-o] <file>');

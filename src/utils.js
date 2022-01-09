@@ -12,8 +12,16 @@ function generateIdentifier() {
     return crypto.randomBytes(16).toString('hex');    
 }
 
+function shortenPath(path) {
+    if (path.length > 20) {
+        return `${path.substring(0, 11)}...${path.substring(path.length - 5, path.length)}`.toLowerCase();
+    }
+    return path.toLowerCase();
+}
+
 module.exports = {
     SEPARATOR,
     generateCode,
-    generateIdentifier
+    generateIdentifier,
+    shortenPath
 };

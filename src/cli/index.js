@@ -5,6 +5,7 @@ const issue = require('./issue');
 const recover = require('./recover');
 const render = require('./render');
 const request = require('./request');
+const trust = require('./trust');
 const verify = require('./verify');
 
 module.exports = {
@@ -15,5 +16,6 @@ module.exports = {
     recover,
     render,
     request,
+    trust,
     verify
 };

@@ -5,7 +5,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log('    Installs the certificate into the target image.');
     console.log('\nUsage:');
-    console.log('     nftls --install <certificate file>');
+    console.log('     nftls install <certificate file>');
     console.log('        target image: --image <file>');
     console.log('        output file:  (--output [-o] <file>)');
 }

@@ -1,16 +1,17 @@
 
 const fs = require('fs-extra');
-const { buildTokenImage } = require('./img/domainTokens');
+const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
-const { generateCode, SEPARATOR } = require('./utils');
+const { generateCode, SEPARATOR, shortenPath } = require('./utils');
 
 async function renderDomainCertificateToken({ name, image }, key, output) {
-    const [path, platformName] = name.split('@');
+    const [longPath, platformName] = name.split('@');
+    const path = shortenPath(longPath);
     const platform = platforms[platformName];
     const code = generateCode() || 9999;
     const msg = [path, platformName, 'NFTLS.IO', code].join(SEPARATOR);
     const signature = await platform.signMessage(key, msg);
-    await buildTokenImage({
+    await renderDomainTokenImage({
         path, platform: platformName, image, code, signature
     }, output);
     return { code };

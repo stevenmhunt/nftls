@@ -4,7 +4,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log('    Verifies the authenticity of a certificate or signed token.');
     console.log('\nUsage:');
-    console.log('     nftls --verify <file> (<expected parent address>)');
+    console.log('     nftls verify <file> (<expected parent address>)');
 }
 
 async function defaultCommand(args, address) {

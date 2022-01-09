@@ -26,23 +26,24 @@ async function main() {
         }
     }
 
-    const command = _.keys(argv)[1];
-    const target = argv[command];
+    const command = argv._[0];
+    const target = argv._[1];
     if (target && _.isString(target)) {
         argv._target = target;
         if (!cli[command]) {
             throw new Error(`Invalid command '${command}'.`);
         }
+        const params = argv._.slice(2);
         if (cli[command][target]) {
             if (cli[command].beforeCommand) {
-                await cli[command].beforeCommand(argv, ...argv._);
+                await cli[command].beforeCommand(argv, ...params);
             }
-            await cli[command][target](argv, ...argv._);
+            await cli[command][target](argv, ...params);
             return;
         }
         else {
             if (cli[command].defaultCommand) {
-                await cli[command].defaultCommand(argv, ...argv._);
+                await cli[command].defaultCommand(argv, ...params);
             }
             else {
                 console.log(`Error: Invalid command target '${target}'.`);
