@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const os = require('os');
 const Jimp = require('jimp');
 
-const { fillWithColor, sha256 } = require('./common');
+const { fillWithColor, sha256 } = require('./utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 
@@ -19,9 +19,8 @@ const MARK_H = 6;
 
 const HEADER_FONT = path.join(__dirname, '../../fonts', 'OpenSansCondensed-Bold.fnt');
 
-async function buildTokenImage(token) {
+async function buildTokenImage(token, output) {
     let image = await Jimp.read(token.image);
-    const resultImage = path.join('./bin', `~${path.basename(token.image)}`);
     const font = await Jimp.loadFont(HEADER_FONT);
     const codeColor = token.code.toString(16).padEnd(8, 'f');
     const headerColor = codeColor.substring(2);
@@ -55,7 +54,7 @@ async function buildTokenImage(token) {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, TOKEN_WIDTH, HEADER_SIZE);
 
-    image = await drawSignatureMark(image, token.imageSig, MARK_X, MARK_Y, MARK_W, MARK_H);
+    image = await drawSignatureMark(image, token.signature, MARK_X, MARK_Y, MARK_W, MARK_H);
 
     // write code as color.
     image = image.scan(TOKEN_WIDTH - HEADER_SIZE + PADDING,
@@ -64,8 +63,8 @@ async function buildTokenImage(token) {
         HEADER_SIZE - PADDING * 2,
         fillWithColor(codeColor));
 
-    await image.writeAsync(resultImage);
-    return resultImage;
+    await image.writeAsync(output);
+    return output;
 }
 
 async function extractImageHash(filepath, useTempFile = true) {
