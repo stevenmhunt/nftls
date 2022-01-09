@@ -1,10 +1,10 @@
-const { inspectCertificate } = require('../src/certificate');
+const { inspectCertificate } = require('../certificates');
 
 async function helpCommand() {
     console.log('\nDescription:');
     console.log('    Recovers address information from embedded signatures.');
     console.log('\nUsage:');
-    console.log('     nftls --recover <requestor-address | issuer-address | image-address> <certificate file>');
+    console.log('     nftls --recover <requestor-address | issuer-address | image-address> <file>');
 }
 
 async function defaultCommand(args) {

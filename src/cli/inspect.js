@@ -1,7 +1,15 @@
 const _ = require('lodash');
 const fs = require('fs-extra');
-const { readLineSecure, parseIdentity } = require('./utils');
-const { inspectCertificate } = require('../src/certificate');
+const { inspectCertificate } = require('../certificates');
+
+async function helpCommand() {
+    console.log('\nDescription:');
+    console.log('    Inspects the contents of a certificate or signed token.');
+    console.log('\nUsage:');
+    console.log('     nftls --inspect <file>');
+    console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
+    console.log('        certificate code:  ( --code <number>)');
+}
 
 async function defaultCommand(args) {
     const format = args.f || args.format || 'text';
@@ -9,6 +17,9 @@ async function defaultCommand(args) {
     const cert = await inspectCertificate(args._target, code);
     if (format === 'json') {
         console.log(JSON.stringify(cert, null, 4));
+    }
+    if (format === 'compact-json') {
+        console.log(JSON.stringify(cert));
     }
     else if (format === 'text') {
         const { certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress } = cert;
@@ -48,5 +59,6 @@ async function defaultCommand(args) {
 }
 
 module.exports = {
+    helpCommand,
     defaultCommand
 };

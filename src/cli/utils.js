@@ -1,16 +1,15 @@
-const { EOL } = require('os');
 const _ = require('lodash');
 const fs = require('fs-extra');
 const readline = require('readline');
 
-async function readLineSecure(prompt) {
+async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
         var rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
         });
         
-        rl.stdoutMuted = true;
+        rl.stdoutMuted = isSecure;
         
         rl.question(prompt, function(password) {
             rl.close();
@@ -19,11 +18,13 @@ async function readLineSecure(prompt) {
         });
         
         rl._writeToOutput = function _writeToOutput(stringToWrite) {
-            if (rl.stdoutMuted)
-            rl.output.write('');
-            else
-            rl.output.write(stringToWrite);
-        };      
+            if (rl.stdoutMuted) {
+                rl.output.write('');
+            }
+            else {
+                rl.output.write(stringToWrite);
+            }
+        };
     });
 }
 
@@ -56,8 +57,25 @@ async function parseIdentity(data) {
     return result;
 }
 
+async function withOutput(result, output) {
+    if (output === 'stdout') {
+        if (_.isBuffer(result)) { console.log(result.toString('base64')); }
+        else if (_.isObject(result)) { console.log(JSON.stringify(result, null, 4)); }
+        else { console.log(result); }
+        return;
+    }
+    if (output.endsWith('.json')) {
+        return fs.writeFile(output, JSON.stringify((result), null, 4), { encoding: 'utf8' });
+    }
+    if (output.endsWith('.png')) {
+        return fs.writeFile(output, result);
+    }
+    return fs.writeFile(output, result, 'utf8');
+}
+
 module.exports = {
-    readLineSecure,
+    readLine,
     processCoordinatesArg,
-    parseIdentity
+    parseIdentity,
+    withOutput
 };

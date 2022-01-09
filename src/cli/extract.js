@@ -1,11 +1,11 @@
 const sigmark = require('eth-signature-mark');
-const { inspectCertificate } = require('../src/certificate');
+const { inspectCertificate } = require('../certificates');
 
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Extracts a specific component of a certificate.');
+    console.log('    Extracts a specific component from a certificate or signed token.');
     console.log('\nUsage:');
-    console.log('     nftls --extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash> <certificate file>');
+    console.log('     nftls --extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash> <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
     console.log('        image coordinates: ( --coordinates "<x>,<y>,<w>,<h>" )');
 }

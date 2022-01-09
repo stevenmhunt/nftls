@@ -2,7 +2,7 @@
 const _ = require('lodash');
 const argv = require('mri')(process.argv.slice(2));
 const package = require('../package.json');
-const cli = require('../cli');
+const cli = require('../src/cli');
 
 async function main() {
     if (argv.h === true || argv.help === true) {

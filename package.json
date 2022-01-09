@@ -1,6 +1,6 @@
 {
   "name": "nftls",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A command-line tool and NodeJS library for working with NFTLS certificates.",
   "dependencies": {
     "eth-crypto": "^2.1.0",
