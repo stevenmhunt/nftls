@@ -25,6 +25,9 @@ async function defaultCommand(args) {
         const { certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress } = cert;
         console.log(`${certificate.type}:`);
         console.log(`    Identifier: ${certificate.id}`);
+        if (certificate.forward) {
+            console.log(`    Forward: ${certificate.forward}`);
+        }
         console.log('    Subject:');
         _.keys(certificate.subject).forEach((s) => {
             console.log(`        ${_.startCase(s)}: ${certificate.subject[s]}`);

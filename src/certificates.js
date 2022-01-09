@@ -16,15 +16,16 @@ const TYPE_DOMAIN_TOKEN = 'NFTLS Domain Request';
  * @param {string} req.subject The scope of the certificate and the identity of the requestor.
  * @param {string} req.email The email address of the requestor.
  * @param {number} req.code The code which was generated when rendering the domain token.
+ * @param {string} req.forward (optional) An address to forward child certificates to.
  * @param {string} key The private key to sign the request with.
  * @returns {Promise<object>} The domain certificate request.
  */
- async function requestDomainCertificate({ image, subject, email, code }, key) {
+ async function requestDomainCertificate({ image, subject, email, code, forward }, key) {
     const type = TYPE_DOMAIN_TOKEN;
     const imageHash = await extractImageHash(image);
 
     // build certificate request object.
-    const payload = { type, subject, email, imageHash, dateRequested: new Date().toISOString() };
+    const payload = { type, subject, email, imageHash, dateRequested: new Date().toISOString(), forward };
     const msg = JSON.stringify(payload);
 
     // digitally sign the request.
@@ -103,7 +104,7 @@ async function inspectCertificate(filepath) {
     }
 
     const cert = result.certificate;
-    const { type, subject, email, imageHash, dateRequested } = cert;
+    const { type, subject, email, imageHash, dateRequested, forward } = cert;
 
     if (hash !== NO_IMAGE_HASH) {
         const [path, platformName] = result.certificate.subject.name.split('@');
@@ -117,7 +118,7 @@ async function inspectCertificate(filepath) {
             // extract additional metadata from the domain token image.
             result.code = await extractImageCode(filepath);
             result.signatureMark = await extractImageSignature(filepath);
-            const msg = JSON.stringify({ type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested });
+            const msg = JSON.stringify({ type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, forward });
 
             // recover requestor and image addresses (they should match...).
             cert.signatureAddress = await platform.recoverAddress(cert.signature, `${result.code}${SEPARATOR}${msg}`);

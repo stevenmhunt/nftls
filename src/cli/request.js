@@ -21,7 +21,7 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
-async function requestDomainCli(args, key) {
+async function requestDomainCli(args, key, forward) {
     const image = args.image;
     const subject = await parseIdentity(args.subject);
     const email = args.email;
@@ -40,7 +40,7 @@ async function requestDomainCli(args, key) {
     const output = args.o || args.output || `${image.split('.').slice(0, -1).join('.')}.json`;
 
     return withOutput(await requestDomainCertificate({
-        image, subject, email, code
+        image, subject, email, code, forward
     }, key), output);
 }
 
