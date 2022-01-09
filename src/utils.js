@@ -14,7 +14,8 @@ function generateSerialNumber() {
 
 function shortenPath(path) {
     if (path.length > 20) {
-        return `${path.substring(0, 11)}...${path.substring(path.length - 5, path.length)}`.toLowerCase();
+        const [addr, num] = path.split('#');
+        return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4, addr.length)}${num ? '#' + num : ''}`.toLowerCase();
     }
     return path.toLowerCase();
 }
