@@ -1,5 +1,5 @@
 const sigmark = require('eth-signature-mark');
-const { inspectCertificate } = require('../certificates');
+const { inspectCertificate } = require('../../certificates');
 
 async function helpCommand() {
     console.log('\nDescription:');

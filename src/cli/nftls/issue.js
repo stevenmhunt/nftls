@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
-const { readLine, parseIdentity, withOutput } = require('./utils');
-const { issueCertificate } = require('../certificates');
+const { readLine, parseIdentity, withOutput } = require('../utils');
+const { issueCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 

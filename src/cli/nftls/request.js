@@ -1,5 +1,5 @@
-const { readLine, parseIdentity, withOutput } = require('./utils');
-const { requestCertificate } = require('../certificates');
+const { readLine, parseIdentity, withOutput } = require('../utils');
+const { requestCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 

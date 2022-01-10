@@ -1,4 +1,4 @@
-const { inspectCertificate, verifyCertificate } = require('../certificates');
+const { inspectCertificate, verifyCertificate } = require('../../certificates');
 
 async function helpCommand() {
     console.log('\nDescription:');

@@ -1,5 +1,5 @@
 const fs = require('fs-extra');
-const { installCertificate } = require('../certificates');
+const { installCertificate } = require('../../certificates');
 
 async function helpCommand() {
     console.log('\nDescription:');

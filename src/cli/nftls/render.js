@@ -1,5 +1,5 @@
-const { readLine, withOutput } = require('./utils');
-const { renderDomainCertificateToken } = require('../tokens');
+const { readLine, withOutput } = require('../utils');
+const { renderDomainCertificateToken } = require('../../tokens');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 
@@ -40,5 +40,6 @@ async function renderDomainTokenCli(args, key) {
 
 module.exports = {
     defaultCommand,
+    helpCommand,
     'domain-token': renderDomainTokenCli
 };
