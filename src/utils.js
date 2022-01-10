@@ -20,9 +20,14 @@ function shortenPath(path) {
     return path.toLowerCase();
 }
 
+function sha256(val) {
+    return crypto.createHash('sha256').update(val).digest().toString('hex');
+}
+
 module.exports = {
     SEPARATOR,
     generateCode,
     generateSerialNumber,
-    shortenPath
+    shortenPath,
+    sha256
 };

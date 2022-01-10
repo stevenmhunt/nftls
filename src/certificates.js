@@ -4,12 +4,13 @@ const platforms = require('./platforms');
 const { gzip, ungzip } = require('node-gzip');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
-const { SEPARATOR, generateSerialNumber, shortenPath } = require('./utils');
+const { SEPARATOR, generateSerialNumber, shortenPath, sha256 } = require('./utils');
 
 const NO_IMAGE_HASH = 'N/A';
 const requestTypes = {
     domain: 'NFTLS Domain Request',
-    token: 'NFTLS Token Request'
+    token: 'NFTLS Token Request',
+    ca: 'NFTLS CA Request'
 };
 
 /**
@@ -27,7 +28,7 @@ const requestTypes = {
  async function requestCertificate({ requestType, image, subject, email, code, forward }, key) {
     // check arguments
     if (!requestTypes[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
-    if (!image) { throw new Error('An image path must be provided.'); }
+    if (!image && requestType !== 'ca') { throw new Error('An image path must be provided.'); }
     if (!subject) { throw new Error('Subject information must be provided.'); }
     if (!subject.name) { throw new Error('A subject name must be provided.'); }
     if (!subject.organization) { throw new Error('A subject organization must be provided.'); }
@@ -35,10 +36,11 @@ const requestTypes = {
 
     subject.name = subject.name.toLowerCase();
     const type = requestTypes[requestType];
-    const imageHash = await extractImageHash(image);
+    const dateRequested = new Date().toISOString();
+    const imageHash = requestType !== 'ca' ? await extractImageHash(image) : sha256(dateRequested + subject.name);
 
     // build certificate request object.
-    const payload = { type, subject, email, imageHash, dateRequested: new Date().toISOString(), forward };
+    const payload = { type, subject, email, imageHash, dateRequested, forward };
     const msg = JSON.stringify(payload);
 
     // digitally sign the request.
@@ -69,8 +71,10 @@ async function issueCertificate(request, { id, issuer, email }, key) {
 
     issuer.name = issuer.name.toLowerCase();
     request.subject.name = request.subject.name.toLowerCase();
-    if (!id && request.type == requestTypes.token && request.subject.name) {
-        id = request.subject.name;
+    if (!id) {
+        if (request.type == requestTypes.token && request.subject.name) {
+            id = request.subject.name;
+        }
     }
     else {
         id = id.toLowerCase();
@@ -130,10 +134,16 @@ async function inspectCertificate(filepath) {
 
     const cert = result.certificate;
     const { type, subject, email, imageHash, dateRequested, forward } = cert;
+    if (type === 'NFTLS CA Certificate') {
+        hash = sha256(dateRequested + subject.name);
+    }
 
     if (hash !== NO_IMAGE_HASH) {
         const [path, platformName] = result.certificate.subject.name.split('@');
         const platform = platforms[platformName];
+        const msg = JSON.stringify({
+            type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, forward
+        });
         result.imageHash = hash;
 
         // recover issuer signature address.
@@ -145,18 +155,15 @@ async function inspectCertificate(filepath) {
             result.signatureMark = await extractImageSignature(filepath);
 
             // recover requestor and image addresses (they should match...).
-            const msg = JSON.stringify({ type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, forward });
             cert.signatureAddress = await platform.recoverAddress(cert.signature, `${result.code}${SEPARATOR}${msg}`);
             const markMsg = [
                 shortenPath(path), platformName, 'NFTLS.IO', result.code
             ].join(SEPARATOR);
             result.signatureMarkAddress = platform.recoverAddress(result.signatureMark, markMsg);
         }
-        else if (type === 'NFTLS Token Certificate') {
+        else {
             // recover requestor and image addresses (they should match...).
-            cert.signatureAddress = await platform.recoverAddress(cert.signature, JSON.stringify({
-                type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested
-            }));
+            cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
         }
     }
 

@@ -1,7 +1,5 @@
-const etherscan = require('./etherscan');
+const eth = require('./eth');
 
 module.exports = {
-    'eth': {
-        etherscan
-    }
+    eth
 };

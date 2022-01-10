@@ -38,7 +38,7 @@ async function requestDomainCli(args, key, forward) {
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
-    const output = args.o || args.output || `${image.split('.').slice(0, -1).join('.')}.json`;
+    const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
         requestType, image, subject, email, code, forward
@@ -61,10 +61,27 @@ async function requestTokenCli(args, key) {
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
-    const output = args.o || args.output || `${image.split('.').slice(0, -1).join('.')}.json`;
+    const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
         requestType, image, subject, email
+    }, key), output);
+}
+
+async function requestCACli(args, key, forward) {
+    const requestType = 'ca';
+    const subject = await parseIdentity(args.subject);
+    const email = args.email;
+
+    // check optional parameters.
+    if (!key) {
+        key = await readLine(PRIVATE_KEY_PROMPT, true);
+    }
+
+    const output = args.o || args.output || 'stdout';
+
+    return withOutput(await requestCertificate({
+        requestType, subject, email, forward
     }, key), output);
 }
 
@@ -72,5 +89,6 @@ module.exports = {
     defaultCommand,
     helpCommand,
     domain: requestDomainCli,
-    token: requestTokenCli
+    token: requestTokenCli,
+    ca: requestCACli
 };
