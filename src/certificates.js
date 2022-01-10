@@ -111,7 +111,11 @@ async function inspectCertificate(filepath) {
     let hash = null;
 
     // handle different file types.
-    if (filepath.endsWith('.json')) {
+    if (_.isObject(filepath)) {
+        data = filepath;
+        hash = NO_IMAGE_HASH;
+    }
+    else if (filepath.endsWith('.json')) {
         data = await fs.readJSON(filepath);
         hash = NO_IMAGE_HASH;
     }

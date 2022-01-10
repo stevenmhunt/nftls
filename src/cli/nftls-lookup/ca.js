@@ -1,3 +1,4 @@
+const { addCertificateAuthority, getCertificateAuthorities } = require('../../certificateAuthorities');
 
 async function helpCommand() {
     console.log('\nDescription:');
@@ -14,6 +15,7 @@ async function defaultCommand(args) {
 
 async function addRootCli(args, filepath) {
     const name = args.n || args.name;
+    await addCertificateAuthority(name, filepath);
     console.log(` ✓ Successfully added CA '${name}'.`);
 }
 
@@ -22,7 +24,8 @@ async function removeRootCli(args, rootAddress, forwardAddress) {
     console.log(` ✓ Successfully removed CA '${name}'.`);
 }
 
-async function listRootCli(args) {
+async function listRootCli() {
+    console.log(await getCertificateAuthorities());
 }
 
 module.exports = {
