@@ -4,8 +4,10 @@ const platforms = require('./platforms');
 const { gzip, ungzip } = require('node-gzip');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
-const { SEPARATOR, generateSerialNumber, shortenPath, sha256 } = require('./utils');
+const { SEPARATOR, generateSerialNumber, shortenPath, sha256, calculateChainPaths } = require('./utils');
+const { addKeyItem } = require('./storage');
 
+const CERT_KEY = 'certificateCache';
 const NO_IMAGE_HASH = 'N/A';
 const requestTypes = {
     domain: 'NFTLS Domain Request',
@@ -35,6 +37,7 @@ const requestTypes = {
     if (!email) { throw new Error('An email address must be provided.'); }
 
     subject.name = subject.name.toLowerCase();
+    if (subject.forward) { subject.forward = subject.forward.toLowerCase(); }
     const type = requestTypes[requestType];
     const dateRequested = new Date().toISOString();
     const imageHash = requestType !== 'ca' ? await extractImageHash(image) : sha256(dateRequested + subject.name);
@@ -103,25 +106,25 @@ async function issueCertificate(request, { id, issuer, email }, key) {
 
 /**
  * Inspects the provided certificate.
- * @param {string} filepath The certificate file to read.
+ * @param {string} certData The certificate data or file to read.
  * @returns {Promise<object>} Data about the certificate.
  */
-async function inspectCertificate(filepath) {
+async function inspectCertificate(certData) {
     let data = null;
     let hash = null;
 
     // handle different file types.
-    if (_.isObject(filepath)) {
-        data = filepath;
+    if (_.isObject(certData)) {
+        data = certData;
         hash = NO_IMAGE_HASH;
     }
-    else if (filepath.endsWith('.json')) {
-        data = await fs.readJSON(filepath);
+    else if (certData.endsWith('.json')) {
+        data = await fs.readJSON(certData);
         hash = NO_IMAGE_HASH;
     }
-    else if (filepath.endsWith('.png')) {
-        data = JSON.parse(await decodeImageData(filepath));
-        hash = await extractImageHash(filepath);
+    else if (certData.endsWith('.png')) {
+        data = JSON.parse(await decodeImageData(certData));
+        hash = await extractImageHash(certData);
     }
 
     // handle different certificate formats.
@@ -155,8 +158,8 @@ async function inspectCertificate(filepath) {
 
         if (type === 'NFTLS Domain Certificate') {
             // extract additional metadata from the domain token image.
-            result.code = await extractImageCode(filepath);
-            result.signatureMark = await extractImageSignature(filepath);
+            result.code = await extractImageCode(certData);
+            result.signatureMark = await extractImageSignature(certData);
 
             // recover requestor and image addresses (they should match...).
             cert.signatureAddress = await platform.recoverAddress(cert.signature, `${result.code}${SEPARATOR}${msg}`);
@@ -192,6 +195,24 @@ async function verifyCertificate(filepath, addr) {
         return `The requestor and image signature addresses do not match!`;
     }
 
+    if (data.certificate.type === 'NFTLS CA Certificate') {
+        if (data.certificate.subject.name !== data.certificate.issuer.name) {
+            return `The subject and issuer names do not match for the CA certificate.`;
+        }
+    }
+    else {
+        const [issuerPath, issuerPlatform] = data.certificate.issuer.name.split('@');
+        const [subjectPath, subjectPlatform] = data.certificate.subject.name.split('@');
+        const paths = calculateChainPaths(subjectPath);
+        if (paths.indexOf(issuerPath) === -1) {
+            return `The issuer name '${issuerPath}@${issuerPlatform}' is not valid for issuing a certificate for '${data.certificate.subject.name}'.`;
+        }
+        const compatiblePlatforms = platforms[subjectPlatform].getCompatiblePlatforms();
+        if (subjectPlatform !== issuerPlatform && compatiblePlatforms.indexOf(issuerPlatform) === -1) {
+            return `The issuer platform '${issuerPlatform}' is not compatible with subject platform '${subjectPlatform}'.`;
+        }
+    }
+
     if (addr) {
         if (data.signatureAddress !== addr.toLowerCase()) {
             return `Invalid embedded signature address.`;
@@ -214,6 +235,8 @@ async function installCertificate(cert, image, output) {
     if (result !== 'Verified') {
         throw new Error(`Failed to install ${data.certificate.subject.name}: ${result}`);
     }
+    const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+    await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'))
     console.log(` ✓ Certificate for ${data.certificate.subject.name} is installed and verified.`);
 }
 

@@ -3,15 +3,15 @@ const argv = require('mri')(process.argv.slice(2));
 const package = require('../../package.json');
 
 async function main({ app, cli }) {
-    if (argv.h === true || argv.help === true) {
-        console.log(`${app} ${package.version}`);
-        console.log(package.description);
-        console.log('\nCommands:');
-        console.log(_.keys(cli).map(k => `    ${app} ${k} ...`).join('\n'));
+    const command = argv._[0];
+    const target = argv._[1];
+
+    if (argv.v === true || argv.version === true) {
+        console.log(package.version);
         return;
     }
 
-    if (argv.h || argv.help) {
+    if (_.isString(argv.h) || _.isString(argv.help)) {
         const cmd = cli[argv.h || argv.help];
         if (cmd) {
             if (cmd.helpCommand) {
@@ -20,14 +20,24 @@ async function main({ app, cli }) {
             else {
                 console.log('No help information available.');
             }
+            return;
         }
-        else {
-            throw new Error(`Invalid command target '${target}'.`);
-        }
+        throw new Error(`Invalid command target '${target}'.`);
     }
 
-    const command = argv._[0];
-    const target = argv._[1];
+    if (argv.h === true || argv.help === true || !command) {
+        console.log(`${app} ${package.version}`);
+        console.log(package.description);
+        if (app == 'nftls-lookup') {
+            console.log('Powered by Etherscan.io APIs.');
+        }
+        console.log(`\nUsage:\n    ${app} <command> ...<args>`);
+        console.log('\nCommands:');
+        console.log(_.keys(cli).sort().map(k => `    ${k.padEnd(20, ' ')}${cli[k].getHelpText()}`).join('\n'));
+        console.log(`\nFor help on a specific command, use \`${app} --help <command>\`.`);
+        return;
+    }
+
     if (target && _.isString(target)) {
         argv._target = target;
         if (!cli[command]) {
@@ -50,10 +60,6 @@ async function main({ app, cli }) {
                 process.exit(1);
             }
         }
-    }
-
-    if (argv.v === true || argv.version === true) {
-        console.log(package.version);
         return;
     }
 }

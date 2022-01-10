@@ -4,9 +4,13 @@ const { issueCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 
+function getHelpText() {
+    return 'Issues a new certificate using a certificate request.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Issues a new certificate using a certificate request.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls issue <certificate request file> (<private key>)');
     console.log('        NFT identity:   (--id <NFT address>#<token number>)');
@@ -34,6 +38,7 @@ async function defaultCommand(args, key) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand
 };

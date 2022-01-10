@@ -3,9 +3,13 @@ const { renderDomainCertificateToken } = require('../../tokens');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 
+function getHelpText() {
+    return 'Renders the specified image types.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Renders the specified image types.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls render <domain-token> (<private key>)');
     console.log('        token name:  --name <path>@<platform>')
@@ -39,6 +43,7 @@ async function renderDomainTokenCli(args, key) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand,
     'domain-token': renderDomainTokenCli

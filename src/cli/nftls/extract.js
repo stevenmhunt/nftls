@@ -1,9 +1,13 @@
 const sigmark = require('eth-signature-mark');
 const { inspectCertificate } = require('../../certificates');
 
+function getHelpText() {
+    return 'Extracts a specific component from a certificate or signed token.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Extracts a specific component from a certificate or signed token.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash> <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
@@ -55,6 +59,7 @@ async function extractActualHashCli(args, filepath) {
 }
 
 module.exports = {
+    getHelpText,
     helpCommand,
     defaultCommand,
     'expected-hash': extractHashCli,

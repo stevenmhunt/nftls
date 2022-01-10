@@ -1,8 +1,12 @@
 const { inspectCertificate, verifyCertificate } = require('../../certificates');
 
+function getHelpText() {
+    return 'Verifies the authenticity of a certificate or signed token.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Verifies the authenticity of a certificate or signed token.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls verify <file> (<expected parent address>)');
 }
@@ -18,6 +22,7 @@ async function defaultCommand(args, address) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand
 };

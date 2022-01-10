@@ -2,9 +2,13 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const { inspectCertificate } = require('../../certificates');
 
+function getHelpText() {
+    return 'Inspects the contents of a certificate or signed token.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Inspects the contents of a certificate or signed token.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls inspect <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
@@ -73,6 +77,7 @@ async function defaultCommand(args) {
 }
 
 module.exports = {
+    getHelpText,
     helpCommand,
     defaultCommand
 };

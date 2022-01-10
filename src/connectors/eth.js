@@ -1,8 +1,8 @@
 
-async function connect(apiKey, env) {
-    
+async function etherscanClientFactory(apiKey, env) {
+    return {
+        // online lookup functions go here...
+    };
 }
 
-module.exports = {
-    connect
-};
+module.exports = etherscanClientFactory;

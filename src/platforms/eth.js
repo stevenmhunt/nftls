@@ -22,9 +22,14 @@ function recoverAddress(sig, msg) {
     return EthCrypto.recover(sig, hashMsg).toLowerCase();
 }
 
+function getCompatiblePlatforms() {
+    return [];
+}
+
 module.exports = {
     generateWallet,
     getAddress,
     signMessage,
-    recoverAddress
+    recoverAddress,
+    getCompatiblePlatforms
 };

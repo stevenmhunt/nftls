@@ -1,8 +1,12 @@
 const { inspectCertificate } = require('../../certificates');
 
+function getHelpText() {
+    return 'Recovers address information from embedded signatures.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Recovers address information from embedded signatures.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls recover <requestor-address | issuer-address | image-address> <file>');
 }
@@ -29,6 +33,7 @@ async function recoverMarkCli(args, filepath) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand,
     'requestor-address': recoverRequestorCli,

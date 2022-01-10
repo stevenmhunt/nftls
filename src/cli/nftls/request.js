@@ -3,16 +3,20 @@ const { requestCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 
+function getHelpText() {
+    return 'Generates a certificate request.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Generates a certificate request.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls request <domain | token> (<private key>) (<forward address>)');
     console.log('        base image:       --image <file>');
     console.log('        subject data:     --subject <x509 data | json file>');
     console.log('        email address:    --email <email address>');
     console.log('        certificate code: (--code <number>)');
-    console.log('        output file:      --output [-o] <file | stdout>');
+    console.log('        output file:      --output [-o] <file | [stdout]>');
 }
 
 async function defaultCommand(args) {
@@ -86,6 +90,7 @@ async function requestCACli(args, key, forward) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand,
     domain: requestDomainCli,

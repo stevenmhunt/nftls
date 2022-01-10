@@ -1,8 +1,12 @@
 const { readLine } = require('../utils');
 
+function getHelpText() {
+    return 'Connect to a blockchain network in order to perform lookups.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Connects the lookup tool to a blockchain network in order to perform lookups.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls-lookup connect <platform> (<API key>)');
     console.log('        environment: --env <[mainnet] | kovan | goerli | rinkeby | ropsten>');
@@ -22,6 +26,7 @@ async function addConnectEthereumCli(args, apiKey) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand,
     eth: addConnectEthereumCli

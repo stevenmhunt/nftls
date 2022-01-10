@@ -1,9 +1,13 @@
 const fs = require('fs-extra');
 const { installCertificate } = require('../../certificates');
 
+function getHelpText() {
+    return 'Installs the certificate into the target image.';
+}
+
 async function helpCommand() {
     console.log('\nDescription:');
-    console.log('    Installs the certificate into the target image.');
+    console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls install <certificate file>');
     console.log('        target image: --image <file>');
@@ -24,6 +28,7 @@ async function defaultCommand(args) {
 }
 
 module.exports = {
+    getHelpText,
     defaultCommand,
     helpCommand
 };
