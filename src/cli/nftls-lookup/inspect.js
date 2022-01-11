@@ -15,14 +15,23 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    const format = args.f || args.format || 'json';
+    const format = args.f || args.format || 'text';
     const context = {};
-    const cert = await inspectCertificateChain(context, args._target);
+    const chain = await inspectCertificateChain(context, args._target);
+    if (format === 'text') {
+        console.log('NFTLS Certificate Chain:')
+        chain.forEach((cert) => {
+            const type = `[${cert.certificate.type.split(' ')[1]}]`.padEnd(8);
+            const name = cert.certificate.subject.name.padEnd(20);
+            console.log(`    - ${type}  ${name}`);
+            console.log(`        Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`)
+        });
+    }
     if (format === 'json') {
-        console.log(JSON.stringify(cert, null, 4));
+        console.log(JSON.stringify(chain, null, 4));
     }
     if (format === 'compact-json') {
-        console.log(JSON.stringify(cert));
+        console.log(JSON.stringify(chain));
     }
 }
 

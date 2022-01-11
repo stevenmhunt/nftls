@@ -26,6 +26,7 @@ async function defaultCommand(args) {
 async function renderDomainTokenCli(args, key) {
     const image = args.image;
     const name = args.name;
+    const noCode = args.code === false;
 
     // check required parameters.
     if (!image) {
@@ -38,8 +39,10 @@ async function renderDomainTokenCli(args, key) {
     }
 
     const output = args.o || args.output || image;
-    const { code } = await renderDomainCertificateToken({ name, image }, key, output);
-    console.log(code);
+    const { code } = await renderDomainCertificateToken({ name, image, noCode }, key, output);
+    if (code) {
+        console.log(code);
+    }
 }
 
 module.exports = {

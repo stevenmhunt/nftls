@@ -43,12 +43,14 @@ async function renderDomainTokenImage(token, output) {
         }, TOKEN_WIDTH - PADDING, HEADER_SIZE);
 
     // write text to the bottom.
-    image = image.print(font, 0, TOKEN_HEIGHT - HEADER_SIZE, {
-            text: `${token.code}`,
-            alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }, TOKEN_WIDTH, HEADER_SIZE)
-        .print(font, PADDING, TOKEN_HEIGHT - HEADER_SIZE, {
+    if (token.code) {
+        image = image.print(font, 0, TOKEN_HEIGHT - HEADER_SIZE, {
+                text: `${token.code}`,
+                alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+            }, TOKEN_WIDTH, HEADER_SIZE);
+    }
+    image = image.print(font, PADDING, TOKEN_HEIGHT - HEADER_SIZE, {
             text: 'NFTLS.IO',
             alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
