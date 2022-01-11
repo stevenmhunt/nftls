@@ -16,22 +16,44 @@ async function helpCommand() {
 
 async function defaultCommand(args) {
     const format = args.f || args.format || 'text';
-    const context = {};
-    const chain = await inspectCertificateChain(context, args._target);
+    const context = {
+        eth: {
+            locateCertificate: function (name, address) {
+                return new Promise((resolve) => {
+                    console.log(`Searching blockchain for certificate '${name}' @ ${address}...`);
+                    setTimeout(resolve, 1000);
+                    // TODO: actually implement this...
+                });
+            }
+        }
+    };
+    const { chain, status } = await inspectCertificateChain(context, args._target);
     if (format === 'text') {
         console.log('NFTLS Certificate Chain:')
-        chain.forEach((cert) => {
-            const type = `[${cert.certificate.type.split(' ')[1]}]`.padEnd(8);
+        console.log('│');
+        chain.filter(i => i).forEach((cert, index) => {
+            const isCA = cert.certificate.type === 'NFTLS CA Certificate';
             const name = cert.certificate.subject.name.padEnd(20);
-            console.log(`    - ${type}  ${name}`);
-            console.log(`        Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`)
+            console.log(`${''.padEnd(index * 5, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${name}`);
+            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Subject: ${cert.certificate.subject.organization}`);
+            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`);
+            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Status: ${(cert.status === 'Verified' ? '✓' : '✗')} ${cert.status}`);
+            console.log(`${''.padEnd((index + 1) * 5, ' ')}│`);
         });
+        const padSize = chain.filter(i => i).length * 5;
+        if (status === 'Incomplete') {
+            console.log(`${''.padEnd(padSize, ' ')}/   ✗ Incomplete`);
+        }
+        else {
+            console.log(`${''.padEnd(padSize, ' ')}└──[${chain.length + 1}] (Target Certificate)`);
+            console.log(`${''.padEnd(padSize, ' ')}        Status: ✓ Complete`);
+        }
     }
     if (format === 'json') {
-        console.log(JSON.stringify(chain, null, 4));
+        console.log(JSON.stringify({ status, chain }, null, 4));
     }
     if (format === 'compact-json') {
-        console.log(JSON.stringify(chain));
+        console.log(JSON.stringify({ status, chain }));
     }
 }
 

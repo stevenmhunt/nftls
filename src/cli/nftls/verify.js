@@ -15,7 +15,7 @@ async function defaultCommand(args, address) {
     const filepath = args._target;
     const cert = await inspectCertificate(filepath);
     const result = await verifyCertificate(cert, address);
-    console.log(` ${(result === 'Verified' ? '✓' : 'x')} ${result}`);
+    console.log(` ${(result === 'Verified' ? '✓' : '✗')} ${result}`);
     if (result !== 'Verified') {
         return process.exit(1);
     }
