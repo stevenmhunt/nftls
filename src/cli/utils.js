@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const fs = require('fs-extra');
 const readline = require('readline');
+const clc = require("cli-color");
 
 async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
@@ -57,8 +58,8 @@ async function processIdentityArg(data) {
     return result;
 }
 
-function displayVerifyResult(result) {
-    console.log(` ${(result === 'Verified' ? '✓' : '✗')} ${result}`);
+function displayStatus(result, expected = 'Verified') {
+    console.log(` ${(expected === null || result === expected ? clc.green('✓') : clc.red('✗'))} ${result}`);
 }
 
 async function withOutput(result, output) {
@@ -81,6 +82,6 @@ module.exports = {
     readLine,
     processCoordinatesArg,
     processIdentityArg,
-    displayVerifyResult,
+    displayStatus,
     withOutput
 };

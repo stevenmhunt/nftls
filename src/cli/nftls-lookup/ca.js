@@ -1,5 +1,5 @@
 const { addCertificateAuthority, getCertificateAuthorities } = require('../../certificateAuthorities');
-const { readLine } = require('../utils');
+const { readLine, displayStatus } = require('../utils');
 
 function getHelpText() {
     return 'Manages the Certificate Authority references used for lookups.';
@@ -34,13 +34,15 @@ async function addRootCli(args, filepath) {
         }
     }
 
-    if (result) { console.log(` ✓ Successfully added certificate authority '${name}'.`); }
+    if (result) {
+        displayStatus(`Successfully added certificate authority '${name}'.`, null);
+    }
     else { process.exit(1); }
 }
 
 async function removeRootCli(args, address, forward) {
     const name = args.n || args.name;
-    console.log(` ✓ Successfully removed certificate authority '${name}'.`);
+    displayStatus(`Successfully removed certificate authority '${name}'.`, null);
 }
 
 async function listRootCli(args) {

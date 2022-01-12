@@ -1,5 +1,5 @@
 const { inspectCertificate, verifyCertificate } = require('../../certificates');
-const { displayVerifyResult } = require('../utils');
+const { displayStatus } = require('../utils');
 
 function getHelpText() {
     return 'Verifies the authenticity of a certificate or signed token.';
@@ -16,7 +16,7 @@ async function defaultCommand(args, address) {
     const filepath = args._target;
     const cert = await inspectCertificate(filepath);
     const result = await verifyCertificate(cert, address);
-    displayVerifyResult(result);
+    displayStatus(result);
     if (result !== 'Verified') {
         return process.exit(1);
     }

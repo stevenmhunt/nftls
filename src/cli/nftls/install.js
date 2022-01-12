@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const { installCertificate } = require('../../certificates');
+const { displayStatus } = require('../utils');
 
 function getHelpText() {
     return 'Installs the certificate into the target image.';
@@ -25,7 +26,7 @@ async function defaultCommand(args) {
     }
 
     const result = await installCertificate(cert, image, output);
-    console.log(` ✓ Certificate for ${result} is installed and verified.`);
+    displayStatus(`Certificate for ${result} is installed and verified.`, null);
 }
 
 module.exports = {
