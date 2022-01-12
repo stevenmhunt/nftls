@@ -12,7 +12,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls request <domain | token> (<private key>) (<forward address>)');
+    console.log('     nftls request <domain | token> (<private key>) (<forward key>)');
     console.log('        base image:       --image <file>');
     console.log('        subject data:     --subject <x509 data | json file>');
     console.log('        email address:    --email <email address>');
@@ -26,7 +26,7 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
-async function requestDomainCli(args, key, forward) {
+async function requestDomainCli(args, key, forwardKey) {
     const requestType = 'domain';
     const { image } = args;
     const subject = await processIdentityArg(args.subject);
@@ -47,8 +47,8 @@ async function requestDomainCli(args, key, forward) {
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, image, subject, email, code, forward,
-    }, key), output);
+        requestType, image, subject, email, code,
+    }, key, forwardKey), output);
 }
 
 async function requestTokenCli(args, key) {
@@ -75,7 +75,7 @@ async function requestTokenCli(args, key) {
     }, key), output);
 }
 
-async function requestCACli(args, key, forward) {
+async function requestCACli(args, key, forwardKey) {
     const requestType = 'ca';
     const subject = await processIdentityArg(args.subject);
     const { email } = args;
@@ -89,8 +89,8 @@ async function requestCACli(args, key, forward) {
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, subject, email, forward,
-    }, key), output);
+        requestType, subject, email,
+    }, key, forwardKey), output);
 }
 
 module.exports = {

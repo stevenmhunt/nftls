@@ -53,8 +53,8 @@ async function listRootCli(args) {
             console.log(`\n    ${ca.name}:`);
             console.log(`        Platform: ${ca.platform}`);
             console.log(`        Address: ${ca.address}`);
-            if (ca.forward) {
-                console.log(`        Forward: ${ca.forward}`);
+            if (ca.forwardAddress) {
+                console.log(`        Forward: ${ca.forwardAddress}`);
             }
             console.log(`        Status: ${ca.status}`);
         });

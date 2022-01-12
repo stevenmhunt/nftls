@@ -35,7 +35,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, address,
     // analyze certificate.
     const data = JSON.parse(Buffer.from(cert, 'base64').toString('utf8'));
     const nextAddress = data.certificate.signatureAddress;
-    const nextForward = data.certificate.forward;
+    const nextForward = data.certificate.forwardAddress;
     data.status = await verifyCertificate(data, address);
 
     // if something bad happened, then we can't complete the chain.
@@ -93,7 +93,7 @@ async function inspectCertificateChain(context, certData) {
             { cache, paths },
             `@${certPlatform}`,
             CAs[i].address,
-            CAs[i].forward,
+            CAs[i].forwardAddress,
             targetAddress,
         );
         if (chain.length === 0 || chain[chain.length - 1]) {
