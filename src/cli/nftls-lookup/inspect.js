@@ -33,16 +33,17 @@ async function defaultCommand(args) {
     };
     const { chain, status } = await inspectCertificateChain(context, args.target);
     if (format === 'tree') {
-        console.log(`[${clc.greenBright('#')}] NFTLS Certificate Chain:`);
-        process.stdout.write(' │   Status:');
-        displayStatus(status, 'Complete'); console.log(' │');
+        console.log('NFTLS Certificate Chain:');
+        process.stdout.write('     Status:');
+        displayStatus(status, 'Complete');
+        console.log();
         chain.filter((i) => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === certTypes.ca;
             const { subject } = cert.certificate;
             const [path, platform] = subject.name.split('@');
             const platformDisplay = clc.magenta(`${platform}`);
             const location = clc.blackBright(`[ ${[subject.city, subject.state, subject.province, subject.country].filter((i) => i).join(', ')} ]`);
-            console.log(`[${clc.greenBright(index + 1)}]─── ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : path)}`);
+            console.log(`[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : path)}`);
             console.log(` │   Owner: ${clc.bold(subject.organization)} ${location}`);
             console.log(` │   Address: ${shortenPath(cert.certificate.signatureAddress)}${cert.certificate.forwardAddress ? clc.blueBright(' -> ') + shortenPath(cert.certificate.forwardAddress) : ''}`);
             process.stdout.write(' │   Status:');
@@ -52,7 +53,7 @@ async function defaultCommand(args) {
         if (status === 'Incomplete') {
             console.log(`[${clc.redBright('X')}]`);
         } else {
-            console.log(`[${clc.greenBright(chain.length + 1)}]─── ${clc.yellow('(Target Certificate)')}`);
+            console.log(`[${clc.greenBright(chain.length + 1)}]┄┄ ${clc.yellow('(Target Certificate)')}`);
         }
 
         return;
