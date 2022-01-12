@@ -1,4 +1,5 @@
 const { inspectCertificateChain } = require('../../certificateChains');
+const { certTypes } = require('../../constants');
 
 const CLI_SPACING = 5;
 
@@ -32,7 +33,7 @@ async function defaultCommand(args) {
         console.log('NFTLS Certificate Chain:')
         console.log('│');
         chain.filter(i => i).forEach((cert, index) => {
-            const isCA = cert.certificate.type === 'NFTLS CA Certificate';
+            const isCA = cert.certificate.type === certTypes.ca;
             const subject = cert.certificate.subject;
             const location = [subject.city, subject.state, subject.province, subject.country].filter(i => i).join(', ');
             console.log(`${''.padEnd(index * CLI_SPACING, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${subject.name}`);

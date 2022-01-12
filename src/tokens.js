@@ -1,6 +1,7 @@
 const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
-const { generateCode, SEPARATOR, shortenPath } = require('./utils');
+const { generateCode, shortenPath } = require('./utils');
+const { SEPARATOR } = require('./constants');
 
 /**
  * Renders a new domain certificate token image for deployment as an NFT.

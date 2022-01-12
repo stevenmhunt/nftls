@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const fs = require('fs-extra');
 const { inspectCertificate } = require('../../certificates');
+const { certTypes } = require('../../constants');
 
 function getHelpText() {
     return 'Inspects the contents of a certificate or signed token.';
@@ -41,7 +42,7 @@ async function defaultCommand(args) {
         });
         console.log(`        Email: ${certificate.email}`);
         console.log(`        Date Requested: ${certificate.dateRequested}`);
-        if (certificate.type !== 'NFTLS CA Certificate' && imageHash) {
+        if (certificate.type !== certTypes.ca && imageHash) {
             console.log('    Issuer:');
             _.keys(certificate.issuer).forEach((s) => {
                 console.log(`        ${_.startCase(s)}: ${certificate.issuer[s]}`);
@@ -60,7 +61,7 @@ async function defaultCommand(args) {
             console.log('    Issuer Signature:');
             console.log(`        ${signature}`);
             console.log(`        Address: ${signatureAddress}`);
-            if (certificate.type !== 'NFTLS CA Certificate' && imageHash) {
+            if (certificate.type !== certTypes.ca && imageHash) {
                 console.log('    Image:');
                 if (code) {
                     console.log(`        Code: ${code}`);

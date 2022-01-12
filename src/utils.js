@@ -1,8 +1,6 @@
 const _ = require('lodash');
 const crypto = require('crypto');
 
-// using CRLF in order to maintain compatibility with https://etherscan.io/verifySig
-const SEPARATOR = "\r\n";
 const CA_PATH = '';
 
 /**
@@ -86,7 +84,6 @@ function sha256(val) {
 }
 
 module.exports = {
-    SEPARATOR,
     calculateChainPaths,
     generateCode,
     generateSerialNumber,

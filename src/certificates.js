@@ -4,20 +4,15 @@ const platforms = require('./platforms');
 const { gzip, ungzip } = require('node-gzip');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
-const { SEPARATOR, generateSerialNumber, shortenPath, sha256, calculateChainPaths } = require('./utils');
+const { generateSerialNumber, shortenPath, sha256, calculateChainPaths } = require('./utils');
 const { addKeyItem } = require('./storage');
+const { SEPARATOR, requestTypes, certTypes } = require('./constants');
 
 const CERT_KEY = 'certificateCache';
 const NO_IMAGE_HASH = 'N/A';
 const CSR_VALID_FIELDS = [
     'type', 'subject', 'email', 'imageHash', 'dateRequested', 'forward', 'signature', 'requestAddress', 'requestSignature'
 ];
-
-const requestTypes = {
-    domain: 'NFTLS Domain Request',
-    token: 'NFTLS Token Request',
-    ca: 'NFTLS CA Request'
-};
 
 /**
  * Generates a certificate request for a domain certificate.
@@ -168,7 +163,7 @@ async function inspectCertificate(filepath) {
     const msg = JSON.stringify({
         type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, data, forward
     });
-    if (type === 'NFTLS CA Certificate') {
+    if (type === certTypes.ca) {
         hash = sha256(dateRequested + subject.name);
     }
     const requestSignatureAddress = platform.recoverAddress(cert.requestSignature, `${msg}${SEPARATOR}${cert.requestAddress}`);
@@ -178,7 +173,7 @@ async function inspectCertificate(filepath) {
         result.imageHash = hash;
         result.signatureAddress = await platform.recoverAddress(result.signature, JSON.stringify(result.certificate));
 
-        if (type === 'NFTLS Domain Certificate') {
+        if (type === certTypes.domain) {
             // extract additional metadata from the domain token image.
             result.code = await extractImageCode(filepath);
             result.signatureMark = await extractImageSignature(filepath);
@@ -217,12 +212,12 @@ async function verifyCertificate(filepath, addr) {
         return 'The requestor signature is inconsistent.';
     }
 
-    if (data.certificate.type === 'NFTLS Domain Certificate' &&
+    if (data.certificate.type === certTypes.domain &&
         data.certificate.signatureAddress !== data.signatureMarkAddress) {
         return `The requestor and image signature addresses do not match!`;
     }
 
-    if (data.certificate.type === 'NFTLS CA Certificate') {
+    if (data.certificate.type === certTypes.ca) {
         // CA certificates are always self-signed.
         if (data.certificate.subject.name !== data.certificate.issuer.name) {
             return `The subject and issuer names do not match for the CA certificate.`;
@@ -273,7 +268,7 @@ async function installCertificate(cert, image, output) {
 
     // write the certificate to the cache.
     // TODO: this will need to be re-evaluated later.
-    if (data.certificate.type != 'NFTLS Token Certificate') {
+    if (data.certificate.type != certTypes.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }
