@@ -33,8 +33,10 @@ async function defaultCommand(args) {
         console.log('│');
         chain.filter(i => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === 'NFTLS CA Certificate';
-            console.log(`${''.padEnd(index * CLI_SPACING, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${cert.certificate.subject.name}`);
-            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Subject: ${cert.certificate.subject.organization}`);
+            const subject = cert.certificate.subject;
+            const location = [subject.city, subject.state, subject.province, subject.country].filter(i => i).join(', ');
+            console.log(`${''.padEnd(index * CLI_SPACING, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${subject.name}`);
+            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Subject: ${subject.organization} (${location})`);
             console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`);
             console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Status: ${(cert.status === 'Verified' ? '✓' : '✗')} ${cert.status}`);
             console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│`);
