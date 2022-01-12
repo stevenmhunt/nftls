@@ -42,7 +42,7 @@ const x509Mapping = {
     L: 'city'
 }
 
-async function parseIdentity(data) {
+async function processIdentityArg(data) {
     if (!_.isString(data)) {
         return data;
     }
@@ -55,6 +55,10 @@ async function parseIdentity(data) {
         result[x509Mapping[key] || key] = value;
     })
     return result;
+}
+
+function displayVerifyResult(result) {
+    console.log(` ${(result === 'Verified' ? '✓' : '✗')} ${result}`);
 }
 
 async function withOutput(result, output) {
@@ -76,6 +80,7 @@ async function withOutput(result, output) {
 module.exports = {
     readLine,
     processCoordinatesArg,
-    parseIdentity,
+    processIdentityArg,
+    displayVerifyResult,
     withOutput
 };

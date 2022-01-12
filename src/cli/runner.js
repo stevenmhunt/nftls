@@ -2,15 +2,26 @@ const _ = require('lodash');
 const argv = require('mri')(process.argv.slice(2));
 const package = require('../../package.json');
 
+/**
+ * Initiates a command-line application using the given CLI configuration.
+ * @param {object} input The input data.
+ * @param {string} input.app The application name.
+ * @param {object} input.cli The CLI configuration object.
+ * @returns {Promise}
+ */
 async function main({ app, cli }) {
     const command = argv._[0];
     const target = argv._[1];
 
+    // <app> -v
+    // <app> --version
     if (argv.v === true || argv.version === true) {
         console.log(package.version);
         return;
     }
 
+    // <app> -h <item>
+    // <app> --help <item>
     if (_.isString(argv.h) || _.isString(argv.help)) {
         const cmd = cli[argv.h || argv.help];
         if (cmd) {
@@ -25,6 +36,9 @@ async function main({ app, cli }) {
         throw new Error(`Invalid command target '${target}'.`);
     }
 
+    // <app>
+    // <app> -h
+    // <app> --help
     if (argv.h === true || argv.help === true || !command) {
         console.log(`${app} ${package.version}`);
         console.log(package.description);
@@ -38,6 +52,7 @@ async function main({ app, cli }) {
         return;
     }
 
+    // <app> <command> <target>
     if (target && _.isString(target)) {
         argv._target = target;
         if (!cli[command]) {

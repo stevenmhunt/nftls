@@ -5,7 +5,15 @@ const { inspectCertificate, verifyCertificate } = require('./certificates');
 const CA_KEY = 'certificateAuthorities';
 const CERT_KEY = 'certificateCache';
 
+/**
+ * Adds a trusted CA for the current user.
+ * @param {string} name The name of the CA.
+ * @param {string} filepath The CA certificate.
+ * @param {boolean} isOverwrite Whether or not to overwrite an existing CA certificate with the same name.
+ * @returns {Promise<boolean>} Whether or not the CA was written successfully.
+ */
 async function addCertificateAuthority(name, filepath, isOverwrite = true) {
+    // verify that the CA certificate is valid before adding it.
     const ca = await inspectCertificate(filepath);
     const platform = ca.certificate.subject.name.split('@')[1];
     const address = ca.certificate.signatureAddress;
@@ -13,21 +21,36 @@ async function addCertificateAuthority(name, filepath, isOverwrite = true) {
     if (status !== 'Verified') {
         throw new Error(status);
     }
+
+    // check overwrite settings and whether or not there is an existing CA.
     const forward = ca.certificate.forward;
     const caName = name || [address, forward].filter(i => i).join('/');
     if (!isOverwrite && getKeyItem(CA_KEY, caName)) {
         return false;
     }
+
+    // add the CA and also cache the certificate.
     const key = `${ca.certificate.subject.name};${address}`;
     await addKeyItem(CA_KEY, caName, { platform, address, forward, status, key });
     await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(ca)).toString('base64'));
     return true;
 }
 
+/**
+ * Removes a trusted CA, either by name or address/forward.
+ * @param {string} name (optional) The name of the CA to remove.
+ * @param {string} address (optional) The address of the CA to remove.
+ * @param {string} forwardAddress (optional) The forwarding address of the CA to remove.
+ * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
+ */
 async function removeCertificateAuthority(name, address, forwardAddress) {
 
 }
 
+/**
+ * Retrieves a list of all trusted CAs.
+ * @returns {Promise<Array>}
+ */
 async function getCertificateAuthorities() {
     const items = await getItems(CA_KEY);
     return _.keys(items).map(i => Object.assign({}, {

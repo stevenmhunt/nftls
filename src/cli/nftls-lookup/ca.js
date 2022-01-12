@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { addCertificateAuthority, getCertificateAuthorities } = require('../../certificateAuthorities');
 const { readLine } = require('../utils');
 

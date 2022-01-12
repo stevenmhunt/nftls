@@ -1,9 +1,14 @@
-
-const fs = require('fs-extra');
 const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
 const { generateCode, SEPARATOR, shortenPath } = require('./utils');
 
+/**
+ * Renders a new domain certificate token image for deployment as an NFT.
+ * @param {object} input The configuration of the image.
+ * @param {string} key The private key to sign the image with.
+ * @param {string} output The output file.
+ * @returns {Promise<number>} Returns the randomly generated code associated with the token.
+ */
 async function renderDomainCertificateToken({ name, image, noCode }, key, output) {
     const [longPath, platformName] = name.split('@');
     const path = shortenPath(longPath);

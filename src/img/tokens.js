@@ -3,7 +3,8 @@ const fs = require('fs-extra');
 const os = require('os');
 const Jimp = require('jimp');
 
-const { fillWithColor, sha256 } = require('./utils');
+const { fillWithColor } = require('./utils');
+const { sha256 } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 

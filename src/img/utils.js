@@ -1,5 +1,10 @@
 const crypto = require('crypto');
 
+/**
+ * Generates a scan() function for JIMP to fill the given rectangle with color.
+ * @param {*} color A hexidecimal color value to fill the space with.
+ * @returns The callback function to provide to scan().
+ */
 function fillWithColor(color) {
     const r = parseInt(color.substring(0, 2), 16);
     const g = parseInt(color.substring(2, 4), 16);
@@ -13,11 +18,6 @@ function fillWithColor(color) {
     }
 }
 
-function sha256(val) {
-    return crypto.createHash('sha256').update(val).digest().toString('hex');
-}
-
 module.exports = {
-    fillWithColor,
-    sha256
+    fillWithColor
 };

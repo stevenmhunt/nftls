@@ -13,6 +13,11 @@ const {
 } = require('./src/certificateAuthorities');
 
 const {
+    inspectCertificateChain,
+    verifyCertificateChain
+} = require('./src/certificateChains');
+
+const {
     renderDomainCertificateToken
 } = require('./src/tokens');
 
@@ -25,5 +30,7 @@ module.exports = {
     addCertificateAuthority,
     removeCertificateAuthority,
     getCertificateAuthorities,
+    inspectCertificateChain,
+    verifyCertificateChain,
     renderDomainCertificateToken
 };

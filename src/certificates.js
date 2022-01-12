@@ -204,7 +204,7 @@ async function inspectCertificate(filepath) {
  * Checks the given certificate to ensure signatures and hashes are correct.
  * @param {string} filepath The certificate file to verify.
  * @param {string} addr (optional) The parent address to verify with.
- * @returns {string} Returns "Verified" if verified, otherwise returns an error message.
+ * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
 async function verifyCertificate(filepath, addr) {
     const data = _.isString(filepath) ? await inspectCertificate(filepath) : filepath;
@@ -223,17 +223,24 @@ async function verifyCertificate(filepath, addr) {
     }
 
     if (data.certificate.type === 'NFTLS CA Certificate') {
+        // CA certificates are always self-signed.
         if (data.certificate.subject.name !== data.certificate.issuer.name) {
             return `The subject and issuer names do not match for the CA certificate.`;
         }
+        if (data.certificate.signatureAddress !== data.signatureAddress) {
+            return `The requestor and issuer addresses do not match for the CA certificate.`;
+        }
     }
     else {
+        // validate the issuer's path name.
         const [issuerPath, issuerPlatform] = data.certificate.issuer.name.split('@');
         const [subjectPath, subjectPlatform] = data.certificate.subject.name.split('@');
         const paths = calculateChainPaths(subjectPath);
         if (paths.indexOf(issuerPath) === -1) {
             return `The issuer name '${issuerPath}@${issuerPlatform}' is not valid for issuing a certificate for '${data.certificate.subject.name}'.`;
         }
+
+        // validate the issuer's blockchain platform.
         const compatiblePlatforms = platforms[subjectPlatform].getCompatiblePlatforms();
         if (subjectPlatform !== issuerPlatform && compatiblePlatforms.indexOf(issuerPlatform) === -1) {
             return `The issuer platform '${issuerPlatform}' is not compatible with subject platform '${subjectPlatform}'.`;
@@ -254,6 +261,7 @@ async function verifyCertificate(filepath, addr) {
  * @param {object} cert The certificate to install.
  * @param {string} image The image to install the certificate into.
  * @param {string} output (optional) The output file.
+ * @returns {Promise<string>} The name of the installed certificate.
  */
 async function installCertificate(cert, image, output) {
     await encodeImageData(image, JSON.stringify(cert), output || image);
@@ -262,9 +270,14 @@ async function installCertificate(cert, image, output) {
     if (result !== 'Verified') {
         throw new Error(`Failed to install ${data.certificate.subject.name}: ${result}`);
     }
-    const key = `${data.certificate.subject.name};${data.signatureAddress}`;
-    await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'))
-    console.log(` ✓ Certificate for ${data.certificate.subject.name} is installed and verified.`);
+
+    // write the certificate to the cache.
+    // TODO: this will need to be re-evaluated later.
+    if (data.certificate.type != 'NFTLS Token Certificate') {
+        const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+        await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
+    }
+    return data.certificate.subject.name;
 }
 
 module.exports = {

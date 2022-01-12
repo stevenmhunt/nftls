@@ -1,5 +1,5 @@
 const fs = require('fs-extra');
-const { readLine, parseIdentity, withOutput } = require('../utils');
+const { readLine, processIdentityArg, withOutput } = require('../utils');
 const { issueCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
@@ -22,7 +22,7 @@ async function helpCommand() {
 async function defaultCommand(args, key) {
     const request = await fs.readJSON(args._target);
     const id = args.id;
-    const issuer = await parseIdentity(args.issuer);
+    const issuer = await processIdentityArg(args.issuer);
     const email = args.email;
 
     // check optional parameters.

@@ -9,22 +9,24 @@ const CERT_KEY = 'certificateCache';
 /**
  * @private
  * Follows a predicted certificate chain path in order to locate and verify certificates in the chain.
- * @param {*} context Blockchain connector.
- * @param {*} inputs The cache data and list of path names to follow.
- * @param {*} name The next path name to find.
- * @param {*} address The next address to find.
- * @param {*} targetAddress The target address we're trying to reach.
+ * @param {object} context The blockchain connector context.
+ * @param {object} inputs The cache data and list of path names to follow.
+ * @param {string} name The next path name to find.
+ * @param {string} address The next address to find.
+ * @param {string} targetAddress The target address we're trying to reach.
  * @returns {Array} A list of all acquired certificates. The last element is null if the chain is broken.
  */
 async function resolveCertificateChain(context, { cache, paths }, name, address, targetAddress) {
     const platform = name.split('@')[1];
     if (paths.length === 0) {
+        // if we ran out of paths to validate, then we successfully walked across the chain.
         return [];
     }
 
     // acquire certificate.
     const cert = cache[`${name};${address}`] || await context[platform].locateCertificate(name, address);
     if (!cert) {
+        // if we don't find a certificate that matches our criteria, then the chain is broken.
         return [null];
     }
 
@@ -41,6 +43,13 @@ async function resolveCertificateChain(context, { cache, paths }, name, address,
     // TODO: add cycle detection.
 }
 
+/**
+ * Inspects certificate chain information for a given certificate.
+ * Note: requires an Internet connection.
+ * @param {object} context The blockchain connector context.
+ * @param {*} certData The certificate to inspect chain data from.
+ * @returns {Promise<object>} Any located certificates, as well as whether the chain is complete or not.
+ */
 async function inspectCertificateChain(context, certData) {
     const data = await inspectCertificate(certData);
     if ((await verifyCertificate(data)) !== 'Verified') {
@@ -67,6 +76,12 @@ async function inspectCertificateChain(context, certData) {
     }
 }
 
+/**
+ * Verifies whether a certificate and its chain of certificates is valid.
+ * @param {object} context The blockchain connector context.
+ * @param {*} certData The certificate to verify chain data from.
+ * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
+ */
 async function verifyCertificateChain(context, certData) {
     const { status } = await inspectCertificateChain(context, certData);
     if (status === 'Complete') {

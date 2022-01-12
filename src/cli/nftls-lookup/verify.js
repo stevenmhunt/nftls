@@ -1,5 +1,5 @@
 const { verifyCertificateChain } = require('../../certificateChains');
-
+const { displayVerifyResult } = require('../utils');
 function getHelpText() {
     return 'Verifies the authenticity of a certificate chain.';
 }
@@ -25,7 +25,7 @@ async function defaultCommand(args) {
         }
     };
     const result = await verifyCertificateChain(context, filepath);
-    console.log(` ${(result === 'Verified' ? '✓' : '✗')} ${result}`);
+    displayVerifyResult(result);
     if (result !== 'Verified') {
         return process.exit(1);
     }

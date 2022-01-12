@@ -1,6 +1,6 @@
-const _ = require('lodash');
-const fs = require('fs-extra');
 const { inspectCertificateChain } = require('../../certificateChains');
+
+const CLI_SPACING = 5;
 
 function getHelpText() {
     return 'Inspects the contents of a certificate chain.';
@@ -33,16 +33,15 @@ async function defaultCommand(args) {
         console.log('│');
         chain.filter(i => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === 'NFTLS CA Certificate';
-            const name = cert.certificate.subject.name.padEnd(20);
-            console.log(`${''.padEnd(index * 5, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${name}`);
-            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Subject: ${cert.certificate.subject.organization}`);
-            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`);
-            console.log(`${''.padEnd((index + 1) * 5, ' ')}│   Status: ${(cert.status === 'Verified' ? '✓' : '✗')} ${cert.status}`);
-            console.log(`${''.padEnd((index + 1) * 5, ' ')}│`);
+            console.log(`${''.padEnd(index * CLI_SPACING, ' ')}└───[${index + 1}] ${isCA ? '(CA) ' : ''}${cert.certificate.subject.name}`);
+            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Subject: ${cert.certificate.subject.organization}`);
+            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Address: ${cert.certificate.signatureAddress}${cert.certificate.forward ? ' -> ' + cert.certificate.forward : ''}`);
+            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│   Status: ${(cert.status === 'Verified' ? '✓' : '✗')} ${cert.status}`);
+            console.log(`${''.padEnd((index + 1) * CLI_SPACING, ' ')}│`);
         });
-        const padSize = chain.filter(i => i).length * 5;
+        const padSize = chain.filter(i => i).length * CLI_SPACING;
         if (status === 'Incomplete') {
-            console.log(`${''.padEnd(padSize, ' ')}/   ✗ Incomplete`);
+            console.log(`${''.padEnd(padSize, ' ')}=   ✗ Incomplete`);
         }
         else {
             console.log(`${''.padEnd(padSize, ' ')}└──[${chain.length + 1}] (Target Certificate)`);

@@ -1,4 +1,4 @@
-const { readLine, parseIdentity, withOutput } = require('../utils');
+const { readLine, processIdentityArg, withOutput } = require('../utils');
 const { requestCertificate } = require('../../certificates');
 
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
@@ -28,7 +28,7 @@ async function defaultCommand(args) {
 async function requestDomainCli(args, key, forward) {
     const requestType = 'domain';
     const image = args.image;
-    const subject = await parseIdentity(args.subject);
+    const subject = await processIdentityArg(args.subject);
     const email = args.email;
     const code = parseInt(args.code || '0', 10);
 
@@ -52,7 +52,7 @@ async function requestDomainCli(args, key, forward) {
 async function requestTokenCli(args, key) {
     const requestType = 'token';
     const image = args.image;
-    const subject = await parseIdentity(args.subject);
+    const subject = await processIdentityArg(args.subject);
     const email = args.email;
 
     // check required parameters.
@@ -74,7 +74,7 @@ async function requestTokenCli(args, key) {
 
 async function requestCACli(args, key, forward) {
     const requestType = 'ca';
-    const subject = await parseIdentity(args.subject);
+    const subject = await processIdentityArg(args.subject);
     const email = args.email;
 
     // check optional parameters.

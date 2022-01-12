@@ -24,7 +24,8 @@ async function defaultCommand(args) {
         throw new Error('An image is required to embed a certificate.');
     }
 
-    return installCertificate(cert, image, output);
+    const result = await installCertificate(cert, image, output);
+    console.log(` ✓ Certificate for ${result} is installed and verified.`);
 }
 
 module.exports = {
