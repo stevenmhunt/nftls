@@ -1,8 +1,11 @@
+/* eslint-disable no-console */
 const _ = require('lodash');
-const { certTypes } = require('../../src/constants');
+const { certTypes } = require('../constants');
 
-function displayCertificate({ certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress }, number = null) {
-    if (number !== null && !isNaN(number)) {
+function displayCertificate({
+    certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress,
+}, number = null) {
+    if (number !== null && number >= 0) {
         process.stdout.write(` [${number + 1}] `);
     }
     console.log(`${certificate.type}:`);
@@ -54,5 +57,5 @@ function displayCertificate({ certificate, imageHash, signature, signatureAddres
 }
 
 module.exports = {
-    displayCertificate
+    displayCertificate,
 };

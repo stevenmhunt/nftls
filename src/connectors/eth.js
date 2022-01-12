@@ -1,10 +1,9 @@
-
-async function etherscanClientFactory(apiKey, env) {
+async function etherscanClientFactory(/* apiKey, env */) {
     return {
-        // online lookup functions go here...
-        locateCertificate: async function (name, address) {
+    // online lookup functions go here...
+        async locateCertificate(/* name, address */) {
             // no idea how this works yet...
-        }
+        },
     };
 }
 

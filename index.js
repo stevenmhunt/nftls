@@ -3,22 +3,22 @@ const {
     issueCertificate,
     installCertificate,
     inspectCertificate,
-    verifyCertificate
+    verifyCertificate,
 } = require('./src/certificates');
 
 const {
     addCertificateAuthority,
     removeCertificateAuthority,
-    getCertificateAuthorities
+    getCertificateAuthorities,
 } = require('./src/certificateAuthorities');
 
 const {
     inspectCertificateChain,
-    verifyCertificateChain
+    verifyCertificateChain,
 } = require('./src/certificateChains');
 
 const {
-    renderDomainCertificateToken
+    renderDomainCertificateToken,
 } = require('./src/tokens');
 
 module.exports = {
@@ -32,5 +32,5 @@ module.exports = {
     getCertificateAuthorities,
     inspectCertificateChain,
     verifyCertificateChain,
-    renderDomainCertificateToken
+    renderDomainCertificateToken,
 };

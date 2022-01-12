@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { inspectCertificate } = require('../../certificates');
 
 function getHelpText() {
@@ -12,7 +13,7 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args._target}'.`);
+    console.log(`Error: Invalid command target '${args.target}'.`);
     await helpCommand();
     process.exit(1);
 }
@@ -38,5 +39,5 @@ module.exports = {
     helpCommand,
     'requestor-address': recoverRequestorCli,
     'issuer-address': recoverIssuerCli,
-    'image-address': recoverMarkCli
+    'image-address': recoverMarkCli,
 };

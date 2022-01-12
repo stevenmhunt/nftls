@@ -3,10 +3,10 @@ const fs = require('fs-extra');
 const os = require('os');
 const Jimp = require('jimp');
 
+const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const { fillWithColor } = require('./utils');
 const { sha256 } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
-const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 
 const TOKEN_WIDTH = 512;
 const TOKEN_HEIGHT = 512;
@@ -25,7 +25,7 @@ async function renderDomainTokenImage(token, output) {
     const font = await Jimp.loadFont(HEADER_FONT);
     const codeColor = token.code.toString(16).padStart(8, '0');
     const headerColor = codeColor.substring(2);
-    
+
     // draw header and footer.
     image = image.quality(100)
         .scan(0, 0, TOKEN_WIDTH, HEADER_SIZE, fillWithColor(headerColor))
@@ -33,38 +33,40 @@ async function renderDomainTokenImage(token, output) {
 
     // write text to the top.
     image = image.print(font, 0, 0, {
-            text: `${token.path}${token.version ? ' (' + token.version + ')' : ''}`,
-            alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }, TOKEN_WIDTH, HEADER_SIZE);
+        text: `${token.path}${token.version ? ` (${token.version})` : ''}`,
+        alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+        alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+    }, TOKEN_WIDTH, HEADER_SIZE);
     image = image.print(font, 0, 0, {
-            text: token.platform,
-            alignmentX: Jimp.HORIZONTAL_ALIGN_RIGHT,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }, TOKEN_WIDTH - PADDING, HEADER_SIZE);
+        text: token.platform,
+        alignmentX: Jimp.HORIZONTAL_ALIGN_RIGHT,
+        alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+    }, TOKEN_WIDTH - PADDING, HEADER_SIZE);
 
     // write text to the bottom.
     if (token.code) {
         image = image.print(font, 0, TOKEN_HEIGHT - HEADER_SIZE, {
-                text: `${token.code}`,
-                alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-                alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-            }, TOKEN_WIDTH, HEADER_SIZE);
+            text: `${token.code}`,
+            alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+        }, TOKEN_WIDTH, HEADER_SIZE);
     }
     image = image.print(font, PADDING, TOKEN_HEIGHT - HEADER_SIZE, {
-            text: 'NFTLS.IO',
-            alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }, TOKEN_WIDTH, HEADER_SIZE);
+        text: 'NFTLS.IO',
+        alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
+        alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+    }, TOKEN_WIDTH, HEADER_SIZE);
 
     image = await drawSignatureMark(image, token.signature, MARK_X, MARK_Y, MARK_W, MARK_H);
 
     // write code as color.
-    image = image.scan(TOKEN_WIDTH - HEADER_SIZE + PADDING,
+    image = image.scan(
+        TOKEN_WIDTH - HEADER_SIZE + PADDING,
         TOKEN_HEIGHT - HEADER_SIZE + PADDING,
         HEADER_SIZE - PADDING * 2,
         HEADER_SIZE - PADDING * 2,
-        fillWithColor(codeColor));
+        fillWithColor(codeColor),
+    );
 
     await image.writeAsync(output);
     return output;
@@ -99,5 +101,5 @@ module.exports = {
     renderDomainTokenImage,
     extractImageHash,
     extractImageCode,
-    extractImageSignature
+    extractImageSignature,
 };

@@ -15,14 +15,14 @@ async function renderDomainCertificateToken({ name, image, noCode }, key, output
     const path = shortenPath(longPath);
     const platform = platforms[platformName];
     const code = !noCode ? (generateCode() || 9999) : 0;
-    const msg = [path, platformName, 'NFTLS.IO', code].filter(i => i).join(SEPARATOR);
+    const msg = [path, platformName, 'NFTLS.IO', code].filter((i) => i).join(SEPARATOR);
     const signature = await platform.signMessage(key, msg);
     await renderDomainTokenImage({
-        path, platform: platformName, image, code, signature
+        path, platform: platformName, image, code, signature,
     }, output);
     return { code };
 }
 
 module.exports = {
-    renderDomainCertificateToken
+    renderDomainCertificateToken,
 };

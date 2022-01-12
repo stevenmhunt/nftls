@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { addCertificateAuthority, getCertificateAuthorities } = require('../../certificateAuthorities');
 const { readLine, displayStatus } = require('../utils');
 
@@ -15,7 +16,7 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args._target}'.`);
+    console.log(`Error: Invalid command target '${args.target}'.`);
     await helpCommand();
     process.exit(1);
 }
@@ -28,19 +29,17 @@ async function addRootCli(args, filepath) {
         const prompt = await readLine('Warning: a CA with this name already exists. Overwrite? (y/n) ');
         if (prompt.toLowerCase() === 'y') {
             result = await addCertificateAuthority(name, filepath, true);
-        }
-        else {
+        } else {
             process.exit(1);
         }
     }
 
     if (result) {
         displayStatus(`Successfully added certificate authority '${name}'.`, null);
-    }
-    else { process.exit(1); }
+    } else { process.exit(1); }
 }
 
-async function removeRootCli(args, address, forward) {
+async function removeRootCli(args/* , address, forward */) {
     const name = args.n || args.name;
     displayStatus(`Successfully removed certificate authority '${name}'.`, null);
 }
@@ -59,12 +58,14 @@ async function listRootCli(args) {
             }
             console.log(`        Status: ${ca.status}`);
         });
+        return;
     }
-    else if (format === 'json') {
-        return console.log(JSON.stringify(data, null, 4));
+    if (format === 'json') {
+        console.log(JSON.stringify(data, null, 4));
+        return;
     }
-    else if (formamt === 'compact-json') {
-        return console.log(JSON.stringify(data));
+    if (format === 'compact-json') {
+        console.log(JSON.stringify(data));
     }
 }
 
@@ -72,7 +73,7 @@ module.exports = {
     getHelpText,
     defaultCommand,
     helpCommand,
-    'add': addRootCli,
-    'remove': removeRootCli,
-    'list': listRootCli
-}
+    add: addRootCli,
+    remove: removeRootCli,
+    list: listRootCli,
+};

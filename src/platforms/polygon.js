@@ -2,7 +2,7 @@ const {
     generateWallet,
     getAddress,
     signMessage,
-    recoverAddress
+    recoverAddress,
 } = require('./eth');
 
 /**
@@ -18,5 +18,5 @@ module.exports = {
     getAddress,
     signMessage,
     recoverAddress,
-    getCompatiblePlatforms
+    getCompatiblePlatforms,
 };

@@ -1,5 +1,5 @@
 const eth = require('./eth');
 
 module.exports = {
-    eth
+    eth,
 };

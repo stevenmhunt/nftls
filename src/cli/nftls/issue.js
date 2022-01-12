@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const fs = require('fs-extra');
 const { readLine, processIdentityArg, withOutput } = require('../utils');
 const { issueCertificate } = require('../../certificates');
@@ -20,25 +21,26 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args, key) {
-    const request = await fs.readJSON(args._target);
-    const id = args.id;
+    const request = await fs.readJSON(args.target);
+    const { id } = args;
     const issuer = await processIdentityArg(args.issuer);
-    const email = args.email;
+    const { email } = args;
 
     // check optional parameters.
     if (!key) {
+        // eslint-disable-next-line no-param-reassign
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await issueCertificate(request, {
-        id, issuer, email
+        id, issuer, email,
     }, key), output);
 }
 
 module.exports = {
     getHelpText,
     defaultCommand,
-    helpCommand
+    helpCommand,
 };

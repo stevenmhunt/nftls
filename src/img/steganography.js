@@ -2,9 +2,8 @@ const fs = require('fs-extra');
 const pngStash = require('png-stash');
 const { sha256 } = require('../utils');
 
-SHA256_HEX_LENGTH = 64;
-STRLEN_LENGTH = 2;
-
+const SHA256_HEX_LENGTH = 64;
+const STRLEN_LENGTH = 2;
 const STASH_MAXLENGTH = 2 ** 16 - 1;
 const NULL_CHAR = '\0';
 
@@ -22,14 +21,17 @@ async function encodeImageData(filepath, message, output) {
     }
 
     return new Promise((resolve, reject) => {
-        pngStash(newfile, function(err, stash) {
+        pngStash(newfile, (err, stash) => {
             if (err) return reject(err);
             const offset = stash.length / 4;
 
             // if there is no message, encode using the default "blank" message.
-            // this is how we manage to encode the image's hash into itself without breaking anything.
+            // this is how we encode the image's hash into itself without breaking anything.
             if (message === null) {
-                const size = (stash.length - offset) < STASH_MAXLENGTH ? (stash.length - offset) : STASH_MAXLENGTH;
+                const size = (stash.length - offset) < STASH_MAXLENGTH
+                    ? (stash.length - offset)
+                    : STASH_MAXLENGTH;
+                // eslint-disable-next-line no-param-reassign
                 message = NULL_CHAR.repeat(size);
             }
 
@@ -37,12 +39,14 @@ async function encodeImageData(filepath, message, output) {
             const buf = Buffer.from(message);
             stash.write(buf, offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, buf.length);
             stash.write(sha256(buf), offset + STRLEN_LENGTH, SHA256_HEX_LENGTH);
-            var b0 = (message.length >> 8) & 0xff;
-            var b1 = message.length & 0xff;
+            // eslint-disable-next-line no-bitwise
+            const b0 = (message.length >> 8) & 0xff;
+            // eslint-disable-next-line no-bitwise
+            const b1 = message.length & 0xff;
             stash.setByte(offset + 0, b0);
             stash.setByte(offset + 1, b1);
-            stash.save((err) => {
-                if (err) return reject(err);
+            return stash.save((err2) => {
+                if (err2) return reject(err2);
                 return resolve(newfile);
             });
         });
@@ -56,13 +60,13 @@ async function encodeImageData(filepath, message, output) {
  */
 async function decodeImageData(filepath) {
     return new Promise((resolve, reject) => {
-        pngStash(filepath, function(err, stash) {
+        pngStash(filepath, (err, stash) => {
             if (err) return reject(err);
             const offset = stash.length / 4;
 
             // check the size of the image to see if there is data.
-            var msgLenData = stash.read(offset + 0, STRLEN_LENGTH);
-            var msgLen = msgLenData[0] * 256 + msgLenData[1];
+            const msgLenData = stash.read(offset + 0, STRLEN_LENGTH);
+            const msgLen = msgLenData[0] * 256 + msgLenData[1];
             if (msgLen > STASH_MAXLENGTH) {
                 return resolve(null);
             }
@@ -81,5 +85,5 @@ async function decodeImageData(filepath) {
 
 module.exports = {
     encodeImageData,
-    decodeImageData
+    decodeImageData,
 };

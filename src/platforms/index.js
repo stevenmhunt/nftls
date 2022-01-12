@@ -3,5 +3,5 @@ const polygon = require('./polygon');
 
 module.exports = {
     eth,
-    polygon
+    polygon,
 };

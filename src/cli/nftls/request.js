@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { readLine, processIdentityArg, withOutput } = require('../utils');
 const { requestCertificate } = require('../../certificates');
 
@@ -20,16 +21,16 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args._target}'.`);
+    console.log(`Error: Invalid command target '${args.target}'.`);
     await helpCommand();
     process.exit(1);
 }
 
 async function requestDomainCli(args, key, forward) {
     const requestType = 'domain';
-    const image = args.image;
+    const { image } = args;
     const subject = await processIdentityArg(args.subject);
-    const email = args.email;
+    const { email } = args;
     const code = parseInt(args.code || '0', 10);
 
     // check required parameters.
@@ -39,21 +40,22 @@ async function requestDomainCli(args, key, forward) {
 
     // check optional parameters.
     if (!key) {
+        // eslint-disable-next-line no-param-reassign
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, image, subject, email, code, forward
+        requestType, image, subject, email, code, forward,
     }, key), output);
 }
 
 async function requestTokenCli(args, key) {
     const requestType = 'token';
-    const image = args.image;
+    const { image } = args;
     const subject = await processIdentityArg(args.subject);
-    const email = args.email;
+    const { email } = args;
 
     // check required parameters.
     if (!image) {
@@ -62,30 +64,32 @@ async function requestTokenCli(args, key) {
 
     // check optional parameters.
     if (!key) {
+        // eslint-disable-next-line no-param-reassign
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, image, subject, email
+        requestType, image, subject, email,
     }, key), output);
 }
 
 async function requestCACli(args, key, forward) {
     const requestType = 'ca';
     const subject = await processIdentityArg(args.subject);
-    const email = args.email;
+    const { email } = args;
 
     // check optional parameters.
     if (!key) {
+        // eslint-disable-next-line no-param-reassign
         key = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, subject, email, forward
+        requestType, subject, email, forward,
     }, key), output);
 }
 
@@ -95,5 +99,5 @@ module.exports = {
     helpCommand,
     domain: requestDomainCli,
     token: requestTokenCli,
-    ca: requestCACli
+    ca: requestCACli,
 };

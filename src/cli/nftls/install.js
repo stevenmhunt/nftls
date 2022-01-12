@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 const fs = require('fs-extra');
+const clc = require('cli-color');
 const { installCertificate } = require('../../certificates');
 const { displayStatus } = require('../utils');
 
@@ -16,8 +18,8 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    const cert = await fs.readJSON(args._target);
-    const image = args.image;
+    const cert = await fs.readJSON(args.target);
+    const { image } = args;
     const output = args.o || args.output || image;
 
     // check required parameters.
@@ -25,12 +27,12 @@ async function defaultCommand(args) {
         throw new Error('An image is required to embed a certificate.');
     }
 
-    const result = await installCertificate(cert, image, output);
-    displayStatus(`Certificate for ${result} is installed and verified.`, null);
+    const [path, platform] = (await installCertificate(cert, image, output)).split('@');
+    displayStatus(`Certificate for ${clc.magenta(platform)} ${clc.yellow(path)} is installed and verified.`, null);
 }
 
 module.exports = {
     getHelpText,
     defaultCommand,
-    helpCommand
+    helpCommand,
 };

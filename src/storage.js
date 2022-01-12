@@ -66,5 +66,5 @@ module.exports = {
     getKeyItem,
     getItems,
     addKeyItem,
-    addListItem
+    addListItem,
 };

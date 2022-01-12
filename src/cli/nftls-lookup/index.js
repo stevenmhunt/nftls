@@ -7,5 +7,5 @@ module.exports = {
     ca,
     connect,
     inspect,
-    verify
+    verify,
 };

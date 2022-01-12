@@ -1,6 +1,9 @@
+/* eslint-disable no-console */
 const silence = console.log;
-console.info = function() {};
+console.info = function info() {};
 const EthCrypto = require('eth-crypto');
+
+// Note: the 'eth-crypto' library outputs to stdout. this code suppresses that output.
 console.info = silence;
 
 /**
@@ -33,7 +36,7 @@ function signMessage(key, msg) {
 }
 
 /**
- * Given an Ethereum signature and the original message, recovers the Ethereum address that created the signature.
+ * Given an Ethereum signature and the original message, recovers the Ethereum address.
  * @param {string} sig The digital signature.
  * @param {string} msg The original message.
  * @returns {string} The recovered Ethereum address.
@@ -56,5 +59,5 @@ module.exports = {
     getAddress,
     signMessage,
     recoverAddress,
-    getCompatiblePlatforms
+    getCompatiblePlatforms,
 };

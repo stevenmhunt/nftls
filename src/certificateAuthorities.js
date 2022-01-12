@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { addKeyItem, getItems } = require('./storage');
+const { addKeyItem, getItems, getKeyItem } = require('./storage');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
 
 const CA_KEY = 'certificateAuthorities';
@@ -9,7 +9,7 @@ const CERT_KEY = 'certificateCache';
  * Adds a trusted CA for the current user.
  * @param {string} name The name of the CA.
  * @param {string} filepath The CA certificate.
- * @param {boolean} isOverwrite Whether or not to overwrite an existing CA certificate with the same name.
+ * @param {boolean} isOverwrite Whether or not to overwrite an existing CA with the same name.
  * @returns {Promise<boolean>} Whether or not the CA was written successfully.
  */
 async function addCertificateAuthority(name, filepath, isOverwrite = true) {
@@ -23,15 +23,17 @@ async function addCertificateAuthority(name, filepath, isOverwrite = true) {
     }
 
     // check overwrite settings and whether or not there is an existing CA.
-    const forward = ca.certificate.forward;
-    const caName = name || [address, forward].filter(i => i).join('/');
+    const { forward } = ca.certificate;
+    const caName = name || [address, forward].filter((i) => i).join('/');
     if (!isOverwrite && getKeyItem(CA_KEY, caName)) {
         return false;
     }
 
     // add the CA and also cache the certificate.
     const key = `${ca.certificate.subject.name};${address}`;
-    await addKeyItem(CA_KEY, caName, { platform, address, forward, status, key });
+    await addKeyItem(CA_KEY, caName, {
+        platform, address, forward, status, key,
+    });
     await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(ca)).toString('base64'));
     return true;
 }
@@ -43,8 +45,8 @@ async function addCertificateAuthority(name, filepath, isOverwrite = true) {
  * @param {string} forwardAddress (optional) The forwarding address of the CA to remove.
  * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
  */
-async function removeCertificateAuthority(name, address, forwardAddress) {
-
+async function removeCertificateAuthority() {
+    return true;
 }
 
 /**
@@ -53,13 +55,11 @@ async function removeCertificateAuthority(name, address, forwardAddress) {
  */
 async function getCertificateAuthorities() {
     const items = await getItems(CA_KEY);
-    return _.keys(items).map(i => Object.assign({}, {
-        name: i,
-    }, items[i]));
+    return _.keys(items).map((i) => ({ name: i, ...items[i] }));
 }
 
 module.exports = {
     addCertificateAuthority,
     removeCertificateAuthority,
-    getCertificateAuthorities
+    getCertificateAuthorities,
 };

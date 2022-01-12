@@ -1,6 +1,7 @@
+/* eslint-disable no-console */
 const _ = require('lodash');
 const argv = require('mri')(process.argv.slice(2));
-const package = require('../../package.json');
+const pkg = require('../../package.json');
 
 /**
  * Initiates a command-line application using the given CLI configuration.
@@ -16,7 +17,7 @@ async function main({ app, cli }) {
     // <app> -v
     // <app> --version
     if (argv.v === true || argv.version === true) {
-        console.log(package.version);
+        console.log(pkg.version);
         return;
     }
 
@@ -27,8 +28,7 @@ async function main({ app, cli }) {
         if (cmd) {
             if (cmd.helpCommand) {
                 cmd.helpCommand(argv, ...argv._);
-            }
-            else {
+            } else {
                 console.log('No help information available.');
             }
             return;
@@ -40,21 +40,21 @@ async function main({ app, cli }) {
     // <app> -h
     // <app> --help
     if (argv.h === true || argv.help === true || !command) {
-        console.log(`${app} ${package.version}`);
-        console.log(package.description);
-        if (app == 'nftls-lookup') {
+        console.log(`${app} ${pkg.version}`);
+        console.log(pkg.description);
+        if (app === 'nftls-lookup') {
             console.log('Powered by Etherscan.io APIs.');
         }
         console.log(`\nUsage:\n    ${app} <command> ...<args>`);
         console.log('\nCommands:');
-        console.log(_.keys(cli).sort().map(k => `    ${k.padEnd(20, ' ')}${cli[k].getHelpText()}`).join('\n'));
+        console.log(_.keys(cli).sort().map((k) => `    ${k.padEnd(20, ' ')}${cli[k].getHelpText()}`).join('\n'));
         console.log(`\nFor help on a specific command, use \`${app} --help <command>\`.`);
         return;
     }
 
     // <app> <command> <target>
     if (target && _.isString(target)) {
-        argv._target = target;
+        argv.target = target;
         if (!cli[command]) {
             throw new Error(`Invalid command '${command}'.`);
         }
@@ -64,18 +64,12 @@ async function main({ app, cli }) {
                 await cli[command].beforeCommand(argv, ...params);
             }
             await cli[command][target](argv, ...params);
-            return;
+        } else if (cli[command].defaultCommand) {
+            await cli[command].defaultCommand(argv, ...params);
+        } else {
+            console.log(`Error: Invalid command target '${target}'.`);
+            process.exit(1);
         }
-        else {
-            if (cli[command].defaultCommand) {
-                await cli[command].defaultCommand(argv, ...params);
-            }
-            else {
-                console.log(`Error: Invalid command target '${target}'.`);
-                process.exit(1);
-            }
-        }
-        return;
     }
 }
 

@@ -15,5 +15,5 @@ module.exports = {
     recover,
     render,
     request,
-    verify
+    verify,
 };

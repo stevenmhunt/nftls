@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { readLine } = require('../utils');
 
 function getHelpText() {
@@ -13,13 +14,14 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args._target}'.`);
+    console.log(`Error: Invalid command target '${args.target}'.`);
     await helpCommand();
     process.exit(1);
 }
 
 async function addConnectEthereumCli(args, apiKey) {
     if (!apiKey) {
+        // eslint-disable-next-line no-param-reassign
         apiKey = await readLine('Enter an etherscan.io API Key: ', true);
     }
     console.log('Powered by Etherscan APIs');
@@ -29,5 +31,5 @@ module.exports = {
     getHelpText,
     defaultCommand,
     helpCommand,
-    eth: addConnectEthereumCli
-}
+    eth: addConnectEthereumCli,
+};

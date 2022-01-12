@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 const sigmark = require('eth-signature-mark');
 const { inspectCertificate } = require('../../certificates');
+const { processCoordinatesArg } = require('../utils');
 
 function getHelpText() {
     return 'Extracts a specific component from a certificate or signed token.';
@@ -15,7 +17,7 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args._target}'.`);
+    console.log(`Error: Invalid command target '${args.target}'.`);
     await helpCommand();
     process.exit(1);
 }
@@ -25,8 +27,7 @@ async function extractSigmarkCli(args, filepath) {
     if (args.coordinates !== undefined) {
         const coordinates = await processCoordinatesArg(args);
         result = await sigmark.extractSignatureMark(filepath, ...coordinates);
-    }
-    else {
+    } else {
         const data = await inspectCertificate(filepath);
         result = data.signatureMark;
     }

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { inspectCertificate, verifyCertificate } = require('../../certificates');
 const { displayStatus } = require('../utils');
 
@@ -13,17 +14,17 @@ async function helpCommand() {
 }
 
 async function defaultCommand(args, address) {
-    const filepath = args._target;
+    const filepath = args.target;
     const cert = await inspectCertificate(filepath);
     const result = await verifyCertificate(cert, address);
     displayStatus(result);
     if (result !== 'Verified') {
-        return process.exit(1);
+        process.exit(1);
     }
 }
 
 module.exports = {
     getHelpText,
     defaultCommand,
-    helpCommand
+    helpCommand,
 };

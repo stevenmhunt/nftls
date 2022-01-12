@@ -1,10 +1,9 @@
-const _ = require('lodash');
 const crypto = require('crypto');
 
 const CA_PATH = '';
 
 /**
- * Given a path name, returns a list of all possible parent paths in order to determine a certificate chain.
+ * Given a path name, returns a all possible parent paths in order to check a certificate chain.
  * @param {string} name The path name to calculate.
  * @returns {Array} A list of all possible parent paths.
  */
@@ -13,11 +12,11 @@ function calculateChainPaths(name) {
     if (path.lastIndexOf('*') > 0) {
         throw new Error('Paths cannot contain the * character except at the beginning.');
     }
-    
+
     // escape conditions.
     if (path === CA_PATH) { return []; }
     if (path === '*') { return [CA_PATH]; }
-    
+
     // analyze wildcard path.
     if (path.startsWith('*')) {
         const domains = path.split('.');
@@ -33,7 +32,7 @@ function calculateChainPaths(name) {
         const [tokenAddress] = path.split('#');
         return [tokenAddress, ...calculateChainPaths(tokenAddress)];
     }
-    
+
     // analyze subdomain path.
     if (path.indexOf('.') >= 0) {
         const domains = path.split('.');
@@ -58,7 +57,7 @@ function generateCode() {
  * @returns {string} the serial number (in hexidecimal)
  */
 function generateSerialNumber() {
-    return crypto.randomBytes(16).toString('hex');    
+    return crypto.randomBytes(16).toString('hex');
 }
 
 /**
@@ -69,7 +68,7 @@ function generateSerialNumber() {
 function shortenPath(path) {
     if (path.length > 20) {
         const [addr, num] = path.split('#');
-        return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4, addr.length)}${num ? '#' + num : ''}`.toLowerCase();
+        return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4, addr.length)}${num ? `#${num}` : ''}`.toLowerCase();
     }
     return path.toLowerCase();
 }
@@ -88,5 +87,5 @@ module.exports = {
     generateCode,
     generateSerialNumber,
     shortenPath,
-    sha256
+    sha256,
 };

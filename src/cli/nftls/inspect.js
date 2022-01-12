@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { inspectCertificate } = require('../../certificates');
 const { displayCertificate } = require('../text');
 
@@ -17,14 +18,13 @@ async function helpCommand() {
 async function defaultCommand(args) {
     const format = args.f || args.format || 'text';
     const code = parseInt(args.code || '0', 10);
-    const cert = await inspectCertificate(args._target, code);
+    const cert = await inspectCertificate(args.target, code);
     if (format === 'json') {
         console.log(JSON.stringify(cert, null, 4));
     }
     if (format === 'compact-json') {
         console.log(JSON.stringify(cert));
-    }
-    else if (format === 'text') {
+    } else if (format === 'text') {
         displayCertificate(cert);
     }
 }
@@ -32,5 +32,5 @@ async function defaultCommand(args) {
 module.exports = {
     getHelpText,
     helpCommand,
-    defaultCommand
+    defaultCommand,
 };
