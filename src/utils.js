@@ -3,23 +3,36 @@ const crypto = require('crypto');
 const CA_PATH = '';
 
 /**
+ * Given a full path, extracts the path and platform values.
+ * @param {*} name The full path.
+ * @returns {Promise<object>}
+ */
+function extractPath(name) {
+    const [pathName, platformName] = name.split('@');
+    return {
+        pathName,
+        platformName,
+    };
+}
+
+/**
  * Given a path name, returns a all possible parent paths in order to check a certificate chain.
  * @param {string} name The path name to calculate.
  * @returns {Array} A list of all possible parent paths.
  */
 function calculateChainPaths(name) {
-    const path = name.split('@')[0];
-    if (path.lastIndexOf('*') > 0) {
+    const { pathName } = extractPath(name);
+    if (pathName.lastIndexOf('*') > 0) {
         throw new Error('Paths cannot contain the * character except at the beginning.');
     }
 
     // escape conditions.
-    if (path === CA_PATH) { return []; }
-    if (path === '*') { return [CA_PATH]; }
+    if (pathName === CA_PATH) { return []; }
+    if (pathName === '*') { return [CA_PATH]; }
 
     // analyze wildcard path.
-    if (path.startsWith('*')) {
-        const domains = path.split('.');
+    if (pathName.startsWith('*')) {
+        const domains = pathName.split('.');
         if (domains.length <= 2) {
             return ['*', CA_PATH];
         }
@@ -28,14 +41,14 @@ function calculateChainPaths(name) {
     }
 
     // analyze targeted token path.
-    if (path.indexOf('#') >= 0) {
-        const [tokenAddress] = path.split('#');
+    if (pathName.indexOf('#') >= 0) {
+        const [tokenAddress] = pathName.split('#');
         return [tokenAddress, ...calculateChainPaths(tokenAddress)];
     }
 
     // analyze subdomain path.
-    if (path.indexOf('.') >= 0) {
-        const domains = path.split('.');
+    if (pathName.indexOf('.') >= 0) {
+        const domains = pathName.split('.');
         domains[0] = '*';
         const nextPath = domains.join('.');
         return [nextPath, ...calculateChainPaths(nextPath)];
@@ -88,4 +101,5 @@ module.exports = {
     generateSerialNumber,
     shortenPath,
     sha256,
+    extractPath,
 };

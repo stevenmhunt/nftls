@@ -1,10 +1,11 @@
 const platforms = require('./platforms');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
-const { calculateChainPaths } = require('./utils');
+const { calculateChainPaths, extractPath } = require('./utils');
 const { getItems } = require('./storage');
 
 const CERT_KEY = 'certificateCache';
+const ROOT_CERT_PATH = '*';
 
 /**
  * @private
@@ -12,20 +13,21 @@ const CERT_KEY = 'certificateCache';
  * @param {object} context The blockchain connector context.
  * @param {object} inputs The cache data and list of path names to follow.
  * @param {string} name The next path name to find.
- * @param {string} address The next address to find.
+ * @param {string} addr The next address to find.
+ * @param {string} forAddr The next for address to find.
  * @param {string} target The target address we're trying to reach.
  * @returns {Array} A list of all acquired certificates.
  */
-async function resolveCertificateChain(context, { cache, paths }, name, address, forward, target) {
-    const platform = name.split('@')[1];
-    if (paths.length === 0) {
-    // if we ran out of paths to validate, then we successfully walked across the chain.
+async function resolveCertificateChain(context, { cache, paths }, name, addr, forAddr, target) {
+    const { platformName } = extractPath(name);
+    if (paths.length === 0 || (addr === target && paths[0] !== ROOT_CERT_PATH)) {
+        // if we ran out of paths to validate, then we successfully walked across the chain.
         return [];
     }
 
     // acquire certificate.
-    const cert = cache[`${name};${address}`]
-        || await context[platform].locateCertificate(name, forward || address);
+    const cert = cache[`${name};${addr}`]
+        || await context[platformName].locateCertificate(name, forAddr || addr);
 
     // if we don't find a certificate that matches our criteria, then the chain is broken.
     if (!cert) {
@@ -35,8 +37,8 @@ async function resolveCertificateChain(context, { cache, paths }, name, address,
     // analyze certificate.
     const data = JSON.parse(Buffer.from(cert, 'base64').toString('utf8'));
     const nextAddress = data.certificate.signatureAddress;
-    const nextForward = data.certificate.forwardAddress;
-    data.status = await verifyCertificate(data, address);
+    const nextfor = data.certificate.forAddress;
+    data.status = await verifyCertificate(data, addr);
 
     // if something bad happened, then we can't complete the chain.
     if (data.status !== 'Verified') {
@@ -44,7 +46,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, address,
     }
 
     // if we found the target address, then we completed the chain.
-    if (address === target) {
+    if (addr === target) {
         return [data];
     }
 
@@ -52,9 +54,9 @@ async function resolveCertificateChain(context, { cache, paths }, name, address,
         ...await resolveCertificateChain(
             context,
             { cache, paths: paths.slice(1) },
-            `${paths[0]}@${platform}`,
+            `${paths[0]}@${platformName}`,
             nextAddress,
-            nextForward,
+            nextfor,
             target,
         ),
     ];
@@ -76,7 +78,7 @@ async function inspectCertificateChain(context, certData) {
 
     const targetAddress = data.signatureAddress;
     const targetName = data.certificate.subject.name;
-    const [certPath, certPlatform] = targetName.split('@');
+    const { pathName: certPath, platformName: certPlatform } = extractPath(targetName);
     const paths = [
         certPath,
         ...calculateChainPaths(certPath),
@@ -93,7 +95,7 @@ async function inspectCertificateChain(context, certData) {
             { cache, paths },
             `@${certPlatform}`,
             CAs[i].address,
-            CAs[i].forwardAddress,
+            CAs[i].forAddress,
             targetAddress,
         );
         if (chain.length === 0 || chain[chain.length - 1]) {

@@ -23,32 +23,37 @@ async function encodeImageData(filepath, message, output) {
     return new Promise((resolve, reject) => {
         pngStash(newfile, (err, stash) => {
             if (err) return reject(err);
-            const offset = stash.length / 4;
+            try {
+                const offset = stash.length < STASH_MAXLENGTH ? 0 : stash.length / 4;
 
-            // if there is no message, encode using the default "blank" message.
-            // this is how we encode the image's hash into itself without breaking anything.
-            if (message === null) {
-                const size = (stash.length - offset) < STASH_MAXLENGTH
-                    ? (stash.length - offset)
-                    : STASH_MAXLENGTH;
-                // eslint-disable-next-line no-param-reassign
-                message = NULL_CHAR.repeat(size);
+                // if there is no message, encode using the default "blank" message.
+                // this is how we encode the image's hash into itself without breaking anything.
+                if (message === null) {
+                    const boundary = stash.length - offset - STRLEN_LENGTH - SHA256_HEX_LENGTH;
+                    const size = boundary < STASH_MAXLENGTH
+                        ? boundary
+                        : STASH_MAXLENGTH;
+                    // eslint-disable-next-line no-param-reassign
+                    message = NULL_CHAR.repeat(size);
+                }
+
+                // write the byte length as well as a SHA-256 hash to prevent bad reads later.
+                const buf = Buffer.from(message);
+                stash.write(buf, offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, buf.length);
+                stash.write(sha256(buf), offset + STRLEN_LENGTH, SHA256_HEX_LENGTH);
+                // eslint-disable-next-line no-bitwise
+                const b0 = (message.length >> 8) & 0xff;
+                // eslint-disable-next-line no-bitwise
+                const b1 = message.length & 0xff;
+                stash.setByte(offset + 0, b0);
+                stash.setByte(offset + 1, b1);
+                return stash.save((err2) => {
+                    if (err2) return reject(err2);
+                    return resolve(newfile);
+                });
+            } catch (internalErr) {
+                return reject(internalErr);
             }
-
-            // write the byte length as well as a SHA-256 hash to prevent bad reads later.
-            const buf = Buffer.from(message);
-            stash.write(buf, offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, buf.length);
-            stash.write(sha256(buf), offset + STRLEN_LENGTH, SHA256_HEX_LENGTH);
-            // eslint-disable-next-line no-bitwise
-            const b0 = (message.length >> 8) & 0xff;
-            // eslint-disable-next-line no-bitwise
-            const b1 = message.length & 0xff;
-            stash.setByte(offset + 0, b0);
-            stash.setByte(offset + 1, b1);
-            return stash.save((err2) => {
-                if (err2) return reject(err2);
-                return resolve(newfile);
-            });
         });
     });
 }
@@ -62,23 +67,27 @@ async function decodeImageData(filepath) {
     return new Promise((resolve, reject) => {
         pngStash(filepath, (err, stash) => {
             if (err) return reject(err);
-            const offset = stash.length / 4;
+            try {
+                const offset = stash.length < STASH_MAXLENGTH ? 0 : stash.length / 4;
 
-            // check the size of the image to see if there is data.
-            const msgLenData = stash.read(offset + 0, STRLEN_LENGTH);
-            const msgLen = msgLenData[0] * 256 + msgLenData[1];
-            if (msgLen > STASH_MAXLENGTH) {
-                return resolve(null);
+                // check the size of the image to see if there is data.
+                const msgLenData = stash.read(offset + 0, STRLEN_LENGTH);
+                const msgLen = msgLenData[0] * 256 + msgLenData[1];
+                if (msgLen > STASH_MAXLENGTH) {
+                    return resolve(null);
+                }
+
+                // check the buffer sizes and SHA-256 hash.
+                const hash = stash.read(offset + STRLEN_LENGTH, SHA256_HEX_LENGTH).toString('utf8');
+                const result = stash.read(offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, msgLen);
+                if (hash !== sha256(result)) {
+                    return resolve(null);
+                }
+
+                return resolve(result.toString('utf8'));
+            } catch (internalErr) {
+                return reject(internalErr);
             }
-
-            // check the buffer sizes and SHA-256 hash.
-            const hash = stash.read(offset + STRLEN_LENGTH, SHA256_HEX_LENGTH).toString('utf8');
-            const result = stash.read(offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, msgLen);
-            if (hash !== sha256(result)) {
-                return resolve(null);
-            }
-
-            return resolve(result.toString('utf8'));
         });
     });
 }

@@ -9,9 +9,10 @@ module.exports = (platform) => Joi.object({
     email: Joi.string().email().required(),
     imageHash: Joi.string().length(64).hex().required(),
     dateRequested: Joi.date().iso(),
+    data: Joi.string(),
     signature: platforms[platform].signature().required(),
     requestSignature: platforms[platform].signature().required(),
-    forwardSignature: platforms[platform].signature(),
+    forSignature: platforms[platform].signature(),
     requestAddress: platforms[platform].address().required(),
-    forwardAddress: platforms[platform].address(),
+    forAddress: platforms[platform].address(),
 });

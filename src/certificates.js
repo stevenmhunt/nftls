@@ -5,7 +5,7 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, sha256, calculateChainPaths,
+    generateSerialNumber, shortenPath, sha256, calculateChainPaths, extractPath,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
 const { SEPARATOR, csrTypeMapping, certTypeMapping } = require('./constants');
@@ -23,13 +23,13 @@ const NO_IMAGE_HASH = 'N/A';
  * @param {string} req.subject The scope of the certificate and the identity of the requestor.
  * @param {string} req.email The email address of the requestor.
  * @param {number} req.code (optional) A security code typically used for domain tokens.
- * @param {string} key The private key to sign the request with.
- * @param {string} forwardKey (optional) A private key to use as a forwarding address.
+ * @param {string} signingKey The private key to sign the request with.
+ * @param {string} forKey (optional) The for key, or the same as signingKey.
  * @returns {Promise<object>} The constructed CSR.
  */
 async function requestCertificate({
     requestType, image, subject, email, data, code,
-}, key, forwardKey) {
+}, signingKey, forKey = undefined) {
     // check arguments
     if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
     if (!image && requestType !== 'ca') { throw new Error('An image path must be provided.'); }
@@ -46,24 +46,24 @@ async function requestCertificate({
     const imageHash = requestType !== 'ca' ? await extractImageHash(image) : sha256(dateRequested + subject.name);
 
     // build certificate request object.
-    const platformName = subject.name.split('@')[1];
+    const { platformName } = extractPath(subject.name);
     const platform = platforms[platformName];
-    const requestAddress = platform.getAddress(key).toLowerCase();
-    const forwardAddress = forwardKey ? platform.getAddress(forwardKey).toLowerCase() : undefined;
+    const requestAddress = platform.getAddress(signingKey).toLowerCase();
+    const forAddress = forKey ? platform.getAddress(forKey).toLowerCase() : undefined;
     const payload = {
         type, subject, email, imageHash, dateRequested, data,
     };
 
     // digitally sign the request.
     const msg = JSON.stringify(payload);
-    const signature = platform.signMessage(key, `${code ? code + SEPARATOR : ''}${msg}`);
+    const signature = platform.signMessage(signingKey, `${code ? code + SEPARATOR : ''}${msg}`);
     const reqMsg = `${msg}${SEPARATOR}${requestAddress}`;
-    const requestSignature = platform.signMessage(key, reqMsg);
-    const forwardSignature = forwardKey
-        ? platform.signMessage(forwardKey, `${reqMsg}${SEPARATOR}${forwardAddress}`)
+    const requestSignature = platform.signMessage(signingKey, reqMsg);
+    const forSignature = forKey
+        ? platform.signMessage(forKey, `${reqMsg}${SEPARATOR}${forAddress}`)
         : undefined;
     return {
-        ...payload, signature, requestAddress, requestSignature, forwardAddress, forwardSignature,
+        ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,
     };
 }
 
@@ -86,7 +86,8 @@ async function issueCertificate(request, { id, issuer, email }, key) {
     if (!email) { throw new Error('An email address must be provided.'); }
 
     // process parameters.
-    const platformName = request.subject.name.split('@')[1];
+    request.subject.name = request.subject.name.toLowerCase();
+    const { pathName, platformName } = extractPath(request.subject.name);
     const schema = csrSchemaFactory(platformName);
     const { error } = schema.validate(request);
     if (error) {
@@ -95,11 +96,10 @@ async function issueCertificate(request, { id, issuer, email }, key) {
 
     // eslint-disable-next-line no-param-reassign
     issuer.name = issuer.name.toLowerCase();
-    request.subject.name = request.subject.name.toLowerCase();
     if (!id) {
         if (request.type === csrTypeMapping.token && request.subject.name) {
             // eslint-disable-next-line no-param-reassign
-            id = request.subject.name;
+            id = pathName;
         }
     } else {
         // eslint-disable-next-line no-param-reassign
@@ -121,17 +121,17 @@ async function issueCertificate(request, { id, issuer, email }, key) {
         request.requestSignature,
         reqMsg,
     );
-    const actualForwardAddr = request.forwardSignature
+    const actualforAddr = request.forSignature
         ? platform.recoverAddress(
-            request.forwardSignature,
-            `${reqMsg}${SEPARATOR}${request.forwardAddress}`,
+            request.forSignature,
+            `${reqMsg}${SEPARATOR}${request.forAddress}`,
         )
         : undefined;
     if (request.requestAddress !== actualReqAddr) {
         throw new Error('Inconsistent requestor address.');
     }
-    if (request.forwardAddress && request.forwardAddress !== actualForwardAddr) {
-        throw new Error('Inconsistent forwarding address.');
+    if (request.forAddress && request.forAddress !== actualforAddr) {
+        throw new Error('Inconsistent for address.');
     }
 
     // build the certificate object.
@@ -168,12 +168,12 @@ async function inspectCertificate(filepath) {
     if (_.isObject(filepath)) {
         certData = filepath;
         hash = NO_IMAGE_HASH;
-    } else if (filepath.endsWith('.json')) {
-        certData = await fs.readJSON(filepath);
-        hash = NO_IMAGE_HASH;
     } else if (filepath.endsWith('.png')) {
         certData = JSON.parse(await decodeImageData(filepath));
         hash = await extractImageHash(filepath);
+    } else {
+        certData = await fs.readJSON(filepath);
+        hash = NO_IMAGE_HASH;
     }
 
     // handle different certificate formats.
@@ -191,7 +191,7 @@ async function inspectCertificate(filepath) {
     const {
         type, subject, email, imageHash, dateRequested, data,
     } = cert;
-    const [path, platformName] = result.certificate.subject.name.split('@');
+    const { pathName, platformName } = extractPath(result.certificate.subject.name);
     const platform = platforms[platformName];
     const msg = JSON.stringify({
         type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, data,
@@ -202,9 +202,9 @@ async function inspectCertificate(filepath) {
     const reqMsg = `${msg}${SEPARATOR}${cert.requestAddress}`;
     // these addresses must be kept out of the 'cert' object until after signature verification.
     const requestSignatureAddress = platform.recoverAddress(cert.requestSignature, reqMsg);
-    const forwardSignatureAddress = cert.forwardSignature ? platform.recoverAddress(
-        cert.forwardSignature,
-        `${reqMsg}${SEPARATOR}${cert.forwardAddress}`,
+    const forSignatureAddress = cert.forSignature ? platform.recoverAddress(
+        cert.forSignature,
+        `${reqMsg}${SEPARATOR}${cert.forAddress}`,
     ) : undefined;
 
     if (hash !== NO_IMAGE_HASH) {
@@ -223,7 +223,7 @@ async function inspectCertificate(filepath) {
             // recover requestor and image addresses (they should match...).
             cert.signatureAddress = await platform.recoverAddress(cert.signature, `${result.code ? result.code + SEPARATOR : ''}${msg}`);
             const markMsg = [
-                shortenPath(path), platformName, 'NFTLS.IO', result.code,
+                shortenPath(pathName), platformName, 'NFTLS.IO', result.code,
             ].filter((i) => i).join(SEPARATOR);
             result.signatureMarkAddress = platform.recoverAddress(result.signatureMark, markMsg);
         } else {
@@ -231,7 +231,7 @@ async function inspectCertificate(filepath) {
             cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
         }
         cert.requestSignatureAddress = requestSignatureAddress;
-        cert.forwardSignatureAddress = forwardSignatureAddress;
+        cert.forSignatureAddress = forSignatureAddress;
     }
 
     return result;
@@ -247,7 +247,7 @@ async function verifyCertificate(filepath, addr) {
     const data = _.isString(filepath) ? await inspectCertificate(filepath) : filepath;
 
     // perform a schema validation of the certificate.
-    const platformName = data.certificate.subject.name.split('@')[1];
+    const { platformName } = extractPath(data.certificate.subject.name);
     const schema = certificateSchemaFactory(platformName);
     const { error } = schema.validate(data.certificate);
     if (error) {
@@ -262,9 +262,9 @@ async function verifyCertificate(filepath, addr) {
         return 'The requestor signature is inconsistent.';
     }
 
-    if (data.certificate.forwardAddress
-        && data.certificate.forwardSignatureAddress !== data.certificate.forwardAddress) {
-        return 'The forwarding signature is inconsistent.';
+    if (data.certificate.forAddress
+        && data.certificate.forSignatureAddress !== data.certificate.forAddress) {
+        return 'The for signature is inconsistent.';
     }
 
     if (data.certificate.type === certTypeMapping.domain
@@ -282,8 +282,15 @@ async function verifyCertificate(filepath, addr) {
         }
     } else {
     // validate the issuer's path name.
-        const [issuerPath, issuerPlatform] = data.certificate.issuer.name.split('@');
-        const [subjectPath, subjectPlatform] = data.certificate.subject.name.split('@');
+        const {
+            pathName: issuerPath,
+            platformName: issuerPlatform,
+        } = extractPath(data.certificate.issuer.name);
+        const {
+            pathName: subjectPath,
+            platformName: subjectPlatform,
+        } = extractPath(data.certificate.subject.name);
+
         const paths = calculateChainPaths(subjectPath);
         if (paths.indexOf(issuerPath) === -1) {
             return `The issuer name '${issuerPath}@${issuerPlatform}' is not valid for issuing a certificate for '${data.certificate.subject.name}'.`;

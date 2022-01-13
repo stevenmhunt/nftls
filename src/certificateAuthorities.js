@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { addKeyItem, getItems, getKeyItem } = require('./storage');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
+const { extractPath } = require('./utils');
 
 const CA_KEY = 'certificateAuthorities';
 const CERT_KEY = 'certificateCache';
@@ -15,7 +16,7 @@ const CERT_KEY = 'certificateCache';
 async function addCertificateAuthority(name, filepath, isOverwrite = true) {
     // verify that the CA certificate is valid before adding it.
     const ca = await inspectCertificate(filepath);
-    const platform = ca.certificate.subject.name.split('@')[1];
+    const { platformName } = extractPath(ca.certificate.subject.name);
     const address = ca.certificate.signatureAddress;
     const status = await verifyCertificate(ca, address);
     if (status !== 'Verified') {
@@ -23,8 +24,8 @@ async function addCertificateAuthority(name, filepath, isOverwrite = true) {
     }
 
     // check overwrite settings and whether or not there is an existing CA.
-    const { forward } = ca.certificate;
-    const caName = name || [address, forward].filter((i) => i).join('/');
+    const { forAddress } = ca.certificate;
+    const caName = name || [address, forAddress].filter((i) => i).join('/');
     if (!isOverwrite && getKeyItem(CA_KEY, caName)) {
         return false;
     }
@@ -32,17 +33,17 @@ async function addCertificateAuthority(name, filepath, isOverwrite = true) {
     // add the CA and also cache the certificate.
     const key = `${ca.certificate.subject.name};${address}`;
     await addKeyItem(CA_KEY, caName, {
-        platform, address, forward, status, key,
+        platform: platformName, address, forAddress, status, key,
     });
     await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(ca)).toString('base64'));
     return true;
 }
 
 /**
- * Removes a trusted CA, either by name or address/forward.
+ * Removes a trusted CA, either by name or address/for.
  * @param {string} name (optional) The name of the CA to remove.
  * @param {string} address (optional) The address of the CA to remove.
- * @param {string} forwardAddress (optional) The forwarding address of the CA to remove.
+ * @param {string} forAddress (optional) The for address of the CA to remove.
  * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
  */
 async function removeCertificateAuthority() {

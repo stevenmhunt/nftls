@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+const _ = require('lodash');
+
 const silence = console.log;
 console.info = function info() {};
 const EthCrypto = require('eth-crypto');
@@ -54,10 +56,25 @@ function getCompatiblePlatforms() {
     return [];
 }
 
+function generateCallData(method, args, values) {
+    const methodHash = EthCrypto.hash.keccak256(`${method}(${args.join(',')})`).substring(0, 10);
+    const results = values.map((value, i) => {
+        if (args[i] === 'uint256') {
+            if (_.isString(value)) {
+                return value.padStart(64, '0');
+            }
+            return value.toString(16).padStart(64, '0');
+        }
+        return value;
+    });
+    return `${methodHash}${results.join('')}`;
+}
+
 module.exports = {
     generateWallet,
     getAddress,
     signMessage,
     recoverAddress,
     getCompatiblePlatforms,
+    generateCallData,
 };

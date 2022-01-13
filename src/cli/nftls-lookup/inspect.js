@@ -2,9 +2,9 @@
 const clc = require('cli-color');
 const { inspectCertificateChain } = require('../../certificateChains');
 const { certTypeMapping } = require('../../constants');
-const { shortenPath } = require('../../utils');
+const { shortenPath, extractPath } = require('../../utils');
 const { displayCertificate } = require('../text');
-const { displayStatus } = require('../utils');
+const { displayStatus, withProgress } = require('../utils');
 
 function getHelpText() {
     return 'Inspects the contents of a certificate chain.';
@@ -22,16 +22,18 @@ async function defaultCommand(args) {
     const format = args.f || args.format || 'tree';
     const context = {
         eth: {
-            locateCertificate(name, address) {
+            locateCertificate() {
                 return new Promise((resolve) => {
-                    console.log(`Searching blockchain for certificate '${name}' @ ${address}...`);
-                    setTimeout(resolve, 1000);
+                    setTimeout(resolve, 3000);
                     // TODO: actually implement this...
                 });
             },
         },
     };
-    const { chain, status } = await inspectCertificateChain(context, args.target);
+    const { chain, status } = await withProgress(
+        () => inspectCertificateChain(context, args.target),
+        'Scanning the blockhain (Powered by etherscan.io)',
+    );
     if (format === 'tree') {
         console.log('NFTLS Certificate Chain:');
         process.stdout.write('     Status:');
@@ -40,20 +42,24 @@ async function defaultCommand(args) {
         chain.filter((i) => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === certTypeMapping.ca;
             const { subject } = cert.certificate;
-            const [path, platform] = subject.name.split('@');
-            const platformDisplay = clc.magenta(`${platform}`);
+            const { pathName, platformName } = extractPath(subject.name);
+            const platformDisplay = clc.magenta(`${platformName}`);
+            const [tokenAddress, tokenNumber] = (cert.certificate.id || '').split('#');
             const location = clc.blackBright(`[ ${[subject.city, subject.state, subject.province, subject.country].filter((i) => i).join(', ')} ]`);
-            console.log(`[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : path)}`);
-            console.log(` │   Owner: ${clc.bold(subject.organization)} ${location}`);
-            console.log(` │   Address: ${shortenPath(cert.certificate.signatureAddress)}${cert.certificate.forwardAddress ? clc.blueBright(' -> ') + shortenPath(cert.certificate.forwardAddress) : ''}`);
-            process.stdout.write(' │   Status:');
+            console.log(`${index === 0 ? '──' : '  '}[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : pathName)}`);
+            console.log(`   │   Subject: ${clc.bold(subject.organization)} ${location}`);
+            console.log(`   │   Address: ${shortenPath(cert.certificate.signatureAddress)}${cert.certificate.forAddress ? clc.blueBright(` (${shortenPath(cert.certificate.forAddress)})`) : ''}`);
+            if (cert.certificate.id) {
+                console.log(`   │   TokenID: ${shortenPath(tokenAddress)} #${tokenNumber}`);
+            }
+            process.stdout.write('   │   Status:');
             displayStatus(cert.status);
-            console.log(' │');
+            console.log('   │');
         });
         if (status === 'Incomplete') {
-            console.log(`[${clc.redBright('X')}]`);
+            console.log(`  [${clc.redBright('X')}]`);
         } else {
-            console.log(`[${clc.greenBright(chain.length + 1)}]┄┄ ${clc.yellow('(Target Certificate)')}`);
+            console.log(`  [${clc.greenBright(chain.length + 1)}]┄┄ ${clc.yellow('(Target Certificate)')}`);
         }
 
         return;

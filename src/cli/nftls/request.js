@@ -12,7 +12,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls request <domain | token> (<private key>) (<forward key>)');
+    console.log('     nftls request <domain | token> (<signing key>) (<for key>)');
     console.log('        base image:       --image <file>');
     console.log('        subject data:     --subject <x509 data | json file>');
     console.log('        email address:    --email <email address>');
@@ -26,7 +26,7 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
-async function requestDomainCli(args, key, forwardKey) {
+async function requestDomainCli(args, signingKey, forKey) {
     const requestType = 'domain';
     const { image } = args;
     const subject = await processIdentityArg(args.subject);
@@ -39,16 +39,16 @@ async function requestDomainCli(args, key, forwardKey) {
     }
 
     // check optional parameters.
-    if (!key) {
+    if (!signingKey) {
         // eslint-disable-next-line no-param-reassign
-        key = await readLine(PRIVATE_KEY_PROMPT, true);
+        signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
         requestType, image, subject, email, code,
-    }, key, forwardKey), output);
+    }, signingKey, forKey), output);
 }
 
 async function requestTokenCli(args, key) {
@@ -75,22 +75,22 @@ async function requestTokenCli(args, key) {
     }, key), output);
 }
 
-async function requestCACli(args, key, forwardKey) {
+async function requestCACli(args, signingKey, forKey) {
     const requestType = 'ca';
     const subject = await processIdentityArg(args.subject);
     const { email } = args;
 
     // check optional parameters.
-    if (!key) {
+    if (!signingKey) {
         // eslint-disable-next-line no-param-reassign
-        key = await readLine(PRIVATE_KEY_PROMPT, true);
+        signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
         requestType, subject, email,
-    }, key, forwardKey), output);
+    }, signingKey, forKey), output);
 }
 
 module.exports = {

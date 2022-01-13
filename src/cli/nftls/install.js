@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const clc = require('cli-color');
 const { installCertificate } = require('../../certificates');
 const { displayStatus } = require('../utils');
+const { extractPath } = require('../../utils');
 
 function getHelpText() {
     return 'Installs the certificate into the target image.';
@@ -27,8 +28,8 @@ async function defaultCommand(args) {
         throw new Error('An image is required to embed a certificate.');
     }
 
-    const [path, platform] = (await installCertificate(cert, image, output)).split('@');
-    displayStatus(`Certificate for ${clc.magenta(platform)} ${clc.yellow(path)} is installed and verified.`, null);
+    const { pathName, platformName } = extractPath(await installCertificate(cert, image, output));
+    displayStatus(`Certificate for ${clc.magenta(platformName)} ${clc.yellow(pathName)} is installed and verified.`, null);
 }
 
 module.exports = {

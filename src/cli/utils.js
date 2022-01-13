@@ -3,6 +3,7 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const readline = require('readline');
 const clc = require('cli-color');
+const { Spinner } = require('cli-spinner');
 
 async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
@@ -77,10 +78,27 @@ async function withOutput(result, output) {
     return fs.writeFile(output, result, 'utf8');
 }
 
+async function withProgress(fn, message) {
+    const spinner = new Spinner({
+        text: `%s ${message}`,
+        stream: process.stderr,
+        onTick: function onTick(msg) {
+            this.clearLine(this.stream);
+            this.stream.write(msg);
+        },
+    });
+    spinner.setSpinnerString('|/-\\');
+    spinner.start();
+    const result = await fn();
+    spinner.stop(true);
+    return result;
+}
+
 module.exports = {
     readLine,
     processCoordinatesArg,
     processIdentityArg,
     displayStatus,
     withOutput,
+    withProgress,
 };

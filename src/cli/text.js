@@ -13,8 +13,8 @@ function displayCertificate({
     if (certificate.id) {
         console.log(`    Token Identifier: ${certificate.id}`);
     }
-    if (certificate.forwardAddress) {
-        console.log(`    Forward: ${certificate.forwardAddress}`);
+    if (certificate.forAddress) {
+        console.log(`    for: ${certificate.forAddress}`);
     }
     console.log('    Subject:');
     _.keys(certificate.subject).forEach((s) => {

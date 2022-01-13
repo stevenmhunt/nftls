@@ -1,6 +1,6 @@
 const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
-const { generateCode, shortenPath } = require('./utils');
+const { generateCode, shortenPath, extractPath } = require('./utils');
 const { SEPARATOR } = require('./constants');
 
 /**
@@ -11,8 +11,8 @@ const { SEPARATOR } = require('./constants');
  * @returns {Promise<number>} Returns the randomly generated code associated with the token.
  */
 async function renderDomainCertificateToken({ name, image, noCode }, key, output) {
-    const [longPath, platformName] = name.split('@');
-    const path = shortenPath(longPath);
+    const { pathName, platformName } = extractPath(name);
+    const path = shortenPath(pathName);
     const platform = platforms[platformName];
     const code = !noCode ? (generateCode() || 9999) : 0;
     const msg = [path, platformName, 'NFTLS.IO', code].filter((i) => i).join(SEPARATOR);

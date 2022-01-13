@@ -39,7 +39,7 @@ async function addRootCli(args, filepath) {
     } else { process.exit(1); }
 }
 
-async function removeRootCli(args/* , address, forward */) {
+async function removeRootCli(args/* , address, forAddress */) {
     const name = args.n || args.name;
     displayStatus(`Successfully removed certificate authority '${name}'.`, null);
 }
@@ -53,8 +53,8 @@ async function listRootCli(args) {
             console.log(`\n    ${ca.name}:`);
             console.log(`        Platform: ${ca.platform}`);
             console.log(`        Address: ${ca.address}`);
-            if (ca.forwardAddress) {
-                console.log(`        Forward: ${ca.forwardAddress}`);
+            if (ca.forAddress) {
+                console.log(`        For: ${ca.forAddress}`);
             }
             console.log(`        Status: ${ca.status}`);
         });
