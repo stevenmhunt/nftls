@@ -8,40 +8,30 @@ const {
     generateSerialNumber, shortenPath, sha256, calculateChainPaths,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
-const { SEPARATOR, requestTypes, certTypes } = require('./constants');
+const { SEPARATOR, csrTypeMapping, certTypeMapping } = require('./constants');
+const csrSchemaFactory = require('./schemas/csrSchema');
+const certificateSchemaFactory = require('./schemas/certificateSchema');
 
 const CERT_KEY = 'certificateCache';
 const NO_IMAGE_HASH = 'N/A';
-const CSR_VALID_FIELDS = [
-    'type',
-    'subject',
-    'email',
-    'imageHash',
-    'dateRequested',
-    'signature',
-    'requestAddress',
-    'requestSignature',
-    'forwardAddress',
-    'forwardSignature',
-];
 
 /**
- * Generates a certificate request for a domain certificate.
+ * Generates a certificate signing request (CSR).
  * @param {object} req The request object.
  * @param {string} req.requestType The type of certificate to request.
  * @param {string} req.image The image file where the certificate will be installed.
  * @param {string} req.subject The scope of the certificate and the identity of the requestor.
  * @param {string} req.email The email address of the requestor.
- * @param {number} req.code The code which was generated when rendering the domain token.
+ * @param {number} req.code (optional) A security code typically used for domain tokens.
  * @param {string} key The private key to sign the request with.
  * @param {string} forwardKey (optional) A private key to use as a forwarding address.
- * @returns {Promise<object>} The domain certificate request.
+ * @returns {Promise<object>} The constructed CSR.
  */
 async function requestCertificate({
     requestType, image, subject, email, data, code,
 }, key, forwardKey) {
     // check arguments
-    if (!requestTypes[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
+    if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
     if (!image && requestType !== 'ca') { throw new Error('An image path must be provided.'); }
     if (!subject) { throw new Error('Subject information must be provided.'); }
     if (!subject.name) { throw new Error('A subject name must be provided.'); }
@@ -51,7 +41,7 @@ async function requestCertificate({
     // eslint-disable-next-line no-param-reassign
     subject.name = subject.name.toLowerCase();
     // eslint-disable-next-line no-param-reassign
-    const type = requestTypes[requestType];
+    const type = csrTypeMapping[requestType];
     const dateRequested = new Date().toISOString();
     const imageHash = requestType !== 'ca' ? await extractImageHash(image) : sha256(dateRequested + subject.name);
 
@@ -89,20 +79,25 @@ async function requestCertificate({
  */
 async function issueCertificate(request, { id, issuer, email }, key) {
     // check arguments
-    if (!id && request.type === requestTypes.domain) { throw new Error('A token identifier must be provided for domain tokens.'); }
+    if (!id && request.type === csrTypeMapping.domain) { throw new Error('A token identifier must be provided for domain tokens.'); }
     if (!issuer) { throw new Error('Issuer information must be provided.'); }
     if (!issuer.name) { throw new Error('An issuer name must be provided.'); }
     if (!issuer.organization) { throw new Error('An issuer organization must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
 
     // process parameters.
-    // eslint-disable-next-line no-param-reassign
-    request = _.pick(request, CSR_VALID_FIELDS);
+    const platformName = request.subject.name.split('@')[1];
+    const schema = csrSchemaFactory(platformName);
+    const { error } = schema.validate(request);
+    if (error) {
+        throw new Error(`CSR${error}`);
+    }
+
     // eslint-disable-next-line no-param-reassign
     issuer.name = issuer.name.toLowerCase();
     request.subject.name = request.subject.name.toLowerCase();
     if (!id) {
-        if (request.type === requestTypes.token && request.subject.name) {
+        if (request.type === csrTypeMapping.token && request.subject.name) {
             // eslint-disable-next-line no-param-reassign
             id = request.subject.name;
         }
@@ -112,7 +107,6 @@ async function issueCertificate(request, { id, issuer, email }, key) {
     }
 
     // validate request
-    const platformName = request.subject.name.split('@')[1];
     const platform = platforms[platformName];
     const msg = JSON.stringify({
         type: request.type,
@@ -202,7 +196,7 @@ async function inspectCertificate(filepath) {
     const msg = JSON.stringify({
         type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, data,
     });
-    if (type === certTypes.ca) {
+    if (type === certTypeMapping.ca) {
         hash = sha256(dateRequested + subject.name);
     }
     const reqMsg = `${msg}${SEPARATOR}${cert.requestAddress}`;
@@ -221,7 +215,7 @@ async function inspectCertificate(filepath) {
             JSON.stringify(result.certificate),
         );
 
-        if (type === certTypes.domain) {
+        if (type === certTypeMapping.domain) {
             // extract additional metadata from the domain token image.
             result.code = await extractImageCode(filepath);
             result.signatureMark = await extractImageSignature(filepath);
@@ -252,6 +246,14 @@ async function inspectCertificate(filepath) {
 async function verifyCertificate(filepath, addr) {
     const data = _.isString(filepath) ? await inspectCertificate(filepath) : filepath;
 
+    // perform a schema validation of the certificate.
+    const platformName = data.certificate.subject.name.split('@')[1];
+    const schema = certificateSchemaFactory(platformName);
+    const { error } = schema.validate(data.certificate);
+    if (error) {
+        return `Certificate${error}`;
+    }
+
     if (data.imageHash !== data.certificate.imageHash) {
         return 'The SHA-256 hash in the certificate does not match actual hash of the image.';
     }
@@ -265,12 +267,12 @@ async function verifyCertificate(filepath, addr) {
         return 'The forwarding signature is inconsistent.';
     }
 
-    if (data.certificate.type === certTypes.domain
+    if (data.certificate.type === certTypeMapping.domain
         && data.certificate.signatureAddress !== data.signatureMarkAddress) {
         return 'The requestor and image signature addresses do not match!';
     }
 
-    if (data.certificate.type === certTypes.ca) {
+    if (data.certificate.type === certTypeMapping.ca) {
     // CA certificates are always self-signed.
         if (data.certificate.subject.name !== data.certificate.issuer.name) {
             return 'The subject and issuer names do not match for the CA certificate.';
@@ -321,7 +323,7 @@ async function installCertificate(cert, image, output) {
 
     // write the certificate to the cache.
     // TODO: this will need to be re-evaluated later.
-    if (data.certificate.type !== certTypes.token) {
+    if (data.certificate.type !== certTypeMapping.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 const clc = require('cli-color');
 const { inspectCertificateChain } = require('../../certificateChains');
-const { certTypes } = require('../../constants');
+const { certTypeMapping } = require('../../constants');
 const { shortenPath } = require('../../utils');
 const { displayCertificate } = require('../text');
 const { displayStatus } = require('../utils');
@@ -38,7 +38,7 @@ async function defaultCommand(args) {
         displayStatus(status, 'Complete');
         console.log();
         chain.filter((i) => i).forEach((cert, index) => {
-            const isCA = cert.certificate.type === certTypes.ca;
+            const isCA = cert.certificate.type === certTypeMapping.ca;
             const { subject } = cert.certificate;
             const [path, platform] = subject.name.split('@');
             const platformDisplay = clc.magenta(`${platform}`);

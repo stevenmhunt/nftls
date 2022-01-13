@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const _ = require('lodash');
-const { certTypes } = require('../constants');
+const { certTypeMapping } = require('../constants');
 
 function displayCertificate({
     certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress,
@@ -22,7 +22,7 @@ function displayCertificate({
     });
     console.log(`        Email: ${certificate.email}`);
     console.log(`        Date Requested: ${certificate.dateRequested}`);
-    if (certificate.type !== certTypes.ca && imageHash) {
+    if (certificate.type !== certTypeMapping.ca && imageHash) {
         console.log('    Issuer:');
         _.keys(certificate.issuer).forEach((s) => {
             console.log(`        ${_.startCase(s)}: ${certificate.issuer[s]}`);
@@ -41,7 +41,7 @@ function displayCertificate({
         console.log('    Issuer Signature:');
         console.log(`        ${signature}`);
         console.log(`        Address: ${signatureAddress}`);
-        if (certificate.type !== certTypes.ca && imageHash) {
+        if (certificate.type !== certTypeMapping.ca && imageHash) {
             console.log('    Image:');
             if (code) {
                 console.log(`        Code: ${code}`);
