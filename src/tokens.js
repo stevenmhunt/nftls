@@ -4,13 +4,14 @@ const { generateCode, shortenPath, extractPath } = require('./utils');
 const { SEPARATOR } = require('./constants');
 
 /**
- * Renders a new domain certificate token image for deployment as an NFT.
+ * Renders a new certificate token image for deployment as an NFT.
+ * @param {string} type The certificate type ('address', 'domain', etc.)
  * @param {object} input The configuration of the image.
  * @param {string} key The private key to sign the image with.
  * @param {string} output The output file.
  * @returns {Promise<number>} Returns the randomly generated code associated with the token.
  */
-async function renderDomainCertificateToken({ name, image, noCode }, key, output) {
+async function renderCertificateToken(type, { name, image, noCode }, key, output) {
     const { pathName, platformName } = extractPath(name);
     const path = shortenPath(pathName);
     const platform = platforms[platformName];
@@ -24,5 +25,5 @@ async function renderDomainCertificateToken({ name, image, noCode }, key, output
 }
 
 module.exports = {
-    renderDomainCertificateToken,
+    renderCertificateToken,
 };

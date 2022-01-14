@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 const { readLine } = require('../utils');
-const { renderDomainCertificateToken } = require('../../tokens');
-
-const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
+const { renderCertificateToken } = require('../../tokens');
+const { PRIVATE_KEY_PROMPT } = require('../../constants');
 
 function getHelpText() {
     return 'Renders the specified image types.';
@@ -12,7 +11,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls render <domain-token> (<private key>)');
+    console.log('     nftls render <domain-token | address-token> (<private key>)');
     console.log('        token name:  --name <path>@<platform>');
     console.log('        base image:  --image <file>');
     console.log('        output file: --output [-o] <file>');
@@ -24,7 +23,8 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
-async function renderDomainTokenCli(args, key) {
+async function renderTokenCli(args, signingKey) {
+    const [type] = args.target.split('-');
     const { image } = args;
     const { name } = args;
     const noCode = args.code === false;
@@ -35,13 +35,13 @@ async function renderDomainTokenCli(args, key) {
     }
 
     // check optional parameters.
-    if (!key) {
+    if (!signingKey) {
         // eslint-disable-next-line no-param-reassign
-        key = await readLine(PRIVATE_KEY_PROMPT, true);
+        signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
     }
 
-    const output = args.o || args.output || image;
-    const { code } = await renderDomainCertificateToken({ name, image, noCode }, key, output);
+    const out = args.o || args.output || image;
+    const { code } = await renderCertificateToken(type, { name, image, noCode }, signingKey, out);
     if (code) {
         console.log(code);
     }
@@ -51,5 +51,6 @@ module.exports = {
     getHelpText,
     defaultCommand,
     helpCommand,
-    'domain-token': renderDomainTokenCli,
+    'domain-token': renderTokenCli,
+    'address-token': renderTokenCli,
 };

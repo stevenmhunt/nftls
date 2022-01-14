@@ -2,8 +2,7 @@
 const fs = require('fs-extra');
 const { readLine, processIdentityArg, withOutput } = require('../utils');
 const { issueCertificate } = require('../../certificates');
-
-const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
+const { PRIVATE_KEY_PROMPT } = require('../../constants');
 
 function getHelpText() {
     return 'Issues a new certificate using a certificate request.';
@@ -13,7 +12,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls issue <certificate request file> (<private key>)');
+    console.log('     nftls issue <certificate request file> (<signing key>)');
     console.log('        NFT identity:   (--id <NFT address>#<token number>)');
     console.log('        issuer data:    --issuer <x509 data | json file>');
     console.log('        email address:  --email <email address>');

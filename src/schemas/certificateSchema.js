@@ -1,11 +1,10 @@
-const _ = require('lodash');
 const Joi = require('joi');
-const { certTypeMapping } = require('../constants');
+const { certTypes } = require('../constants');
 const { platforms, identity } = require('./common');
 
 module.exports = (platform) => Joi.object({
     id: platforms[platform].token(),
-    type: Joi.string().valid(..._.values(certTypeMapping)).required(),
+    type: Joi.string().valid(...certTypes).required(),
     subject: identity(platform).required(),
     email: Joi.string().email().required(),
     imageHash: Joi.string().length(64).hex().required(),

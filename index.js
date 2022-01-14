@@ -18,7 +18,7 @@ const {
 } = require('./src/certificateChains');
 
 const {
-    renderDomainCertificateToken,
+    renderCertificateToken,
 } = require('./src/tokens');
 
 module.exports = {
@@ -32,5 +32,5 @@ module.exports = {
     getCertificateAuthorities,
     inspectCertificateChain,
     verifyCertificateChain,
-    renderDomainCertificateToken,
+    renderCertificateToken,
 };
