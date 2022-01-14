@@ -25,7 +25,7 @@ YOUR_EMAIL="your email address"
 YOUR_INFO="CN=$YOUR_FQDN, O=$YOUR_NAME, C=US, S=California, L=San Francisco"
 
 nftls issue $CSR_FILE $YOUR_KEY \
-    --issuer "$YOUR_INFO"
+    --issuer "$YOUR_INFO" \
     --email $NFTLS_EMAIL \
     -o nft_token.cert.json
 ```
@@ -62,10 +62,10 @@ YOUR_EMAIL="your email address"
 YOUR_INFO="CN=$YOUR_FQDN, O=$YOUR_NAME, C=US, S=California, L=San Francisco"
 
 nftls issue $CSR_FILE $YOUR_KEY \
-    --id "$NFT_ADDRESS#$NFT_TOKEN_ID"
-    --issuer "$YOUR_INFO"
+    --id "$NFT_ADDRESS#$NFT_TOKEN_ID" \
+    --issuer "$YOUR_INFO" \
     --email $NFTLS_EMAIL \
-    -o nft_token.cert.json
+    -o address.cert.json
 ```
 
 ## Address and Contract Certificates

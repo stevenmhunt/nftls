@@ -1,12 +1,16 @@
-# Certificate Authority (CA)
+# NFTLS Certificate Authorities (CA)
+
+In a Public Key Infrastructure, there is one certificate at the beginning of all certificate chains which all the others depend upon to provide validity and trust. This is the responsibility of the Certificate Authority certificate (referred to as CA from this point forward). This hierarchical trust model has been at the heart of critical Web 1.0 and 2.0 technologies such as SSL/TLS, X509, and Smart Cards. The goal of NFTLS is to establish and operate a Web 3.0 version of this infrastructure in order to provide authenticity to blockchain participants and improve security.
+
+(Diagram of PKI goes here)
 
 ## Generating CA Certificates
 
-You can request your own CA certificate, although you may have difficulty finding a registrar who will help you with this request. This is a potentially sensitive operation from a securiy perspective, especially if you intend to use this certificate in a public blockchain since unauthorized access to the private key could invalidate the entire certificate chain.
+You can issue your own CA certificate, although it's not recommended. This is a potentially sensitive operation from a securiy perspective, especially if you intend to use this certificate in a public blockchain since unauthorized access to the private key would compromise every other certificate ever issued through the affected CA.
 
-If you absolutely *must* generate a CA certificate for use on a public blockchain, use the following procedures:
+If you absolutely *must* generate a CA certificate for production use, use the following procedures:
 
-1) Generate two private keys on an offline computer, preferrably one that lacks any networking hardware and has a fresh OS installation on it. If you're extra paranoid make sure it doesn't have speakers or any other possible alternate output mechanism that could leak keys in the event your machine has malware on it.
+1) Generate two private keys on an offline computer, preferrably one that lacks any networking hardware and has a fresh OS installation on it from a trusted medium (a factory sealed installation CD would be great if you can find one these days). If you're extra paranoid make sure it doesn't have speakers or any other possible alternate output mechanism that could leak keys in the event your machine has malware on it.
 
 2) One of these keys will be the CA private key, and the other the private key for the root wildcard domain certificate that you will use for signing all other CSRs in the future.
 

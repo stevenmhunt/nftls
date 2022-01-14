@@ -1,4 +1,4 @@
-# Initiating a Certificate Signing Request (CSR)
+# Creating a Certificate Signing Request (CSR)
 
 Much like generating an SSL certificate using *openssl*, you must first generate a *Certificate Signing Request* to acquire an NFTLS certificate. In the request itself you will state your identity, the intent of the certificate, and then sign it using one or more relevant addresses associated with the target blockchain.
 
@@ -41,7 +41,7 @@ nftls request token $YOUR_KEY \
     -o csr.json
 ```
 
-If you're concerned about exposing your private key by writing it to an environment variable, you can optionally omit the `<signing key>` parameter after `request token` and the command-line tool will automatically prompt you to enter your key into a secure input prompt.
+If you're concerned about exposing your private key by writing it to an environment variable, you can optionally omit the `<signing key>` parameter after `request token` or set it to `stdin` and the command-line tool will automatically prompt you to enter your key into a secure input prompt.
 
 Once you have successfully generated your CSR file you can provide it to a registrar who can verify your information and then issue a certificate through the Certificate Authority (CA).
 
