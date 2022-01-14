@@ -35,10 +35,10 @@ async function defaultCommand(args) {
         'Scanning the blockhain (Powered by etherscan.io)',
     );
     if (format === 'tree') {
-        console.log('NFTLS Certificate Chain:');
-        process.stdout.write('     Status:');
+        console.log('┌ NFTLS Certificate Chain:');
+        process.stdout.write('│    Status:');
         displayStatus(status, 'Complete');
-        console.log();
+        console.log('│');
         chain.filter((i) => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === certTypeMapping.ca;
             const { subject } = cert.certificate;
@@ -46,7 +46,7 @@ async function defaultCommand(args) {
             const platformDisplay = clc.magenta(`${platformName}`);
             const [tokenAddress, tokenNumber] = (cert.certificate.id || '').split('#');
             const location = clc.blackBright(`[ ${[subject.city, subject.state, subject.province, subject.country].filter((i) => i).join(', ')} ]`);
-            console.log(`${index === 0 ? '──' : '  '}[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : pathName)}`);
+            console.log(`${index === 0 ? '└─' : '  '}[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : pathName)}`);
             console.log(`   │   Subject: ${clc.bold(subject.organization)} ${location}`);
             console.log(`   │   Address: ${shortenPath(cert.certificate.signatureAddress)}${cert.certificate.forAddress ? clc.blueBright(` (${shortenPath(cert.certificate.forAddress)})`) : ''}`);
             if (cert.certificate.id) {
