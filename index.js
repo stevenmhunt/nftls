@@ -19,8 +19,11 @@ const {
 
 const {
     renderCertificateToken,
-} = require('./src/tokens');
+} = require('./src/certificateTokens');
 
+/**
+ * NFTLS functions
+ */
 module.exports = {
     requestCertificate,
     issueCertificate,

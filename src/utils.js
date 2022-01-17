@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const CA_PATH = '';
 
 /**
+ * @private
  * Given a full path, extracts the path and platform values.
  * @param {*} name The full path.
  * @returns {Promise<object>}
@@ -16,6 +17,7 @@ function extractPath(name) {
 }
 
 /**
+ * @private
  * Given a path name, returns a all possible parent paths in order to check a certificate chain.
  * @param {string} name The path name to calculate.
  * @returns {Array} A list of all possible parent paths.
@@ -58,6 +60,7 @@ function calculateChainPaths(name) {
 }
 
 /**
+ * @private
  * Generates a 32 bit random number which is used for issuing a code for domain tokens.
  * @returns {number}
  */
@@ -66,6 +69,7 @@ function generateCode() {
 }
 
 /**
+ * @private
  * Generates a 128 bit random number which is used for adding entropy to a certificate.
  * @returns {string} the serial number (in hexidecimal)
  */
@@ -74,6 +78,7 @@ function generateSerialNumber() {
 }
 
 /**
+ * @private
  * Shortens a path in order to make it easier to display in images.
  * @param {string} path The path to display.
  * @returns {string}
@@ -87,6 +92,7 @@ function shortenPath(path) {
 }
 
 /**
+ * @private
  * Generates a SHA-256 hash for the given value.
  * @param {*} val The value.
  * @returns {string} The hash value (in hexidecimal)

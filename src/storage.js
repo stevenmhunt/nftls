@@ -11,6 +11,7 @@ if (fs.pathExistsSync(filepath)) {
 }
 
 /**
+ * @private
  * Save the current user configuration.
  * @returns {Promise}
  */
@@ -19,6 +20,7 @@ async function save() {
 }
 
 /**
+ * @private
  * Adds an item to a key/value object.
  * @param {string} name The object name.
  * @param {string} key The key to add.
@@ -32,6 +34,7 @@ async function addKeyItem(name, key, value) {
 }
 
 /**
+ * @private
  * Adds an item to an array object.
  * @param {string} nane The object name.
  * @param {object} value The value to add.
@@ -44,6 +47,7 @@ async function addListItem(nane, value) {
 }
 
 /**
+ * @private
  * Gets the items associated with an object.
  * @param {string} name The object name.
  * @returns {Promise}
@@ -53,6 +57,7 @@ async function getItems(name) {
 }
 
 /**
+ * @private
  * Gets a specific value from a key within an object.
  * @param {*} name The object name.
  * @param {*} key The key to get data from.

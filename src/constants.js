@@ -1,14 +1,20 @@
 const _ = require('lodash');
 
 /**
+ * @private
  * using CRLF in order to maintain compatibility with https://etherscan.io/verifySig
  */
 const SEPARATOR = '\r\n';
 
+/**
+ * @private
+ * Prompt text for requesting private key.
+ */
 const PRIVATE_KEY_PROMPT = '<<<====DANGER====>>>\nPrivate Key: ';
 
 /**
- * NFTLS Certificate Signing Request Types.
+ * @private
+ * NFTLS Certificate Signing Request mapping.
  */
 const csrTypeMapping = {
     ca: 'NFTLS CA Request',
@@ -18,7 +24,8 @@ const csrTypeMapping = {
 };
 
 /**
- * NFTLS Certificate Types.
+ * @private
+ * NFTLS Certificate mapping.
  */
 const certTypeMapping = {
     ca: 'NFTLS CA Certificate',
@@ -27,7 +34,16 @@ const certTypeMapping = {
     token: 'NFTLS Token Certificate',
 };
 
+/**
+ * @private
+ * NFTLS Certificate Signing Request types.
+ */
 const csrTypes = _.values(csrTypeMapping);
+
+/**
+ * @private
+ * NFTLS Certificate types.
+ */
 const certTypes = _.values(certTypeMapping);
 
 module.exports = {

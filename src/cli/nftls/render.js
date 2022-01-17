@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const { readLine } = require('../utils');
-const { renderCertificateToken } = require('../../tokens');
+const { renderCertificateToken } = require('../../certificateTokens');
 const { PRIVATE_KEY_PROMPT } = require('../../constants');
 
 function getHelpText() {
