@@ -14,14 +14,16 @@ function displayCertificate({
         console.log(`    Token Identifier: ${certificate.id}`);
     }
     if (certificate.forAddress) {
-        console.log(`    for: ${certificate.forAddress}`);
+        // eslint-disable-next-line no-restricted-globals
+        const forContract = !isNaN(certificate.contractNonce) ? '(Contract) ' : '';
+        console.log(`    For: ${forContract}${certificate.forAddress}`);
     }
     console.log('    Subject:');
     _.keys(certificate.subject).forEach((s) => {
         console.log(`        ${_.startCase(s)}: ${certificate.subject[s]}`);
     });
     console.log(`        Email: ${certificate.email}`);
-    console.log(`        Date Requested: ${certificate.dateRequested}`);
+    console.log(`        Date Requested: ${new Date(certificate.dateRequested * 1000).toISOString()}`);
     if (certificate.type !== certTypeMapping.ca && imageHash) {
         console.log('    Issuer:');
         _.keys(certificate.issuer).forEach((s) => {
@@ -29,7 +31,7 @@ function displayCertificate({
         });
         console.log(`        Email: ${certificate.issuerEmail}`);
     }
-    console.log(`        Date Issued: ${certificate.dateIssued}`);
+    console.log(`        Date Issued: ${new Date(certificate.dateIssued * 1000).toISOString()}`);
     console.log('    SHA-256:');
     console.log(`        ${certificate.imageHash}`);
     console.log('    Requestor Signature:');

@@ -1,7 +1,7 @@
 # NFTLS Certificates
 
 ## Components
-- ...request: the first part of the certificate contains the data from the CSR.
+- [...request](./csr.md): the first part of the certificate contains the data from the CSR.
 - `id`: the NFT address and token number associated with the certificate. Most (but not all) certificates have this field.
 - `type` - the type of certificate. Example: 'NFTLS Address Certificate'
 - `issuer` - the FQDN and identity information from the registrar.

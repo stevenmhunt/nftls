@@ -16,6 +16,7 @@ async function helpCommand() {
     console.log('        subject data:   --subject <x509 data | json file>');
     console.log('        email address:  --email <email address>');
     console.log('        security code: (--code <number>)');
+    console.log('        nonce:         (--nonce <number>)');
     console.log('        output file:    --output [-o] <file | [stdout]>');
 }
 
@@ -31,6 +32,7 @@ function generateRequestCli(requestType) {
         const subject = await processIdentityArg(args.subject);
         const { email } = args;
         const code = requestType !== 'token' ? parseInt(args.code || '0', 10) : undefined;
+        const contractNonce = args.contract ? parseInt(args.nonce || '0', 10) : undefined;
 
         // check required parameters.
         if (!image) {
@@ -53,7 +55,7 @@ function generateRequestCli(requestType) {
         const output = args.o || args.output || 'stdout';
 
         return withOutput(await requestCertificate({
-            requestType, image, subject, email, code,
+            requestType, image, subject, email, code, contractNonce,
         }, signingKey, forKey), output);
     };
 }
@@ -62,6 +64,7 @@ async function requestCACli(args, signingKey, forKey) {
     const requestType = 'ca';
     const subject = await processIdentityArg(args.subject);
     const { email } = args;
+    const contractNonce = args.contract ? parseInt(args.nonce || '0', 10) : undefined;
 
     // check optional parameters.
     if (!signingKey) {
@@ -72,7 +75,7 @@ async function requestCACli(args, signingKey, forKey) {
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await requestCertificate({
-        requestType, subject, email,
+        requestType, subject, email, contractNonce,
     }, signingKey, forKey), output);
 }
 

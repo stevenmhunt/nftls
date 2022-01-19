@@ -13,7 +13,8 @@ async function helpCommand() {
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls issue <certificate request file> (<signing key>)');
-    console.log('        NFT identity:   (--id <NFT address>#<token number>)');
+    console.log('        NFT address:   (--token <contract address>)');
+    console.log('        Is root token: (--token-root)');
     console.log('        issuer data:    --issuer <x509 data | json file>');
     console.log('        email address:  --email <email address>');
     console.log('        output file:    --output [-o] <file | stdout>');
@@ -21,7 +22,8 @@ async function helpCommand() {
 
 async function defaultCommand(args, key) {
     const request = await fs.readJSON(args.target);
-    const { id } = args;
+    const { token } = args;
+    const isTokenRoot = args['token-root'] === true;
     const issuer = await processIdentityArg(args.issuer);
     const { email } = args;
 
@@ -34,7 +36,7 @@ async function defaultCommand(args, key) {
     const output = args.o || args.output || 'stdout';
 
     return withOutput(await issueCertificate(request, {
-        id, issuer, email,
+        token, isTokenRoot, issuer, email,
     }, key), output);
 }
 

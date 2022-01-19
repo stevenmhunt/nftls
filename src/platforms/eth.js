@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
-const _ = require('lodash');
-
 const silence = console.log;
 console.info = function info() {};
+
+const _ = require('lodash');
 const EthCrypto = require('eth-crypto');
+const { keccak256 } = require('../utils');
 
 // Note: the 'eth-crypto' library outputs to stdout. this code suppresses that output.
 console.info = silence;
@@ -17,13 +18,29 @@ function generateWallet() {
 }
 
 /**
- * Given a private key, returns the Ethereum address.
- * @param {string} privateKey The private key.
+ * Calculates the contract address from the creator address and nonce.
+ * @param {string} address The creator address.
+ * @param {number} nonce The nonce.
  * @returns {string}
  */
-function getAddress(privateKey) {
+function getContractAddress(address, nonce) {
+    return EthCrypto.calculateContractAddress(address, nonce);
+}
+
+/**
+ * Given a private key, returns the Ethereum address.
+ * @param {string} privateKey The private key.
+ * @param {number} nonce (optional) Indicates that the contract address should be calculated.
+ * @returns {string}
+ */
+function getAddress(privateKey, nonce = undefined) {
     const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
-    return EthCrypto.publicKey.toAddress(publicKey).toLowerCase();
+    const result = EthCrypto.publicKey.toAddress(publicKey);
+    // eslint-disable-next-line no-restricted-globals
+    if (!isNaN(nonce)) {
+        return getContractAddress(result, nonce);
+    }
+    return result;
 }
 
 /**
@@ -33,19 +50,34 @@ function getAddress(privateKey) {
  * @returns {string} A digital signature.
  */
 function signMessage(key, msg) {
-    const hashMsg = EthCrypto.hash.keccak256(msg);
-    return EthCrypto.sign(key, hashMsg);
+    return EthCrypto.sign(key, keccak256(msg));
 }
 
 /**
  * Given an Ethereum signature and the original message, recovers the Ethereum address.
  * @param {string} sig The digital signature.
  * @param {string} msg The original message.
+ * @param {number} nonce (optional) Indicates that the contract address should be calculated.
  * @returns {string} The recovered Ethereum address.
  */
-function recoverAddress(sig, msg) {
-    const hashMsg = EthCrypto.hash.keccak256(msg);
-    return EthCrypto.recover(sig, hashMsg).toLowerCase();
+function recoverAddress(sig, msg, nonce = undefined) {
+    const result = EthCrypto.recover(sig, keccak256(msg));
+    // eslint-disable-next-line no-restricted-globals
+    if (!isNaN(nonce)) {
+        return getContractAddress(result, nonce);
+    }
+    return result;
+}
+
+function addressesAreEqual(sigAddr, knownAddr, nonce = undefined) {
+    if (!sigAddr || !knownAddr) {
+        return false;
+    }
+    // eslint-disable-next-line no-restricted-globals
+    if (!isNaN(nonce)) {
+        return getContractAddress(sigAddr, nonce).toLowerCase() === knownAddr.toLowerCase();
+    }
+    return sigAddr.toLowerCase() === knownAddr.toLowerCase();
 }
 
 /**
@@ -73,8 +105,10 @@ function generateCallData(method, args, values) {
 module.exports = {
     generateWallet,
     getAddress,
+    getContractAddress,
     signMessage,
     recoverAddress,
+    addressesAreEqual,
     getCompatiblePlatforms,
     generateCallData,
 };

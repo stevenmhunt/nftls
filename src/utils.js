@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const keccak256Internal = require('keccak256');
 
 const CA_PATH = '';
 
@@ -101,11 +102,26 @@ function sha256(val) {
     return crypto.createHash('sha256').update(val).digest().toString('hex');
 }
 
+/**
+ * @private
+ * Generates a Keccak256 hash for the given value.
+ * @param {*} val The value.
+ * @returns {string} The hash value (in hexidecimal)
+ */
+function keccak256(val, type) {
+    const result = keccak256Internal(val);
+    if (type === 'bytes') {
+        return result;
+    }
+    return `0x${result.toString('hex')}`;
+}
+
 module.exports = {
+    extractPath,
     calculateChainPaths,
     generateCode,
     generateSerialNumber,
     shortenPath,
     sha256,
-    extractPath,
+    keccak256,
 };

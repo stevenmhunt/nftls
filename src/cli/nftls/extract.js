@@ -11,7 +11,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash> <file>');
+    console.log('     nftls extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash | requestor-address | for-address> <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
     console.log('        image coordinates: ( --coordinates "<x>,<y>,<w>,<h>" )');
 }
@@ -59,6 +59,16 @@ async function extractActualHashCli(args, filepath) {
     console.log(data.imageHash);
 }
 
+async function extractReqAddressCli(args, filepath) {
+    const data = await inspectCertificate(filepath);
+    console.log(data.certificate.requestorAddress);
+}
+
+async function extractForAddressCli(args, filepath) {
+    const data = await inspectCertificate(filepath);
+    console.log(data.certificate.forAddress);
+}
+
 module.exports = {
     getHelpText,
     helpCommand,
@@ -69,4 +79,6 @@ module.exports = {
     'image-signature': extractSigmarkCli,
     'image-code': extractCodeCli,
     'image-hash': extractActualHashCli,
+    'requestor-address': extractReqAddressCli,
+    'for-address': extractForAddressCli,
 };
