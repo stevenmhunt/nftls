@@ -12,7 +12,8 @@ async function helpCommand() {
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls authorize <mint> <signing key> <certificate file>');
-    console.log('        output file:     --output [-o] <file | [stdout]>');
+    console.log('        add to cache:   (--cache)');
+    console.log('        output file:    (--output [-o] <file | [stdout]>)');
 }
 
 async function defaultCommand(args) {
@@ -28,7 +29,9 @@ async function authorizeMintCli(args, signingKey, filepath) {
         signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
     }
     const output = args.o || args.output || 'stdout';
-    return withOutput(await authorizeCertificateToken(filepath, signingKey), output);
+    const cache = args.cache || false;
+
+    return withOutput(await authorizeCertificateToken('mint', filepath, signingKey, { cache }), output);
 }
 
 module.exports = {

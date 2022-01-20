@@ -7,7 +7,7 @@ const CA_PATH = '';
  * @private
  * Given a full path, extracts the path and platform values.
  * @param {*} name The full path.
- * @returns {Promise<object>}
+ * @returns {object}
  */
 function extractPath(name) {
     const [pathName, platformName] = name.split('@');

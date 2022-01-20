@@ -4,7 +4,9 @@ const {
     generateCode, shortenPath, extractPath, keccak256,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
-const { SEPARATOR, CERT_KEY, certTypeMapping } = require('./constants');
+const {
+    SEPARATOR, CERT_KEY, certTypeMapping, authorizationTypeMapping,
+} = require('./constants');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
 
 /**
@@ -28,7 +30,7 @@ async function renderCertificateToken(type, { name, image, noCode }, key, output
     return { code };
 }
 
-async function authorizeCertificateToken(certData, signingKey) {
+async function authorizeCertificateToken(type, certData, signingKey, options = {}) {
     const data = await inspectCertificate(certData);
     const result = await verifyCertificate(data);
     if (result !== 'Verified') {
@@ -41,6 +43,7 @@ async function authorizeCertificateToken(certData, signingKey) {
     const version = 0;
     const hash = keccak256(data.data);
     const signature = platform.signAuthorization(signingKey, [
+        authorizationTypeMapping[type],
         recipient,
         path,
         version,
@@ -48,8 +51,7 @@ async function authorizeCertificateToken(certData, signingKey) {
     ]);
 
     // write the certificate to the cache.
-    // TODO: this will need to be re-evaluated later.
-    if (data.certificate.type !== certTypeMapping.token) {
+    if (options.cache === true && data.certificate.type !== certTypeMapping.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }

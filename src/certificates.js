@@ -5,7 +5,8 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, sha256, calculateChainPaths, extractPath, keccak256,
+    generateSerialNumber, shortenPath, sha256,
+    calculateChainPaths, extractPath, keccak256, parseX509Fields,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
 const {
@@ -13,6 +14,7 @@ const {
 } = require('./constants');
 const csrSchemaFactory = require('./schemas/csrSchema');
 const certificateSchemaFactory = require('./schemas/certificateSchema');
+const { platforms: platformSchemas } = require('./schemas/common');
 
 const NO_IMAGE_HASH = 'N/A';
 
@@ -31,12 +33,25 @@ const NO_IMAGE_HASH = 'N/A';
 async function requestCertificate({
     requestType, image, subject, email, data, code, contractNonce,
 }, signingKey, forKey = undefined) {
+    // argument pre-processing
+    if (_.isString(subject)) {
+        // eslint-disable-next-line no-param-reassign
+        subject = parseX509Fields(subject);
+    }
+
     // check arguments
     if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
     if (!subject) { throw new Error('Subject information must be provided.'); }
     if (!subject.name) { throw new Error('A subject name must be provided.'); }
     if (!subject.organization) { throw new Error('A subject organization must be provided.'); }
+    if (!subject.country) { throw new Error('A subject country must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
+    if (code !== undefined && (!Number.isInteger(code) || code < 0)) {
+        throw new Error('A security code must be non-negative integer value.');
+    }
+    if (contractNonce !== undefined && (!Number.isInteger(contractNonce) || contractNonce < 0)) {
+        throw new Error('A contract nonce must be non-negative integer value.');
+    }
 
     // eslint-disable-next-line no-param-reassign
     subject.name = subject.name.toLowerCase();
@@ -44,9 +59,18 @@ async function requestCertificate({
     const dateRequested = Math.floor(Date.now() / 1000);
     const imageHash = image ? await extractImageHash(image) : sha256(dateRequested + subject.name);
 
-    // build certificate request object.
-    const { platformName } = extractPath(subject.name);
+    // check request values.
+    const { pathName, platformName } = await extractPath(subject.name);
     const platform = platforms[platformName];
+    if (!platform) { throw new Error(`Unsupported platform '${platformName}'.`); }
+    if (type === csrTypeMapping.ca && pathName && pathName.length > 0) { throw new Error('CA certificates cannot have a non-zero length path.'); }
+    if (type !== csrTypeMapping.ca) {
+        const schema = platformSchemas[platformName][requestType];
+        const { error } = schema().validate(pathName);
+        if (error) { throw new Error(`CSR${error}`); }
+    }
+
+    // build certificate request object.
     const requestAddress = platform.getAddress(signingKey);
     const getForAddress = () => {
         // eslint-disable-next-line no-restricted-globals
@@ -68,9 +92,18 @@ async function requestCertificate({
     const forSignature = forKey
         ? platform.signMessage(forKey, `${reqMsg}${SEPARATOR}${forAddress}`)
         : undefined;
-    return {
+    const result = {
         ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,
     };
+
+    // perform a final validation of the entire request.
+    const schema = csrSchemaFactory(platformName);
+    const { error } = schema.validate(result);
+    if (error) {
+        throw new Error(`CSR${error}`);
+    }
+
+    return result;
 }
 
 /**
@@ -86,6 +119,12 @@ async function requestCertificate({
 async function issueCertificate(request, {
     token, isTokenRoot, issuer, email,
 }, key) {
+    // argument pre-processing
+    if (_.isString(issuer)) {
+        // eslint-disable-next-line no-param-reassign
+        issuer = parseX509Fields(issuer);
+    }
+
     // check arguments
     if (!token && request.type === csrTypeMapping.domain) { throw new Error('A token contract address must be provided for domain tokens.'); }
     if (!issuer) { throw new Error('Issuer information must be provided.'); }
@@ -93,6 +132,10 @@ async function issueCertificate(request, {
     if (!issuer.organization) { throw new Error('An issuer organization must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
     if (!key) { throw new Error('A valid private key is required to issue a certificate.'); }
+    if (request.dateRequested > Math.floor(Date.now() / 1000)) {
+        throw new Error('Request date/time must be in the past.');
+    }
+    if (!request.subject || !request.subject.name) { throw new Error('A subject name is required.'); }
 
     // process parameters.
     request.subject.name = request.subject.name.toLowerCase();
@@ -158,7 +201,7 @@ async function issueCertificate(request, {
     }), 'utf8'));
 
     // digitally sign the issued certificate.
-    const signature = await platform.signMessage(key, keccak256(certificate, 'bytes'));
+    const signature = await platform.signMessage(key, certificate);
 
     return {
         format: 'gzip',
@@ -224,7 +267,7 @@ async function inspectCertificate(filepath) {
     // recover issuer signature address.
     result.signatureAddress = await platform.recoverAddress(
         result.signature,
-        keccak256(result.data, 'bytes'),
+        result.data,
     );
 
     if (hash !== NO_IMAGE_HASH) {
@@ -341,17 +384,16 @@ async function verifyCertificate(filepath, addr) {
  * @param {string} output (optional) The output file.
  * @returns {Promise<string>} The name of the installed certificate.
  */
-async function installCertificate(cert, image, output) {
-    await encodeImageData(image, JSON.stringify(cert), output || image);
-    const data = await inspectCertificate(output || image);
+async function installCertificate(cert, image, options) {
+    await encodeImageData(image, JSON.stringify(cert), options.output || image);
+    const data = await inspectCertificate(options.output || image);
     const result = await verifyCertificate(data);
     if (result !== 'Verified') {
         throw new Error(`Failed to install ${data.certificate.subject.name}: ${result}`);
     }
 
     // write the certificate to the cache.
-    // TODO: this will need to be re-evaluated later.
-    if (data.certificate.type !== certTypeMapping.token) {
+    if (options.cache === true && data.certificate.type !== certTypeMapping.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }

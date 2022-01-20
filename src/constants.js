@@ -50,6 +50,10 @@ const csrTypes = _.values(csrTypeMapping);
  */
 const certTypes = _.values(certTypeMapping);
 
+const authorizationTypeMapping = {
+    mint: 'm'.charCodeAt(0),
+};
+
 module.exports = {
     SEPARATOR,
     CA_KEY,
@@ -60,4 +64,5 @@ module.exports = {
     csrTypes,
     certTypes,
     PRIVATE_KEY_PROMPT,
+    authorizationTypeMapping,
 };

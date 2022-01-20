@@ -1,0 +1,143 @@
+{
+    "ca": {
+        "type": "NFTLS CA Request",
+        "subject": {
+            "name": "@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "ff673208a747dd942b1320b6a49a14924650df31d769316f46273af725ef0c51",
+        "dateRequested": 1642694607,
+        "signature": "0x330fa7fc7889e46987c58f185c5342f5122dee485dadd17d1a3eab2cde244f496d6ce34110a698f8ad16e045c3efdc9647fd11fa7a5b0f4f53d59e0f2b48540d1b",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0x66cfaf0d248b9fca7a5f7a0933378eaddeda193dc5757926b91f96c9cb5fc9d07d3900a908d729ab46824005a609cf6bba760d4b2cf491ca7a063ab0330d02c21b"
+    },
+    "caFor": {
+        "type": "NFTLS CA Request",
+        "subject": {
+            "name": "@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "ff673208a747dd942b1320b6a49a14924650df31d769316f46273af725ef0c51",
+        "dateRequested": 1642694607,
+        "signature": "0x330fa7fc7889e46987c58f185c5342f5122dee485dadd17d1a3eab2cde244f496d6ce34110a698f8ad16e045c3efdc9647fd11fa7a5b0f4f53d59e0f2b48540d1b",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0x66cfaf0d248b9fca7a5f7a0933378eaddeda193dc5757926b91f96c9cb5fc9d07d3900a908d729ab46824005a609cf6bba760d4b2cf491ca7a063ab0330d02c21b",
+        "forAddress": "0x4f9D1Da0a553d6AE324Bd27B7Ffbfca9bf3CF0dA",
+        "forSignature": "0x46f4e95725eab174cd9d701e2b90057c8565061eb62f5af4d6489cda44d06d8067bc40d1092b8f3864858ac93b20d581513cbc3b0ae87b951e1a877a0af417511b"
+    },
+    "caForContract": {
+        "type": "NFTLS CA Request",
+        "subject": {
+            "name": "@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "ff673208a747dd942b1320b6a49a14924650df31d769316f46273af725ef0c51",
+        "dateRequested": 1642694607,
+        "contractNonce": 0,
+        "signature": "0x5b2007b62197bffb10496ebee97799c3e734e02ff1b48bfd16dbf9bbe4303c9a455a687053c3f3bc504d573c974b860ef7572a57c9e12b16eb39b2de98c02ea41c",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0x92a0d4e94b1bd1d1a2fa480768765c7669a6f92e4b966a78da15cf3ed6edc7f618bab1b0169b828c8ef4bebf680baf87c9845de435248533f869e8665a4b90d21b",
+        "forAddress": "0x86bE456Da02E52d93b10EA44cfaafb031cC63D5e",
+        "forSignature": "0xec0baeb01ec21338ac67629bad519b08cc04362e838b332965c72789e6db826e49f9595cddf6146c89f84e53f2d970114e536a9d3026616abc9ef835d6d83ee41b"
+    },
+    "rootDomain": {
+        "type": "NFTLS Domain Request",
+        "subject": {
+            "name": "*@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "602a90b0b9f914e4528f2fea619d7cb03f8dbc05f94fb73a9c6e3e0b50143112",
+        "dateRequested": 1642694607,
+        "signature": "0x4e71895c132fa229064c4eb3ebdd6e4ec4883a2717db534cdeea1c8e309a98a22abe208cb42c3badb66f7c8f2362869e79c97401acb02381cf6665653d2812ed1c",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0xe5e10c818f499ab43a27b02a01159238350658554261f571cb2ce18968626e9d3d987ac0c7b296e10330eb62dafd077609dd8a9987252e81213b34888c1ea6ca1b"
+    },
+    "wildcardDomain": {
+        "type": "NFTLS Domain Request",
+        "subject": {
+            "name": "*.tld@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "9f777f36d793a7ce01f23c3d931d768b28fe5a7769ae559d221d1789e24ebbf9",
+        "dateRequested": 1642694607,
+        "signature": "0xeb141cfbe4172fc137ebbd73b140dbdb8cf7ea7b478a39523dcdd16ce1bf1f752cac610e7fdd5b412e032525b5dac821851198d070f2c11ca7133d419612dd651c",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0x4a168bce652508b6231e2991b0d968fc25243a9a46fa037d3d2f0c3cc08e5796385db3824983dab0a7012119ce9fb6bcc0c1f7ff7f04cacb0d4d102cf815125c1c"
+    },
+    "domain": {
+        "type": "NFTLS Domain Request",
+        "subject": {
+            "name": "name.tld@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "df3e87789a57d42447e3f53681f1da3a1746a349a1818262c16939be8a9cfe63",
+        "dateRequested": 1642694607,
+        "signature": "0xde9deb4db5645b247e415bfa04d279f476f27d06f450210527fb73d8806741565f35e0dc2a3315973c9a3587034d9299caf61575d52e250a985c193ba01396981c",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0x83756ab941ce1c877f31efd587e32f23afd49ab6adbc2f7f1f574203c9beae7900743fbbe70a0c2f5c95c748e82db8da3e4b83a06f570d74fe540fbfc16179391b"
+    },
+    "address": {
+        "type": "NFTLS Address Request",
+        "subject": {
+            "name": "0x43c5e21d53a6cc6d8515f68ee50de4d26935700c@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "92db94eaf0f55e47f86543806fe7521c25eefdb8e6b91a88810499f13e217342",
+        "dateRequested": 1642694607,
+        "signature": "0x22549f049dbcd08f91d00f073a7e66b44f755fbd431087ac12fbbe1f7ce13ce572b85d4beaec6a51b285dd3ab1af241a3d5d79ad720ce335d230c3309eb465e51c",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0xe0e98a5f33d5cee7adca40c574c3ab10223005cbe33f8d7db3bcdaf20cb4138718c957841adbff442c64ec5009df88619a159547eba38aef4e8f5f782a4618e81b"
+    },
+    "token": {
+        "type": "NFTLS Token Request",
+        "subject": {
+            "name": "0x43c5e21d53a6cc6d8515f68ee50de4d26935700c#123@eth",
+            "organization": "nftls.io",
+            "division": "QA Department",
+            "country": "US",
+            "state": "New York",
+            "city": "Rochester"
+        },
+        "email": "test@nftls.io",
+        "imageHash": "cb6815fb6b49912fb58a1cb4aa155eadc949a46050ac28c926771a4a3a6168db",
+        "dateRequested": 1642694607,
+        "signature": "0xf33e154e1cf7c61095f23704887e5f2dc5885f3e09bd166646c858f1f3c2c446387c666f3ca226aefed543bc301250e278cdda0642c7543f867160bfca4224761b",
+        "requestAddress": "0x43C5e21d53A6cC6d8515f68EE50de4D26935700C",
+        "requestSignature": "0xeb1825bbc07d1664589578b6f27d684286cd1259ebab98bb26fddb5c0f54669f10b64fbe5d60afe0ff291d357085572802d76b462aef094d7c6918f936d324fd1b"
+    }
+}

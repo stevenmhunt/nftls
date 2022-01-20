@@ -59,11 +59,17 @@ function signMessage(key, msg) {
  * @param {Array} fields The data fields.
  * @returns {string} A digital signature.
  */
-function signAuthorization(key, [addr, path, version, hash]) {
+function signAuthorization(key, [type, addr, path, version, hash]) {
     const newPath = version ? keccak256(Buffer.concat([
         path, version,
     ].map((i) => Buffer.from(i, 'hex')))) : path;
-    const msg = Buffer.concat([addr, newPath, version, hash].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
+    const msg = Buffer.concat([
+        type.toString(16),
+        addr,
+        newPath,
+        version,
+        hash,
+    ].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
     return signMessage(key, msg);
 }
 
