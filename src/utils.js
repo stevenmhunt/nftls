@@ -92,6 +92,25 @@ function shortenPath(path) {
     return path.toLowerCase();
 }
 
+const x509Mapping = {
+    CN: 'name',
+    O: 'organization',
+    OU: 'division',
+    C: 'country',
+    S: 'state',
+    P: 'province',
+    L: 'city',
+};
+
+function parseX509Fields(data) {
+    const result = {};
+    data.split(',').map((i) => i.trim().split('=').map((j) => j.trim())).forEach((field) => {
+        const [key, value] = field;
+        result[x509Mapping[key] || key] = value;
+    });
+    return result;
+}
+
 /**
  * @private
  * Generates a SHA-256 hash for the given value.
@@ -122,6 +141,7 @@ module.exports = {
     generateCode,
     generateSerialNumber,
     shortenPath,
+    parseX509Fields,
     sha256,
     keccak256,
 };

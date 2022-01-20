@@ -3,9 +3,7 @@ const { inspectCertificate, verifyCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
 const { calculateChainPaths, extractPath } = require('./utils');
 const { getItems } = require('./storage');
-
-const CERT_KEY = 'certificateCache';
-const ROOT_CERT_PATH = '*';
+const { CERT_KEY, ROOT_CERT_PATH } = require('./constants');
 
 /**
  * @private
@@ -36,7 +34,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
 
     // analyze certificate.
     const data = JSON.parse(Buffer.from(cert, 'base64').toString('utf8'));
-    const nextAddress = data.certificate.signatureAddress;
+    const nextAddress = data.certificate.requestAddress;
     const nextfor = data.certificate.forAddress;
     data.status = await verifyCertificate(data, addr);
 

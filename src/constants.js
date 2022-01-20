@@ -6,6 +6,10 @@ const _ = require('lodash');
  */
 const SEPARATOR = '\r\n';
 
+const CA_KEY = 'certificateAuthorities';
+const CERT_KEY = 'certificateCache';
+const ROOT_CERT_PATH = '*';
+
 /**
  * @private
  * Prompt text for requesting private key.
@@ -48,6 +52,9 @@ const certTypes = _.values(certTypeMapping);
 
 module.exports = {
     SEPARATOR,
+    CA_KEY,
+    CERT_KEY,
+    ROOT_CERT_PATH,
     csrTypeMapping,
     certTypeMapping,
     csrTypes,

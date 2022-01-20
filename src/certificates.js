@@ -8,11 +8,12 @@ const {
     generateSerialNumber, shortenPath, sha256, calculateChainPaths, extractPath, keccak256,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
-const { SEPARATOR, csrTypeMapping, certTypeMapping } = require('./constants');
+const {
+    SEPARATOR, CERT_KEY, csrTypeMapping, certTypeMapping,
+} = require('./constants');
 const csrSchemaFactory = require('./schemas/csrSchema');
 const certificateSchemaFactory = require('./schemas/certificateSchema');
 
-const CERT_KEY = 'certificateCache';
 const NO_IMAGE_HASH = 'N/A';
 
 /**
@@ -32,7 +33,6 @@ async function requestCertificate({
 }, signingKey, forKey = undefined) {
     // check arguments
     if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
-    if (!image && requestType !== 'ca') { throw new Error('An image path must be provided.'); }
     if (!subject) { throw new Error('Subject information must be provided.'); }
     if (!subject.name) { throw new Error('A subject name must be provided.'); }
     if (!subject.organization) { throw new Error('A subject organization must be provided.'); }
@@ -40,15 +40,14 @@ async function requestCertificate({
 
     // eslint-disable-next-line no-param-reassign
     subject.name = subject.name.toLowerCase();
-    // eslint-disable-next-line no-param-reassign
     const type = csrTypeMapping[requestType];
     const dateRequested = Math.floor(Date.now() / 1000);
-    const imageHash = requestType !== 'ca' ? await extractImageHash(image) : sha256(dateRequested + subject.name);
+    const imageHash = image ? await extractImageHash(image) : sha256(dateRequested + subject.name);
 
     // build certificate request object.
     const { platformName } = extractPath(subject.name);
     const platform = platforms[platformName];
-    const requestAddress = platform.getAddress(signingKey, !forKey ? contractNonce : undefined);
+    const requestAddress = platform.getAddress(signingKey);
     const getForAddress = () => {
         // eslint-disable-next-line no-restricted-globals
         if (isNaN(contractNonce)) {
@@ -93,6 +92,7 @@ async function issueCertificate(request, {
     if (!issuer.name) { throw new Error('An issuer name must be provided.'); }
     if (!issuer.organization) { throw new Error('An issuer organization must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
+    if (!key) { throw new Error('A valid private key is required to issue a certificate.'); }
 
     // process parameters.
     request.subject.name = request.subject.name.toLowerCase();
@@ -131,7 +131,6 @@ async function issueCertificate(request, {
     const actualReqAddr = platform.recoverAddress(
         request.requestSignature,
         reqMsg,
-        !request.forSignature ? request.contractNonce : undefined,
     );
     const actualforAddr = request.forSignature
         ? platform.recoverAddress(
@@ -194,7 +193,7 @@ async function inspectCertificate(filepath) {
     if (certData.format === 'gzip') {
         const certBytes = Buffer.from(certData.certificate, 'base64');
         result = {
-            certBytes,
+            data: certBytes,
             certificate: JSON.parse((await ungzip(certBytes)).toString('utf8')),
             signature: certData.signature,
         };
@@ -225,7 +224,7 @@ async function inspectCertificate(filepath) {
     // recover issuer signature address.
     result.signatureAddress = await platform.recoverAddress(
         result.signature,
-        keccak256(result.certBytes, 'bytes'),
+        keccak256(result.data, 'bytes'),
     );
 
     if (hash !== NO_IMAGE_HASH) {
@@ -259,7 +258,9 @@ async function inspectCertificate(filepath) {
  * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
 async function verifyCertificate(filepath, addr) {
-    const data = _.isString(filepath) ? await inspectCertificate(filepath) : filepath;
+    const data = (_.isString(filepath) || filepath.format)
+        ? await inspectCertificate(filepath)
+        : filepath;
 
     // perform a schema validation of the certificate.
     const cert = data.certificate;
@@ -271,12 +272,13 @@ async function verifyCertificate(filepath, addr) {
         return `Certificate${error}`;
     }
 
-    if (data.imageHash !== cert.imageHash) {
+    if (data.imageHash && data.imageHash !== cert.imageHash) {
         return 'The SHA-256 hash in the certificate does not match actual hash of the image.';
     }
 
     const reqNonce = !cert.forAddress ? cert.contractNonce : undefined;
-    if (!addressesAreEqual(cert.requestSignatureAddress, cert.requestAddress, reqNonce)) {
+    if (data.certificate.requestSignatureAddress
+        && !addressesAreEqual(cert.requestSignatureAddress, cert.requestAddress, reqNonce)) {
         return 'The requestor signature is inconsistent.';
     }
 
@@ -286,6 +288,7 @@ async function verifyCertificate(filepath, addr) {
     }
 
     if (cert.type === certTypeMapping.domain
+        && data.signatureMarkAddress
         && !addressesAreEqual(cert.signatureAddress, data.signatureMarkAddress)) {
         return 'The requestor and image signature addresses do not match!';
     }

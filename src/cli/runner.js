@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 const _ = require('lodash');
 const argv = require('mri')(process.argv.slice(2), {
-    string: ['token'],
+    string: ['token', 'for'],
 });
 const pkg = require('../../package.json');
 

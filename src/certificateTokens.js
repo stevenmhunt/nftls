@@ -1,7 +1,11 @@
 const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
-const { generateCode, shortenPath, extractPath } = require('./utils');
-const { SEPARATOR } = require('./constants');
+const {
+    generateCode, shortenPath, extractPath, keccak256,
+} = require('./utils');
+const { addKeyItem } = require('./storage');
+const { SEPARATOR, CERT_KEY, certTypeMapping } = require('./constants');
+const { inspectCertificate, verifyCertificate } = require('./certificates');
 
 /**
  * Renders a new certificate token image for deployment as an NFT.
@@ -24,6 +28,42 @@ async function renderCertificateToken(type, { name, image, noCode }, key, output
     return { code };
 }
 
+async function authorizeCertificateToken(certData, signingKey) {
+    const data = await inspectCertificate(certData);
+    const result = await verifyCertificate(data);
+    if (result !== 'Verified') {
+        throw new Error(`The provided certificate is not valid: ${result}`);
+    }
+    const { pathName, platformName } = extractPath(data.certificate.subject.name);
+    const platform = platforms[platformName];
+    const recipient = data.certificate.requestAddress;
+    const path = keccak256(pathName);
+    const version = 0;
+    const hash = keccak256(data.data);
+    const signature = platform.signAuthorization(signingKey, [
+        recipient,
+        path,
+        version,
+        hash,
+    ]);
+
+    // write the certificate to the cache.
+    // TODO: this will need to be re-evaluated later.
+    if (data.certificate.type !== certTypeMapping.token) {
+        const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+        await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
+    }
+
+    return {
+        recipient,
+        path,
+        version,
+        hash,
+        signature,
+    };
+}
+
 module.exports = {
     renderCertificateToken,
+    authorizeCertificateToken,
 };

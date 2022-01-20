@@ -49,7 +49,7 @@ async function defaultCommand(args) {
             const location = clc.blackBright(`[ ${[subject.city, subject.state, subject.province, subject.country].filter((i) => i).join(', ')} ]`);
             console.log(`${index === 0 ? '└─' : '  '}[${clc.greenBright(index + 1)}]┄┄ ${platformDisplay} ${clc.yellow(isCA ? '(CA)' : pathName)}`);
             console.log(`   │   Subject: ${clc.bold(subject.organization)}${division} ${location}`);
-            console.log(`   │   Address: ${shortenPath(cert.certificate.signatureAddress)}${cert.certificate.forAddress ? clc.blueBright(` (${shortenPath(cert.certificate.forAddress)})`) : ''}`);
+            console.log(`   │   Address: ${shortenPath(cert.certificate.requestAddress)}${cert.certificate.forAddress ? clc.blueBright(` (${shortenPath(cert.certificate.forAddress)})`) : ''}`);
             if (cert.certificate.id) {
                 console.log(`   │   TokenID: ${shortenPath(tokenAddress)} #${shortenPath(tokenNumber)}`);
             }

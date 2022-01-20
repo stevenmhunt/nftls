@@ -11,13 +11,14 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls request <domain | address | token> (<signing key>) (<for key>)');
-    console.log('        base image:     --image <file>');
-    console.log('        subject data:   --subject <x509 data | json file>');
-    console.log('        email address:  --email <email address>');
-    console.log('        security code: (--code <number>)');
-    console.log('        nonce:         (--nonce <number>)');
-    console.log('        output file:    --output [-o] <file | [stdout]>');
+    console.log('     nftls request <domain | address | token> (<signing key>)');
+    console.log('        base image:      --image <file>');
+    console.log('        subject data:    --subject <x509 data | json file>');
+    console.log('        email address:   --email <email address>');
+    console.log('        for address:    (--for <for key>)');
+    console.log('        security code:  (--code <number>)');
+    console.log('        contract nonce: (--contract <nonce>)');
+    console.log('        output file:     --output [-o] <file | [stdout]>');
 }
 
 async function defaultCommand(args) {
@@ -27,17 +28,13 @@ async function defaultCommand(args) {
 }
 
 function generateRequestCli(requestType) {
-    return async (args, signingKey, forKey) => {
+    return async (args, signingKey) => {
         const { image } = args;
         const subject = await processIdentityArg(args.subject);
         const { email } = args;
-        const code = requestType !== 'token' ? parseInt(args.code || '0', 10) : undefined;
-        const contractNonce = args.contract ? parseInt(args.nonce || '0', 10) : undefined;
-
-        // check required parameters.
-        if (!image) {
-            throw new Error('An image is required to request a certificate.');
-        }
+        const code = args.code !== undefined ? parseInt(args.code || '0', 10) : undefined;
+        const contractNonce = args.contract !== undefined ? parseInt(args.contract || '0', 10) : undefined;
+        let forKey = args.for;
 
         // check optional parameters.
         if (!signingKey || signingKey === 'stdin') {
@@ -60,11 +57,12 @@ function generateRequestCli(requestType) {
     };
 }
 
-async function requestCACli(args, signingKey, forKey) {
+async function requestCACli(args, signingKey) {
     const requestType = 'ca';
+    const forKey = args.for;
     const subject = await processIdentityArg(args.subject);
     const { email } = args;
-    const contractNonce = args.contract ? parseInt(args.nonce || '0', 10) : undefined;
+    const contractNonce = args.contract !== undefined ? parseInt(args.contract || '0', 10) : undefined;
 
     // check optional parameters.
     if (!signingKey) {

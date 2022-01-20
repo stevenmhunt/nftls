@@ -54,6 +54,20 @@ function signMessage(key, msg) {
 }
 
 /**
+ * Given a private key and data fields, generates an authorization signature.
+ * @param {string} key The private key.
+ * @param {Array} fields The data fields.
+ * @returns {string} A digital signature.
+ */
+function signAuthorization(key, [addr, path, version, hash]) {
+    const newPath = version ? keccak256(Buffer.concat([
+        path, version,
+    ].map((i) => Buffer.from(i, 'hex')))) : path;
+    const msg = Buffer.concat([addr, newPath, version, hash].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
+    return signMessage(key, msg);
+}
+
+/**
  * Given an Ethereum signature and the original message, recovers the Ethereum address.
  * @param {string} sig The digital signature.
  * @param {string} msg The original message.
@@ -107,6 +121,7 @@ module.exports = {
     getAddress,
     getContractAddress,
     signMessage,
+    signAuthorization,
     recoverAddress,
     addressesAreEqual,
     getCompatiblePlatforms,

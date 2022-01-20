@@ -1,3 +1,4 @@
+const authorize = require('./authorize');
 const extract = require('./extract');
 const inspect = require('./inspect');
 const install = require('./install');
@@ -8,6 +9,7 @@ const request = require('./request');
 const verify = require('./verify');
 
 module.exports = {
+    authorize,
     extract,
     inspect,
     install,

@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const readline = require('readline');
 const clc = require('cli-color');
 const { Spinner } = require('cli-spinner');
+const { parseX509Fields } = require('../utils');
 
 async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
@@ -35,16 +36,6 @@ function processCoordinatesArg(argv) {
     return (argv.coordinates || '6,6,6,6').split(',').filter((i) => i).map((i) => parseInt(i, 10));
 }
 
-const x509Mapping = {
-    CN: 'name',
-    O: 'organization',
-    OU: 'division',
-    C: 'country',
-    S: 'state',
-    P: 'province',
-    L: 'city',
-};
-
 async function processIdentityArg(data) {
     if (!_.isString(data)) {
         return data;
@@ -52,12 +43,7 @@ async function processIdentityArg(data) {
     if (await fs.pathExists(data)) {
         return fs.readJSON(data);
     }
-    const result = {};
-    data.split(',').map((i) => i.trim().split('=').map((j) => j.trim())).forEach((field) => {
-        const [key, value] = field;
-        result[x509Mapping[key] || key] = value;
-    });
-    return result;
+    return parseX509Fields(data);
 }
 
 function displayStatus(result, expected = 'Verified') {

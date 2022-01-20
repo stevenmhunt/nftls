@@ -2,9 +2,7 @@ const _ = require('lodash');
 const { addKeyItem, getItems, getKeyItem } = require('./storage');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
 const { extractPath } = require('./utils');
-
-const CA_KEY = 'certificateAuthorities';
-const CERT_KEY = 'certificateCache';
+const { CA_KEY, CERT_KEY } = require('./constants');
 
 /**
  * Adds a trusted CA for the current user.
