@@ -19,14 +19,15 @@ const validNames = {
 const validSubject = 'O=nftls.io, OU=QA Department, C=US, S=New York, L=Rochester';
 const validEmail = 'test@nftls.io';
 const validNonce = 5;
+const validVersion = 5;
 // const validCode = 100000000;
 
 const invalidRequestTypes = ['other', undefined, 0, null, ''];
 const invalidNames = {
-    ca: 'whatever@eth',
-    domain: '@eth',
-    address: '@eth',
-    token: `${validAddress1}@eth`,
+    ca: ['whatever@eth', '*.*@eth', `${validAddress1}@eth`, `${validAddress1}#5@eth`],
+    domain: ['@eth', '*.*@eth', `${validAddress1}@eth`, `${validAddress1}#5@eth`],
+    address: ['@eth', 'whatever@eth', '*.*@eth', `${validAddress1}#5@eth`],
+    token: ['@eth', 'whatever@eth', '*.*@eth', `${validAddress1}@eth`],
 };
 const invalidPlatformNames = {
     ca: '@blah',
@@ -35,7 +36,8 @@ const invalidPlatformNames = {
     token: `${validAddress1}#5@blah`,
 };
 const invalidEmails = ['blah'];
-const invalidNonces = [-5, 5.5];
+const invalidNonces = [-5, 5.5, 'test'];
+const invalidVersions = [-5, 5.5, 'test'];
 // const invalidCodes = [-999999, 999.5223];
 
 describe('requestCertificate', () => {
@@ -118,6 +120,27 @@ describe('requestCertificate', () => {
         });
     });
 
+    // valid version number (re-issue):
+    validRequestTypes.forEach((requestType) => {
+        it(`should be able to create a CSR for a new version of a '${requestType}' certificate`, async () => {
+            // arrange
+            const subject = `CN=${validNames[requestType]}, ${validSubject}`;
+            const version = requestType === 'ca' ? undefined : validVersion;
+
+            // act
+            const result = await requestCertificate({
+                requestType, subject, email: validEmail, version,
+            }, validKey1);
+
+            // assert
+            expect(result).is.not.null;
+            expect(result.type).to.equal(csrTypeMapping[requestType], 'Unexpected CSR type.');
+            expect(result.requestAddress).to.equal(validAddress1, 'Expected request address to match corresponding private key.');
+            expect(result.subject.name).to.equal(validNames[requestType].toLowerCase());
+            expect(result.version).to.equal(version);
+        });
+    });
+
     // invalid contract nonce:
     invalidNonces.forEach((invalidNonce) => {
         validRequestTypes.forEach((requestType) => {
@@ -140,24 +163,47 @@ describe('requestCertificate', () => {
         });
     });
 
+    // invalid contract nonce:
+    invalidVersions.forEach((invalidVersion) => {
+        validRequestTypes.forEach((requestType) => {
+            it(`should not be able to create a CSR for a '${requestType}' certificate with an invalid version '${invalidVersion}'`, async () => {
+                // arrange
+                const subject = `CN=${validNames[requestType]}, ${validSubject}`;
+
+                // act
+                try {
+                    await requestCertificate({
+                        requestType, subject, email: validEmail, version: invalidVersion,
+                    }, validKey1);
+                } catch (err) {
+                    return;
+                }
+
+                // assert
+                assert.fail('Expected an exception to be thrown.');
+            });
+        });
+    });
+
     // invalid subject names:
     validRequestTypes.forEach((requestType) => {
-        const name = invalidNames[requestType];
-        it(`should not be able to create a CSR for a '${requestType}' certificate with subject name '${name}'`, async () => {
-            // arrange
-            const subject = `CN=${name}, ${validSubject}`;
+        invalidNames[requestType].forEach((name) => {
+            it(`should not be able to create a CSR for a '${requestType}' certificate with subject name '${name}'`, async () => {
+                // arrange
+                const subject = `CN=${name}, ${validSubject}`;
 
-            // act
-            try {
-                await requestCertificate({
-                    requestType, subject, email: validEmail,
-                }, validKey1);
-            } catch (err) {
-                return;
-            }
+                // act
+                try {
+                    await requestCertificate({
+                        requestType, subject, email: validEmail,
+                    }, validKey1);
+                } catch (err) {
+                    return;
+                }
 
-            // assert
-            assert.fail('Expected an exception to be thrown.');
+                // assert
+                assert.fail('Expected an exception to be thrown.');
+            });
         });
     });
 

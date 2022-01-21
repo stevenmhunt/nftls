@@ -44,7 +44,7 @@ describe('Scenarios', () => {
             email: NFTLS_EMAIL,
         }, caKey);
 
-        const authorization = await authorizeCertificateToken('mint', rootCertificate, caKey);
+        const authorization = await authorizeCertificateToken(rootCertificate, caKey);
 
         // assert
         const rootCertBytes = Buffer.from(rootCertificate.certificate, 'base64');
@@ -52,7 +52,6 @@ describe('Scenarios', () => {
         expect(await verifyCertificate(rootCertificate)).is.equal('Verified');
         expect(authorization.recipient).is.equal(rootAddress);
         expect(authorization.path).is.equal(keccak256(rootPath));
-        expect(authorization.version).is.equal(0);
         expect(authorization.hash).is.equal(keccak256(rootCertBytes));
     });
 });

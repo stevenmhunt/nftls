@@ -4,25 +4,20 @@ const { authorizeCertificateToken } = require('../../certificateTokens');
 const { PRIVATE_KEY_PROMPT } = require('../../constants');
 
 function getHelpText() {
-    return 'Generates authorization signatures.';
+    return 'Generates authorization signatures for minting and re-minting.';
 }
 
 async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls authorize <mint> <signing key> <certificate file>');
+    console.log('     nftls authorize <certificate file> <signing key>');
     console.log('        add to cache:   (--cache)');
     console.log('        output file:    (--output [-o] <file | [stdout]>)');
 }
 
-async function defaultCommand(args) {
-    console.log(`Error: Invalid command target '${args.target}'.`);
-    await helpCommand();
-    process.exit(1);
-}
-
-async function authorizeMintCli(args, signingKey, filepath) {
+async function defaultCommand(args, signingKey) {
+    const filepath = args.target;
     // check optional parameters.
     if (!signingKey) {
         // eslint-disable-next-line no-param-reassign
@@ -31,12 +26,11 @@ async function authorizeMintCli(args, signingKey, filepath) {
     const output = args.o || args.output || 'stdout';
     const cache = args.cache || false;
 
-    return withOutput(await authorizeCertificateToken('mint', filepath, signingKey, { cache }), output);
+    return withOutput(await authorizeCertificateToken(filepath, signingKey, { cache }), output);
 }
 
 module.exports = {
     getHelpText,
     defaultCommand,
     helpCommand,
-    mint: authorizeMintCli,
 };

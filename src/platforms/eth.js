@@ -55,21 +55,23 @@ function signMessage(key, msg) {
 
 /**
  * Given a private key and data fields, generates an authorization signature.
- * @param {string} key The private key.
+ * @param {string} action The action being allowed by the authorization.
  * @param {Array} fields The data fields.
+ * @param {string} key The private key.
  * @returns {string} A digital signature.
  */
-function signAuthorization(key, [type, addr, path, version, hash]) {
-    const newPath = version ? keccak256(Buffer.concat([
-        path, version,
-    ].map((i) => Buffer.from(i, 'hex')))) : path;
-    const msg = Buffer.concat([
-        type.toString(16),
-        addr,
-        newPath,
-        version,
-        hash,
-    ].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
+function signAuthorization(action, fields, key) {
+    let data;
+    if (action === 'mint') {
+        const [recipient, path, version, hash] = fields;
+        const newPath = version ? keccak256(Buffer.concat([
+            path, version,
+        ].map((i) => Buffer.from(i, 'hex')))) : path;
+        data = [recipient, newPath, hash];
+    } else {
+        data = fields;
+    }
+    const msg = Buffer.concat([keccak256(action), ...data].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
     return signMessage(key, msg);
 }
 

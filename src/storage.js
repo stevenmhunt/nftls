@@ -35,6 +35,19 @@ async function addKeyItem(name, key, value) {
 
 /**
  * @private
+ * Removes an item from a key/value object.
+ * @param {string} name The object name.
+ * @param {string} key The key to add.
+ * @returns {Promise}
+ */
+async function removeKeyItem(name, key) {
+    storage[name] = storage[name] || {};
+    delete storage[name][key];
+    await save();
+}
+
+/**
+ * @private
  * Adds an item to an array object.
  * @param {string} nane The object name.
  * @param {object} value The value to add.
@@ -72,4 +85,5 @@ module.exports = {
     getItems,
     addKeyItem,
     addListItem,
+    removeKeyItem,
 };

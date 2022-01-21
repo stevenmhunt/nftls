@@ -5,7 +5,7 @@ const {
 } = require('./utils');
 const { addKeyItem } = require('./storage');
 const {
-    SEPARATOR, CERT_KEY, certTypeMapping, authorizationTypeMapping,
+    SEPARATOR, CERT_KEY, certTypeMapping,
 } = require('./constants');
 const { inspectCertificate, verifyCertificate } = require('./certificates');
 
@@ -30,7 +30,7 @@ async function renderCertificateToken(type, { name, image, noCode }, key, output
     return { code };
 }
 
-async function authorizeCertificateToken(type, certData, signingKey, options = {}) {
+async function authorizeCertificateToken(certData, signingKey, options = {}) {
     const data = await inspectCertificate(certData);
     const result = await verifyCertificate(data);
     if (result !== 'Verified') {
@@ -40,15 +40,14 @@ async function authorizeCertificateToken(type, certData, signingKey, options = {
     const platform = platforms[platformName];
     const recipient = data.certificate.requestAddress;
     const path = keccak256(pathName);
-    const version = 0;
+    const { version } = data.certificate;
     const hash = keccak256(data.data);
-    const signature = platform.signAuthorization(signingKey, [
-        authorizationTypeMapping[type],
+    const signature = platform.signAuthorization('mint', [
         recipient,
         path,
         version,
         hash,
-    ]);
+    ], signingKey);
 
     // write the certificate to the cache.
     if (options.cache === true && data.certificate.type !== certTypeMapping.token) {

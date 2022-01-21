@@ -10,7 +10,7 @@ const CA_PATH = '';
  * @returns {object}
  */
 function extractPath(name) {
-    const [pathName, platformName] = name.split('@');
+    const [pathName, platformName] = (name || '').split('@');
     return {
         pathName,
         platformName,

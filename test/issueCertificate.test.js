@@ -34,9 +34,6 @@ function invalidCSRTestCase(title, fn, errorMessage) {
             } catch (err) {
                 if (errorMessage) {
                     expect(err.message).to.equal(errorMessage);
-                } else {
-                    // eslint-disable-next-line no-console
-                    console.log(err.message);
                 }
                 return;
             }
@@ -64,9 +61,6 @@ function invalidParametersTestCase(title, fn, errorMessage) {
             } catch (err) {
                 if (errorMessage) {
                     expect(err.message).to.equal(errorMessage);
-                } else {
-                    // eslint-disable-next-line no-console
-                    console.log(err.message);
                 }
                 return;
             }
@@ -109,26 +103,33 @@ describe('issueCertificate', () => {
         return req;
     }, 'A subject name is required.');
 
+    // invalid subject name.
+    invalidCSRTestCase('characters in subject name', (request) => {
+        const req = request;
+        req.subject.name = '*.*@eth';
+        return req;
+    });
+
     // invalid subject org.
     invalidCSRTestCase('subject organization', (request) => {
         const req = request;
         req.subject.organization = undefined;
         return req;
-    }, 'CSRValidationError: "subject.organization" is required');
+    }, 'A subject organization must be provided.');
 
     // invalid subject country.
     invalidCSRTestCase('subject country', (request) => {
         const req = request;
         req.subject.country = undefined;
         return req;
-    }, 'CSRValidationError: "subject.country" is required');
+    }, 'A subject country must be provided.');
 
     // invalid subject email.
     invalidCSRTestCase('subject email', (request) => {
         const req = request;
         req.email = undefined;
         return req;
-    }, 'CSRValidationError: "email" is required');
+    }, 'An email address must be provided.');
 
     // invalid signature.
     invalidCSRTestCase('signature', (request) => {
@@ -162,31 +163,31 @@ describe('issueCertificate', () => {
         const d = data;
         d.issuer = undefined;
         return d;
-    });
+    }, 'Issuer information must be provided.');
 
     invalidParametersTestCase('issuer name', (data) => {
         const d = data;
         d.issuer = d.issuer.replace('CN=@eth, ', '');
         return d;
-    });
+    }, 'An issuer name must be provided.');
 
     invalidParametersTestCase('issuer organization', (data) => {
         const d = data;
         d.issuer = d.issuer.replace('O=nftls.io, ', '');
         return d;
-    });
+    }, 'An issuer organization must be provided.');
 
     invalidParametersTestCase('issuer country', (data) => {
         const d = data;
         d.issuer = d.issuer.replace('C=US, ', '');
         return d;
-    });
+    }, 'CertificateValidationError: "issuer.country" is required');
 
     invalidParametersTestCase('issuer email', (data) => {
         const d = data;
         d.email = undefined;
         return d;
-    });
+    }, 'CertificateValidationError: "issuerEmail" is required');
 
     invalidParametersTestCase('token', (data) => {
         const d = data;

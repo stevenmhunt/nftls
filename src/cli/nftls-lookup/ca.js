@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { addCertificateAuthority, getCertificateAuthorities } = require('../../certificateAuthorities');
+const { addCertificateAuthority, getCertificateAuthorities, removeCertificateAuthority } = require('../../certificateAuthorities');
 const { readLine, displayStatus } = require('../utils');
 
 function getHelpText() {
@@ -11,7 +11,7 @@ async function helpCommand() {
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls-lookup ca <add | remove | list> (<root CA file>)');
-    console.log('        name:      --name [-n] <CA name>');
+    console.log('        name:      (--name [-n] <CA organization name>)');
     console.log('        no prompt: ( --force [-f] )');
 }
 
@@ -22,25 +22,25 @@ async function defaultCommand(args) {
 }
 
 async function addRootCli(args, filepath) {
-    const name = args.n || args.name;
     const isForced = args.f === true || args.force === true;
-    let result = await addCertificateAuthority(name, filepath, isForced);
+    let result = await addCertificateAuthority(filepath, isForced);
     if (!result && !isForced) {
         const prompt = await readLine('Warning: a CA with this name already exists. Overwrite? (y/n) ');
         if (prompt.toLowerCase() === 'y') {
-            result = await addCertificateAuthority(name, filepath, true);
+            result = await addCertificateAuthority(filepath, true);
         } else {
             process.exit(1);
         }
     }
 
     if (result) {
-        displayStatus(`Successfully added certificate authority '${name}'.`, null);
+        displayStatus(`Successfully added certificate authority '${result}'.`, null);
     } else { process.exit(1); }
 }
 
-async function removeRootCli(args/* , address, forAddress */) {
+async function removeRootCli(args) {
     const name = args.n || args.name;
+    await removeCertificateAuthority(name);
     displayStatus(`Successfully removed certificate authority '${name}'.`, null);
 }
 

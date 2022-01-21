@@ -5,6 +5,7 @@ const { platforms, identity } = require('./common');
 module.exports = (platform) => Joi.object({
     id: platforms[platform].token(),
     type: Joi.string().valid(...certTypes).required(),
+    version: Joi.number(),
     subject: identity(platform).required(),
     email: Joi.string().email().required(),
     imageHash: Joi.string().length(64).hex(),

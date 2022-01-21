@@ -5,15 +5,13 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, calculateChainPaths, extractPath, keccak256, parseX509Fields,
+    generateSerialNumber, shortenPath, extractPath, keccak256, parseX509Fields,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
 const {
     SEPARATOR, CERT_KEY, csrTypeMapping, certTypeMapping,
 } = require('./constants');
-const csrSchemaFactory = require('./schemas/csrSchema');
-const certificateSchemaFactory = require('./schemas/certificateSchema');
-const { platforms: platformSchemas } = require('./schemas/common');
+const { runCertificateRequestValidation, runCertificateValidation } = require('./validators');
 
 const NO_IMAGE_HASH = 'N/A';
 
@@ -30,44 +28,28 @@ const NO_IMAGE_HASH = 'N/A';
  * @returns {Promise<object>} The constructed CSR.
  */
 async function requestCertificate({
-    requestType, image, subject, email, data, code, contractNonce,
+    requestType, version, image, subject, email, data, code, contractNonce,
 }, signingKey, forKey = undefined) {
     // argument pre-processing
     if (_.isString(subject)) {
         // eslint-disable-next-line no-param-reassign
         subject = parseX509Fields(subject);
     }
-
-    // check arguments
-    if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
-    if (!subject) { throw new Error('Subject information must be provided.'); }
-    if (!subject.name) { throw new Error('A subject name must be provided.'); }
-    if (!subject.organization) { throw new Error('A subject organization must be provided.'); }
-    if (!subject.country) { throw new Error('A subject country must be provided.'); }
-    if (!email) { throw new Error('An email address must be provided.'); }
-    if (code !== undefined && (!Number.isInteger(code) || code < 0)) {
-        throw new Error('A security code must be non-negative integer value.');
-    }
-    if (contractNonce !== undefined && (!Number.isInteger(contractNonce) || contractNonce < 0)) {
-        throw new Error('A contract nonce must be non-negative integer value.');
+    if (subject && subject.name) {
+        // eslint-disable-next-line no-param-reassign
+        subject.name = subject.name.toLowerCase();
     }
 
-    // eslint-disable-next-line no-param-reassign
-    subject.name = subject.name.toLowerCase();
+    // validate the request before proceeding.
+    runCertificateRequestValidation({
+        requestType, version, image, subject, email, data, code, contractNonce,
+    }, false);
+
     const type = csrTypeMapping[requestType];
     const dateRequested = Math.floor(Date.now() / 1000);
     const imageHash = image ? await extractImageHash(image) : undefined;
-
-    // check request values.
-    const { pathName, platformName } = await extractPath(subject.name);
+    const { platformName } = await extractPath(subject.name);
     const platform = platforms[platformName];
-    if (!platform) { throw new Error(`Unsupported platform '${platformName}'.`); }
-    if (type === csrTypeMapping.ca && pathName && pathName.length > 0) { throw new Error('CA certificates cannot have a non-zero length path.'); }
-    if (type !== csrTypeMapping.ca) {
-        const schema = platformSchemas[platformName][requestType];
-        const { error } = schema().validate(pathName);
-        if (error) { throw new Error(`CSR${error}`); }
-    }
 
     // build certificate request object.
     const requestAddress = platform.getAddress(signingKey);
@@ -80,7 +62,7 @@ async function requestCertificate({
     };
     const forAddress = getForAddress();
     const payload = {
-        type, subject, email, imageHash, dateRequested, data, contractNonce,
+        type, version, subject, email, imageHash, dateRequested, data, contractNonce,
     };
 
     // digitally sign the request.
@@ -88,19 +70,15 @@ async function requestCertificate({
     const signature = platform.signMessage(signingKey, `${code ? code + SEPARATOR : ''}${msg}`);
     const reqMsg = `${msg}${SEPARATOR}${requestAddress}`;
     const requestSignature = platform.signMessage(signingKey, reqMsg);
-    const forSignature = forKey
-        ? platform.signMessage(forKey, `${reqMsg}${SEPARATOR}${forAddress}`)
+    const forSignature = forAddress
+        ? platform.signMessage(forKey || signingKey, `${reqMsg}${SEPARATOR}${forAddress}`)
         : undefined;
     const result = {
         ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,
     };
 
     // perform a final validation of the entire request.
-    const schema = csrSchemaFactory(platformName);
-    const { error } = schema.validate(result);
-    if (error) {
-        throw new Error(`CSR${error}`);
-    }
+    runCertificateRequestValidation(result);
 
     return result;
 }
@@ -123,73 +101,23 @@ async function issueCertificate(request, {
         // eslint-disable-next-line no-param-reassign
         issuer = parseX509Fields(issuer);
     }
-
-    // check arguments
-    if (!token && request.type === csrTypeMapping.domain) { throw new Error('A token contract address must be provided for domain tokens.'); }
-    if (!issuer) { throw new Error('Issuer information must be provided.'); }
-    if (!issuer.name) { throw new Error('An issuer name must be provided.'); }
-    if (!issuer.organization) { throw new Error('An issuer organization must be provided.'); }
-    if (!email) { throw new Error('An email address must be provided.'); }
-    if (!key) { throw new Error('A valid private key is required to issue a certificate.'); }
-    if (request.dateRequested > Math.floor(Date.now() / 1000)) {
-        throw new Error('Request date/time must be in the past.');
-    }
-    if (!request.subject || !request.subject.name) { throw new Error('A subject name is required.'); }
-
-    // process parameters.
-    request.subject.name = request.subject.name.toLowerCase();
-    const { pathName, platformName } = extractPath(request.subject.name);
-    const csrSchema = csrSchemaFactory(platformName);
-    const { error } = csrSchema.validate(request);
-    if (error) {
-        throw new Error(`CSR${error}`);
-    }
-
-    // eslint-disable-next-line no-param-reassign
-    issuer.name = issuer.name.toLowerCase();
-    let id = token;
-    if (!id) {
-        if (request.type === csrTypeMapping.token && request.subject.name) {
-            id = pathName;
+    let platform; let id;
+    if (request && request.subject && request.subject.name && issuer && issuer.name) {
+        request.subject.name = request.subject.name.toLowerCase();
+        const { pathName, platformName } = extractPath(request.subject.name);
+        platform = platforms[platformName];
+        // eslint-disable-next-line no-param-reassign
+        issuer.name = issuer.name.toLowerCase();
+        id = token;
+        if (!id) {
+            if (request.type === csrTypeMapping.token && request.subject.name) {
+                id = pathName;
+            }
+        } else if (isTokenRoot) {
+            id = `${token}#0`;
+        } else {
+            id = `${token}#${keccak256(pathName)}`;
         }
-    } else if (isTokenRoot) {
-        id = `${token}#0`;
-    } else {
-        id = `${token}#${keccak256(pathName)}`;
-    }
-
-    // validate request
-    const platform = platforms[platformName];
-    const msg = JSON.stringify({
-        type: request.type,
-        subject: request.subject,
-        email: request.email,
-        imageHash: request.imageHash,
-        dateRequested: request.dateRequested,
-        data: request.data,
-        contractNonce: request.contractNonce,
-    });
-    const actualSigAddr = await platform.recoverAddress(request.signature, msg);
-    const reqMsg = `${msg}${SEPARATOR}${request.requestAddress}`;
-    const actualReqAddr = platform.recoverAddress(
-        request.requestSignature,
-        reqMsg,
-    );
-    const actualforAddr = request.forSignature
-        ? platform.recoverAddress(
-            request.forSignature,
-            `${reqMsg}${SEPARATOR}${request.forAddress}`,
-            request.contractNonce,
-        )
-        : undefined;
-    if (actualSigAddr !== request.requestAddress) {
-        throw new Error('Invalid signature.');
-    }
-    if (request.requestAddress !== actualReqAddr) {
-        throw new Error('Inconsistent requestor address.');
-    }
-    if (request.forAddress && request.forAddress !== actualforAddr) {
-        throw new Error('Inconsistent for address.');
     }
 
     // build and validate the certificate object.
@@ -202,11 +130,9 @@ async function issueCertificate(request, {
         dateIssued: Math.floor(Date.now() / 1000),
         serialNumber: generateSerialNumber(),
     };
-    const schema = certificateSchemaFactory(platformName);
-    const { error: schemaError } = schema.validate(certificateData);
-    if (schemaError) {
-        throw new Error(`Certificate${schemaError}`);
-    }
+
+    // validate the certificate data before proceeding.
+    runCertificateValidation(certificateData);
 
     // digitally sign the issued certificate.
     const certificate = await gzip(Buffer.from(JSON.stringify(certificateData), 'utf8'));
@@ -254,12 +180,12 @@ async function inspectCertificate(filepath) {
 
     const cert = result.certificate;
     const {
-        type, subject, email, imageHash, dateRequested, data, contractNonce,
+        type, version, subject, email, imageHash, dateRequested, data, contractNonce,
     } = cert;
     const { pathName, platformName } = extractPath(cert.subject.name);
     const platform = platforms[platformName];
     const msg = JSON.stringify({
-        type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, data, contractNonce,
+        type: type.replace('Certificate', 'Request'), version, subject, email, imageHash, dateRequested, data, contractNonce,
     });
     const reqMsg = `${msg}${SEPARATOR}${cert.requestAddress}`;
     // these addresses must be kept out of the 'cert' object until after signature verification.
@@ -314,72 +240,10 @@ async function verifyCertificate(filepath, addr) {
         : filepath;
 
     // perform a schema validation of the certificate.
-    const cert = data.certificate;
-    const { platformName } = extractPath(cert.subject.name);
-    const { addressesAreEqual } = platforms[platformName];
-    const schema = certificateSchemaFactory(platformName);
-    const { error } = schema.validate(cert);
-    if (error) {
-        return `Certificate${error}`;
-    }
-
-    if (data.imageHash && data.imageHash !== cert.imageHash) {
-        return 'The SHA-256 hash in the certificate does not match actual hash of the image.';
-    }
-
-    const reqNonce = !cert.forAddress ? cert.contractNonce : undefined;
-    if (data.certificate.requestSignatureAddress
-        && !addressesAreEqual(cert.requestSignatureAddress, cert.requestAddress, reqNonce)) {
-        return 'The requestor signature is inconsistent.';
-    }
-
-    if (cert.forAddress
-        && !addressesAreEqual(cert.forSignatureAddress, cert.forAddress, cert.contractNonce)) {
-        return 'The for signature is inconsistent.';
-    }
-
-    if (cert.type === certTypeMapping.domain
-        && data.signatureMarkAddress
-        && !addressesAreEqual(cert.signatureAddress, data.signatureMarkAddress)) {
-        return 'The requestor and image signature addresses do not match!';
-    }
-
-    if (cert.type === certTypeMapping.ca) {
-    // CA certificates are always self-signed.
-        if (cert.subject.name !== cert.issuer.name) {
-            return 'The subject and issuer names do not match for the CA certificate.';
-        }
-        if (!addressesAreEqual(cert.signatureAddress, data.signatureAddress)) {
-            return 'The requestor and issuer addresses do not match for the CA certificate.';
-        }
-    } else {
-    // validate the issuer's path name.
-        const {
-            pathName: issuerPath,
-            platformName: issuerPlatform,
-        } = extractPath(data.certificate.issuer.name);
-        const {
-            pathName: subjectPath,
-            platformName: subjectPlatform,
-        } = extractPath(data.certificate.subject.name);
-
-        const paths = calculateChainPaths(subjectPath);
-        if (paths.indexOf(issuerPath) === -1) {
-            return `The issuer name '${issuerPath}@${issuerPlatform}' is not valid for issuing a certificate for '${data.certificate.subject.name}'.`;
-        }
-
-        // validate the issuer's blockchain platform.
-        const compatiblePlatforms = platforms[subjectPlatform].getCompatiblePlatforms();
-        if (subjectPlatform !== issuerPlatform
-            && compatiblePlatforms.indexOf(issuerPlatform) === -1) {
-            return `The issuer platform '${issuerPlatform}' is not compatible with subject platform '${subjectPlatform}'.`;
-        }
-    }
-
-    if (addr) {
-        if (!addressesAreEqual(data.signatureAddress, addr)) {
-            return 'Invalid embedded signature address.';
-        }
+    try {
+        runCertificateValidation(data.certificate, data, addr);
+    } catch (err) {
+        return err.message;
     }
 
     return 'Verified';
