@@ -7,7 +7,7 @@ const { addKeyItem } = require('./storage');
 const {
     SEPARATOR, CERT_KEY, certTypeMapping,
 } = require('./constants');
-const { inspectCertificate, verifyCertificate } = require('./certificates');
+const { inspectCertificate, validateCertificate } = require('./certificates');
 
 /**
  * Renders a new certificate token image for deployment as an NFT.
@@ -31,10 +31,10 @@ async function renderCertificateToken(type, { name, image, noCode }, key, output
 }
 
 async function authorizeCertificateToken(certData, signingKey, options = {}) {
-    const data = await inspectCertificate(certData);
-    const result = await verifyCertificate(data);
-    if (result !== 'Verified') {
-        throw new Error(`The provided certificate is not valid: ${result}`);
+    const data = await inspectCertificate(certData, true);
+    const { error } = await validateCertificate(data);
+    if (error) {
+        throw new Error(`The provided certificate is not valid: ${error}`);
     }
     const { pathName, platformName } = extractPath(data.certificate.subject.name);
     const platform = platforms[platformName];
@@ -52,6 +52,7 @@ async function authorizeCertificateToken(certData, signingKey, options = {}) {
     // write the certificate to the cache.
     if (options.cache === true && data.certificate.type !== certTypeMapping.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+        delete data.data;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }
 

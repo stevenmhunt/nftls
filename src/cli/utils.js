@@ -46,8 +46,13 @@ async function processIdentityArg(data) {
     return parseX509Fields(data);
 }
 
-function displayStatus(result, expected = 'Verified') {
-    console.log(` ${(expected === null || result === expected ? clc.green('✓') : clc.red('✗'))} ${result}`);
+function displayStatus(result, expected = 'Valid') {
+    if (_.isString(result)) {
+        console.log(` ${(expected === true ? clc.green('✓') : clc.red('✗'))} ${result}`);
+        return;
+    }
+    const { status, error } = result;
+    console.log(` ${(expected === null || status === expected ? clc.green('✓') : clc.red('✗'))} ${status || error}`);
 }
 
 async function withOutput(result, output) {

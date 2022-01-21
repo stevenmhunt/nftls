@@ -7,4 +7,4 @@
 - [Re-issuing Certificates](./reissue.md)
 
 ## The `nftls-lookup` command
-- [Inspecting and Verifying Certificate Chains](./lookup.md)
+- [Inspecting and validating Certificate Chains](./lookup.md)

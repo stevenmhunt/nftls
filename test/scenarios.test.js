@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
 const {
-    requestCertificate, issueCertificate, inspectCertificate, verifyCertificate,
+    requestCertificate, issueCertificate, inspectCertificate, validateCertificate,
 } = require('../src/certificates');
 const {
     authorizeCertificateToken,
@@ -48,8 +48,8 @@ describe('Scenarios', () => {
 
         // assert
         const rootCertBytes = Buffer.from(rootCertificate.certificate, 'base64');
-        expect(await verifyCertificate(caCertificate)).is.equal('Verified');
-        expect(await verifyCertificate(rootCertificate)).is.equal('Verified');
+        expect((await validateCertificate(caCertificate)).error).is.undefined;
+        expect((await validateCertificate(rootCertificate)).error).is.undefined;
         expect(authorization.recipient).is.equal(rootAddress);
         expect(authorization.path).is.equal(keccak256(rootPath));
         expect(authorization.hash).is.equal(keccak256(rootCertBytes));

@@ -20,4 +20,4 @@ nftls install YOUR_CERT \
     --o YOUR_SIGNED_NFT
 ```
 
-After installing the certificate, NFTLS will automatically attempt to verify it (offline by default) to ensure all properties are correct. The installation will fail if you attempt to install the certificate into an image file that is different than the one from the CSR, or if the image file is too small.
+After installing the certificate, NFTLS will automatically attempt to validate it (offline by default) to ensure all properties are correct. The installation will fail if you attempt to install the certificate into an image file that is different than the one from the CSR, or if the image file is too small.

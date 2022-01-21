@@ -6,7 +6,7 @@ const issue = require('./issue');
 const recover = require('./recover');
 const render = require('./render');
 const request = require('./request');
-const verify = require('./verify');
+const validate = require('./validate');
 
 module.exports = {
     authorize,
@@ -17,5 +17,5 @@ module.exports = {
     recover,
     render,
     request,
-    verify,
+    validate,
 };

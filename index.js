@@ -3,7 +3,7 @@ const {
     issueCertificate,
     installCertificate,
     inspectCertificate,
-    verifyCertificate,
+    validateCertificate,
 } = require('./src/certificates');
 
 const {
@@ -14,7 +14,7 @@ const {
 
 const {
     inspectCertificateChain,
-    verifyCertificateChain,
+    validateCertificateChain,
 } = require('./src/certificateChains');
 
 const {
@@ -29,11 +29,11 @@ module.exports = {
     issueCertificate,
     installCertificate,
     inspectCertificate,
-    verifyCertificate,
+    validateCertificate,
     addCertificateAuthority,
     removeCertificateAuthority,
     getCertificateAuthorities,
     inspectCertificateChain,
-    verifyCertificateChain,
+    validateCertificateChain,
     renderCertificateToken,
 };

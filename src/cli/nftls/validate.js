@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { inspectCertificate, verifyCertificate } = require('../../certificates');
+const { inspectCertificate, validateCertificate } = require('../../certificates');
 const { displayStatus } = require('../utils');
 
 function getHelpText() {
@@ -10,15 +10,15 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls verify <file> (<expected parent address>)');
+    console.log('     nftls validate <file> (<expected parent address>)');
 }
 
 async function defaultCommand(args, address) {
     const filepath = args.target;
     const cert = await inspectCertificate(filepath);
-    const result = await verifyCertificate(cert, address);
+    const result = await validateCertificate(cert, address);
     displayStatus(result);
-    if (result !== 'Verified') {
+    if (result.error) {
         process.exit(1);
     }
 }

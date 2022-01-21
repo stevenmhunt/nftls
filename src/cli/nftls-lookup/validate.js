@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { verifyCertificateChain } = require('../../certificateChains');
+const { validateCertificateChain } = require('../../certificateChains');
 const { displayStatus } = require('../utils');
 
 function getHelpText() {
@@ -10,7 +10,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls-lookup verify <file>');
+    console.log('     nftls-lookup validate <file>');
 }
 
 async function defaultCommand(args) {
@@ -26,9 +26,9 @@ async function defaultCommand(args) {
             },
         },
     };
-    const result = await verifyCertificateChain(context, filepath);
+    const result = await validateCertificateChain(context, filepath);
     displayStatus(result);
-    if (result !== 'Verified') {
+    if (result.error) {
         process.exit(1);
     }
 }

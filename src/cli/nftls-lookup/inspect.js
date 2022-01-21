@@ -37,7 +37,7 @@ async function defaultCommand(args) {
     if (format === 'tree') {
         console.log('┌ NFTLS Certificate Chain:');
         process.stdout.write('│    Status:');
-        displayStatus(status, 'Complete');
+        displayStatus(status, status === 'Complete');
         console.log('│');
         chain.filter((i) => i).forEach((cert, index) => {
             const isCA = cert.certificate.type === certTypeMapping.ca;
@@ -54,7 +54,7 @@ async function defaultCommand(args) {
                 console.log(`   │   TokenID: ${shortenPath(tokenAddress)} #${shortenPath(tokenNumber)}`);
             }
             process.stdout.write('   │   Status:');
-            displayStatus(cert.status);
+            displayStatus(cert.status, cert.status === 'Valid');
             console.log('   │');
         });
         if (status === 'Incomplete') {

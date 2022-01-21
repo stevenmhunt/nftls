@@ -1,5 +1,5 @@
 const platforms = require('./platforms');
-const { inspectCertificate, verifyCertificate } = require('./certificates');
+const { inspectCertificate, validateCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
 const { calculateChainPaths, extractPath } = require('./utils');
 const { getItems } = require('./storage');
@@ -7,7 +7,7 @@ const { CERT_KEY, ROOT_CERT_PATH } = require('./constants');
 
 /**
  * @private
- * Follows a predicted certificate chain path in order to locate and verify certificates.
+ * Follows a predicted certificate chain path in order to locate and validate certificates.
  * @param {object} context The blockchain connector context.
  * @param {object} inputs The cache data and list of path names to follow.
  * @param {string} name The next path name to find.
@@ -36,10 +36,11 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
     const data = JSON.parse(Buffer.from(cert, 'base64').toString('utf8'));
     const nextAddress = data.certificate.requestAddress;
     const nextfor = data.certificate.forAddress;
-    data.status = await verifyCertificate(data, addr);
+    const { status, error } = await validateCertificate(data, addr);
+    data.status = status;
 
     // if something bad happened, then we can't complete the chain.
-    if (data.status !== 'Verified') {
+    if (error) {
         return [null];
     }
 
@@ -70,7 +71,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
  */
 async function inspectCertificateChain(context, certData) {
     const data = await inspectCertificate(certData);
-    if ((await verifyCertificate(data)) !== 'Verified') {
+    if ((await validateCertificate(data)).error) {
         throw new Error('The provided certificate is not valid.');
     }
 
@@ -109,18 +110,18 @@ async function inspectCertificateChain(context, certData) {
 /**
  * Verifies whether a certificate and its chain of certificates is valid.
  * @param {object} context The blockchain connector context.
- * @param {*} certData The certificate to verify chain data from.
+ * @param {*} certData The certificate to validate chain data from.
  * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
-async function verifyCertificateChain(context, certData) {
+async function validateCertificateChain(context, certData) {
     const { status } = await inspectCertificateChain(context, certData);
     if (status === 'Complete') {
-        return 'Verified';
+        return { status: 'Valid' };
     }
-    return status;
+    return { status: 'Invalid', error: status };
 }
 
 module.exports = {
     inspectCertificateChain,
-    verifyCertificateChain,
+    validateCertificateChain,
 };

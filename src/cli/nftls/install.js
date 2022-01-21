@@ -33,7 +33,7 @@ async function defaultCommand(args) {
     const { pathName, platformName } = extractPath(await installCertificate(cert, image, {
         output, cache,
     }));
-    displayStatus(`Certificate for ${clc.magenta(platformName)} ${clc.yellow(pathName)} is installed and verified.`, null);
+    displayStatus(`Certificate for ${clc.magenta(platformName)} ${clc.yellow(pathName)} is installed and verified.`, true);
 }
 
 module.exports = {

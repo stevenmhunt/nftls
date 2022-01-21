@@ -149,7 +149,7 @@ async function issueCertificate(request, {
  * @param {string} filepath The certificate data or file to read.
  * @returns {Promise<object>} Data about the certificate.
  */
-async function inspectCertificate(filepath) {
+async function inspectCertificate(filepath, includeData = false) {
     let certData = null;
     let hash = null;
 
@@ -225,16 +225,19 @@ async function inspectCertificate(filepath) {
     cert.requestSignatureAddress = requestSignatureAddress;
     cert.forSignatureAddress = forSignatureAddress;
 
+    if (!includeData) {
+        delete result.data;
+    }
     return result;
 }
 
 /**
  * Checks the given certificate to ensure signatures and hashes are correct.
- * @param {string} filepath The certificate file to verify.
- * @param {string} addr (optional) The parent address to verify with.
- * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
+ * @param {string} filepath The certificate file to validate.
+ * @param {string} addr (optional) The parent address to validate with.
+ * @returns {Promise<object>} Returns an 'error' object if invalid.
  */
-async function verifyCertificate(filepath, addr) {
+async function validateCertificate(filepath, addr) {
     const data = (_.isString(filepath) || filepath.format)
         ? await inspectCertificate(filepath)
         : filepath;
@@ -243,10 +246,10 @@ async function verifyCertificate(filepath, addr) {
     try {
         runCertificateValidation(data.certificate, data, addr);
     } catch (err) {
-        return err.message;
+        return { status: 'Invalid', error: err.message };
     }
 
-    return 'Verified';
+    return { status: 'Valid' };
 }
 
 /**
@@ -259,9 +262,9 @@ async function verifyCertificate(filepath, addr) {
 async function installCertificate(cert, image, options) {
     await encodeImageData(image, JSON.stringify(cert), options.output || image);
     const data = await inspectCertificate(options.output || image);
-    const result = await verifyCertificate(data);
-    if (result !== 'Verified') {
-        throw new Error(`Failed to install ${data.certificate.subject.name}: ${result}`);
+    const { error } = await validateCertificate(data);
+    if (error) {
+        throw new Error(`Failed to install ${data.certificate.subject.name}: ${error}`);
     }
 
     // write the certificate to the cache.
@@ -277,5 +280,5 @@ module.exports = {
     issueCertificate,
     installCertificate,
     inspectCertificate,
-    verifyCertificate,
+    validateCertificate,
 };

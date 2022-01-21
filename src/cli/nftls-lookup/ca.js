@@ -34,14 +34,14 @@ async function addRootCli(args, filepath) {
     }
 
     if (result) {
-        displayStatus(`Successfully added certificate authority '${result}'.`, null);
+        displayStatus(`Successfully added certificate authority '${result}'.`, true);
     } else { process.exit(1); }
 }
 
 async function removeRootCli(args) {
     const name = args.n || args.name;
     await removeCertificateAuthority(name);
-    displayStatus(`Successfully removed certificate authority '${name}'.`, null);
+    displayStatus(`Successfully removed certificate authority '${name}'.`, true);
 }
 
 async function listRootCli(args) {

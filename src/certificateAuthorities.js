@@ -2,7 +2,7 @@ const _ = require('lodash');
 const {
     addKeyItem, removeKeyItem, getItems, getKeyItem,
 } = require('./storage');
-const { inspectCertificate, verifyCertificate } = require('./certificates');
+const { inspectCertificate, validateCertificate } = require('./certificates');
 const { extractPath } = require('./utils');
 const { CA_KEY, CERT_KEY } = require('./constants');
 
@@ -13,13 +13,13 @@ const { CA_KEY, CERT_KEY } = require('./constants');
  * @returns {Promise<boolean>} Whether or not the CA was written successfully.
  */
 async function addCertificateAuthority(filepath, isOverwrite = true) {
-    // verify that the CA certificate is valid before adding it.
+    // validate the CA certificate before adding it.
     const ca = await inspectCertificate(filepath);
     const { platformName } = extractPath(ca.certificate.subject.name);
     const address = ca.certificate.signatureAddress;
-    const status = await verifyCertificate(ca, address);
-    if (status !== 'Verified') {
-        throw new Error(status);
+    const { status, error } = await validateCertificate(ca, address);
+    if (error) {
+        throw new Error(error);
     }
 
     // check overwrite settings and whether or not there is an existing CA.
