@@ -23,13 +23,15 @@ const NO_IMAGE_HASH = 'N/A';
  * @param {string} req.subject The scope of the certificate and the identity of the requestor.
  * @param {string} req.email The email address of the requestor.
  * @param {number} req.code (optional) A security code typically used for domain tokens.
- * @param {string} signingKey The private key to sign the request with.
- * @param {string} forKey (optional) The for key, or the same as signingKey.
+ * @param {object} keys The keys to use for the request.
+ * @param {string} keys.signingKey The private key to sign the request with.
+ * @param {string} keys.forKey (optional) The for key, or the same as signingKey.
+ * @param {string} keys.encryptForKey (optional) the public key of the issuer to encrypt for.
  * @returns {Promise<object>} The constructed CSR.
  */
 async function requestCertificate({
     requestType, version, image, subject, email, data, code, contractNonce,
-}, signingKey, forKey = undefined) {
+}, { signingKey, forKey, encryptForKey }) {
     // argument pre-processing
     if (_.isString(subject)) {
         // eslint-disable-next-line no-param-reassign
@@ -80,6 +82,14 @@ async function requestCertificate({
     // perform a final validation of the entire request.
     runCertificateRequestValidation(result);
 
+    // generate encrypted or unencrypted CSR.
+    if (encryptForKey) {
+        return {
+            type: 'encrypted',
+            platformName,
+            ...(await platform.encryptMessage(encryptForKey, JSON.stringify(result))),
+        };
+    }
     return result;
 }
 
@@ -96,6 +106,13 @@ async function requestCertificate({
 async function issueCertificate(request, {
     token, isTokenRoot, issuer, email,
 }, key) {
+    // decrypt if needed
+    if (request.type === 'encrypted') {
+        const platform = platforms[request.platformName];
+        // eslint-disable-next-line no-param-reassign
+        request = JSON.parse(await platform.decryptMessage(key, request));
+    }
+
     // argument pre-processing
     if (_.isString(issuer)) {
         // eslint-disable-next-line no-param-reassign

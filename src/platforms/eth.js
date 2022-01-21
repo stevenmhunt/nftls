@@ -91,6 +91,18 @@ function recoverAddress(sig, msg, nonce = undefined) {
     return result;
 }
 
+async function encryptMessage(publicKey, msg) {
+    return EthCrypto.encryptWithPublicKey(publicKey, msg);
+}
+
+async function decryptMessage(key, {
+    iv, ephemPublicKey, ciphertext, mac,
+}) {
+    return EthCrypto.decryptWithPrivateKey(key, {
+        iv, ephemPublicKey, ciphertext, mac,
+    });
+}
+
 function addressesAreEqual(sigAddr, knownAddr, nonce = undefined) {
     if (!sigAddr || !knownAddr) {
         return false;
@@ -131,6 +143,8 @@ module.exports = {
     signMessage,
     signAuthorization,
     recoverAddress,
+    encryptMessage,
+    decryptMessage,
     addressesAreEqual,
     getCompatiblePlatforms,
     generateCallData,

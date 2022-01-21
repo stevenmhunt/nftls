@@ -19,6 +19,7 @@ async function helpCommand() {
     console.log('        security code:    (--code <number>)');
     console.log('        re-issue version: (--version <number>)');
     console.log('        contract nonce:   (--contract <nonce>)');
+    console.log('        encrypt for RA:   (--encrypt-for <public key>)');
     console.log('        output file:       --output [-o] <file | [stdout]>');
 }
 
@@ -36,6 +37,7 @@ function generateRequestCli(requestType) {
         const version = args.version !== undefined ? parseInt(args.version || '0', 10) : 0;
         const code = args.code !== undefined ? parseInt(args.code || '0', 10) : undefined;
         const contractNonce = args.contract !== undefined ? parseInt(args.contract || '0', 10) : undefined;
+        const encryptForKey = args['encrypt-for'];
         let forKey = args.for;
 
         // check optional parameters.
@@ -55,7 +57,7 @@ function generateRequestCli(requestType) {
 
         return withOutput(await requestCertificate({
             requestType, version, image, subject, email, code, contractNonce,
-        }, signingKey, forKey), output);
+        }, { signingKey, forKey, encryptForKey }), output);
     };
 }
 
@@ -65,6 +67,7 @@ async function requestCACli(args, signingKey) {
     const subject = await processIdentityArg(args.subject);
     const { email } = args;
     const contractNonce = args.contract !== undefined ? parseInt(args.contract || '0', 10) : undefined;
+    const encryptForKey = args['encrypt-for'];
 
     // check optional parameters.
     if (!signingKey) {
@@ -76,7 +79,7 @@ async function requestCACli(args, signingKey) {
 
     return withOutput(await requestCertificate({
         requestType, subject, email, contractNonce,
-    }, signingKey, forKey), output);
+    }, { signingKey, forKey, encryptForKey }), output);
 }
 
 module.exports = {

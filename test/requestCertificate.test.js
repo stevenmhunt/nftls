@@ -7,7 +7,9 @@ const { csrTypeMapping } = require('../src/constants');
 const { generateWallet, getContractAddress } = require('../src/platforms/eth');
 
 const { address: validAddress1, privateKey: validKey1 } = generateWallet();
-const { address: validAddress2, privateKey: validKey2 } = generateWallet();
+const {
+    address: validAddress2, publicKey: validPublicKey2, privateKey: validKey2,
+} = generateWallet();
 
 const validRequestTypes = _.keys(csrTypeMapping);
 const validNames = {
@@ -50,7 +52,7 @@ describe('requestCertificate', () => {
             // act
             const result = await requestCertificate({
                 requestType, subject, email: validEmail,
-            }, validKey1);
+            }, { signingKey: validKey1 });
 
             // assert
             expect(result).is.not.null;
@@ -69,7 +71,7 @@ describe('requestCertificate', () => {
             // act
             const result = await requestCertificate({
                 requestType, subject, email: validEmail, contractNonce: validNonce,
-            }, validKey1);
+            }, { signingKey: validKey1 });
 
             // assert
             expect(result).is.not.null;
@@ -89,7 +91,7 @@ describe('requestCertificate', () => {
             // act
             const result = await requestCertificate({
                 requestType, subject, email: validEmail, contractNonce: validNonce,
-            }, validKey1, validKey2);
+            }, { signingKey: validKey1, forKey: validKey2 });
 
             // assert
             expect(result).is.not.null;
@@ -109,7 +111,7 @@ describe('requestCertificate', () => {
             // act
             const result = await requestCertificate({
                 requestType, subject, email: validEmail,
-            }, validKey1, validKey2);
+            }, { signingKey: validKey1, forKey: validKey2 });
 
             // assert
             expect(result).is.not.null;
@@ -117,6 +119,27 @@ describe('requestCertificate', () => {
             expect(result.requestAddress).to.equal(validAddress1, 'Expected request address to match corresponding private key.');
             expect(result.forAddress).to.equal(validAddress2, 'Expected a valid contract address.');
             expect(result.subject.name).to.equal(validNames[requestType].toLowerCase());
+        });
+    });
+
+    // valid CSRs with encrypt for:
+    validRequestTypes.forEach((requestType) => {
+        it(`should be able to create a CSR for a '${requestType}' certificate with an encrypt for public key`, async () => {
+            // arrange
+            const subject = `CN=${validNames[requestType]}, ${validSubject}`;
+
+            // act
+            const result = await requestCertificate({
+                requestType, subject, email: validEmail,
+            }, { signingKey: validKey1, encryptForKey: validPublicKey2 });
+
+            // assert
+            expect(result).is.not.null;
+            expect(result.type).to.equal('encrypted');
+            expect(result.platformName).to.equal('eth');
+            expect(result.requestAddress).to.be.undefined;
+            expect(result.forAddress).to.be.undefined;
+            expect(result.subject).to.be.undefined;
         });
     });
 
@@ -130,7 +153,7 @@ describe('requestCertificate', () => {
             // act
             const result = await requestCertificate({
                 requestType, subject, email: validEmail, version,
-            }, validKey1);
+            }, { signingKey: validKey1 });
 
             // assert
             expect(result).is.not.null;
@@ -152,7 +175,7 @@ describe('requestCertificate', () => {
                 try {
                     await requestCertificate({
                         requestType, subject, email: validEmail, contractNonce: invalidNonce,
-                    }, validKey1);
+                    }, { signingKey: validKey1 });
                 } catch (err) {
                     return;
                 }
@@ -174,7 +197,7 @@ describe('requestCertificate', () => {
                 try {
                     await requestCertificate({
                         requestType, subject, email: validEmail, version: invalidVersion,
-                    }, validKey1);
+                    }, { signingKey: validKey1 });
                 } catch (err) {
                     return;
                 }
@@ -196,7 +219,7 @@ describe('requestCertificate', () => {
                 try {
                     await requestCertificate({
                         requestType, subject, email: validEmail,
-                    }, validKey1);
+                    }, { signingKey: validKey1 });
                 } catch (err) {
                     return;
                 }
@@ -218,7 +241,7 @@ describe('requestCertificate', () => {
             try {
                 await requestCertificate({
                     requestType, subject, email: validEmail,
-                }, validKey1);
+                }, { signingKey: validKey1 });
             } catch (err) {
                 return;
             }
@@ -238,7 +261,7 @@ describe('requestCertificate', () => {
             try {
                 await requestCertificate({
                     requestType, subject, email: validEmail,
-                }, validKey1);
+                }, { signingKey: validKey1 });
             } catch (err) {
                 return;
             }
@@ -259,7 +282,7 @@ describe('requestCertificate', () => {
                 try {
                     await requestCertificate({
                         requestType, subject, email: invalidEmail,
-                    }, validKey1);
+                    }, { signingKey: validKey1 });
                 } catch (err) {
                     return;
                 }
@@ -280,7 +303,7 @@ describe('requestCertificate', () => {
             try {
                 await requestCertificate({
                     requestType, subject, email: validEmail,
-                }, validKey1);
+                }, { signingKey: validKey1 });
             } catch (err) {
                 return;
             }

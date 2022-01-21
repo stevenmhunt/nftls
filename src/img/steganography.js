@@ -15,7 +15,7 @@ const NULL_CHAR = '\0';
  * @param {string} output (optional) The output file path.
  * @returns {Promise<string>} The output file.
  */
-async function encodeImageData(filepath, message, output) {
+async function encodeImageData(filepath, message, output = null) {
     const newfile = output || filepath;
     if (output) {
         await fs.copyFile(filepath, newfile);
@@ -31,9 +31,9 @@ async function encodeImageData(filepath, message, output) {
                 // this is how we encode the image's hash into itself without breaking anything.
                 if (message === null) {
                     const boundary = stash.length - offset - STRLEN_LENGTH - SHA256_HEX_LENGTH;
-                    const size = boundary < STASH_MAXLENGTH
+                    const size = boundary < MAX_MESSAGE_SIZE
                         ? boundary
-                        : STASH_MAXLENGTH;
+                        : MAX_MESSAGE_SIZE;
                     // eslint-disable-next-line no-param-reassign
                     message = NULL_CHAR.repeat(size);
                 }
@@ -77,7 +77,7 @@ async function decodeImageData(filepath) {
                 // check the size of the image to see if there is data.
                 const msgLenData = stash.read(offset + 0, STRLEN_LENGTH);
                 const msgLen = msgLenData[0] * 256 + msgLenData[1];
-                if (msgLen > STASH_MAXLENGTH) {
+                if (msgLen > MAX_MESSAGE_SIZE) {
                     return resolve(null);
                 }
 

@@ -25,7 +25,7 @@ describe('Scenarios', () => {
         // act
         const caRequest = await requestCertificate({
             requestType: 'ca', subject: caSubject, email: NFTLS_EMAIL, contractNonce,
-        }, caKey, rootKey);
+        }, { signingKey: caKey, forKey: rootKey });
 
         const caCertificate = await issueCertificate(caRequest, {
             issuer: parseX509Fields(`CN=@eth, ${NFTLS_SUBJECT}`), email: NFTLS_EMAIL,
@@ -35,7 +35,7 @@ describe('Scenarios', () => {
 
         const rootRequest = await requestCertificate({
             requestType: 'domain', subject: rootSubject, email: NFTLS_EMAIL,
-        }, rootKey);
+        }, { signingKey: rootKey });
 
         const rootCertificate = await issueCertificate(rootRequest, {
             token: caCertData.certificate.forAddress,
