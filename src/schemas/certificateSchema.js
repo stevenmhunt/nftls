@@ -7,7 +7,7 @@ module.exports = (platform) => Joi.object({
     type: Joi.string().valid(...certTypes).required(),
     subject: identity(platform).required(),
     email: Joi.string().email().required(),
-    imageHash: Joi.string().length(64).hex().required(),
+    imageHash: Joi.string().length(64).hex(),
     dateRequested: Joi.date().timestamp('unix').required(),
     data: Joi.string(),
     contractNonce: Joi.number(),

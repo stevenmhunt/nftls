@@ -32,17 +32,19 @@ function displayCertificate({
         console.log(`        Email: ${certificate.issuerEmail}`);
     }
     console.log(`        Date Issued: ${new Date(certificate.dateIssued * 1000).toISOString()}`);
-    console.log('    SHA-256:');
-    console.log(`        ${certificate.imageHash}`);
+    if (certificate.imageHash) {
+        console.log('    SHA-256:');
+        console.log(`        ${certificate.imageHash}`);
+    }
     console.log('    Requestor Signature:');
     console.log(`        ${certificate.signature}`);
     if (certificate.signatureAddress) {
         console.log(`        Address: ${certificate.signatureAddress}`);
     }
+    console.log('    Issuer Signature:');
+    console.log(`        ${signature}`);
+    console.log(`        Address: ${signatureAddress}`);
     if (imageHash) {
-        console.log('    Issuer Signature:');
-        console.log(`        ${signature}`);
-        console.log(`        Address: ${signatureAddress}`);
         if (certificate.type !== certTypeMapping.ca && imageHash) {
             console.log('    Image:');
             if (code) {

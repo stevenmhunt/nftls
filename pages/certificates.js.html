@@ -33,7 +33,7 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, sha256, calculateChainPaths, extractPath, keccak256,
+    generateSerialNumber, shortenPath, calculateChainPaths, extractPath, keccak256, parseX509Fields,
 } = require('./utils');
 const { addKeyItem } = require('./storage');
 const {
@@ -41,6 +41,7 @@ const {
 } = require('./constants');
 const csrSchemaFactory = require('./schemas/csrSchema');
 const certificateSchemaFactory = require('./schemas/certificateSchema');
+const { platforms: platformSchemas } = require('./schemas/common');
 
 const NO_IMAGE_HASH = 'N/A';
 
@@ -59,22 +60,44 @@ const NO_IMAGE_HASH = 'N/A';
 async function requestCertificate({
     requestType, image, subject, email, data, code, contractNonce,
 }, signingKey, forKey = undefined) {
+    // argument pre-processing
+    if (_.isString(subject)) {
+        // eslint-disable-next-line no-param-reassign
+        subject = parseX509Fields(subject);
+    }
+
     // check arguments
     if (!csrTypeMapping[requestType]) { throw new Error(`Invalid request type '${requestType}'.`); }
     if (!subject) { throw new Error('Subject information must be provided.'); }
     if (!subject.name) { throw new Error('A subject name must be provided.'); }
     if (!subject.organization) { throw new Error('A subject organization must be provided.'); }
+    if (!subject.country) { throw new Error('A subject country must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
+    if (code !== undefined &amp;&amp; (!Number.isInteger(code) || code &lt; 0)) {
+        throw new Error('A security code must be non-negative integer value.');
+    }
+    if (contractNonce !== undefined &amp;&amp; (!Number.isInteger(contractNonce) || contractNonce &lt; 0)) {
+        throw new Error('A contract nonce must be non-negative integer value.');
+    }
 
     // eslint-disable-next-line no-param-reassign
     subject.name = subject.name.toLowerCase();
     const type = csrTypeMapping[requestType];
     const dateRequested = Math.floor(Date.now() / 1000);
-    const imageHash = image ? await extractImageHash(image) : sha256(dateRequested + subject.name);
+    const imageHash = image ? await extractImageHash(image) : undefined;
+
+    // check request values.
+    const { pathName, platformName } = await extractPath(subject.name);
+    const platform = platforms[platformName];
+    if (!platform) { throw new Error(`Unsupported platform '${platformName}'.`); }
+    if (type === csrTypeMapping.ca &amp;&amp; pathName &amp;&amp; pathName.length > 0) { throw new Error('CA certificates cannot have a non-zero length path.'); }
+    if (type !== csrTypeMapping.ca) {
+        const schema = platformSchemas[platformName][requestType];
+        const { error } = schema().validate(pathName);
+        if (error) { throw new Error(`CSR${error}`); }
+    }
 
     // build certificate request object.
-    const { platformName } = extractPath(subject.name);
-    const platform = platforms[platformName];
     const requestAddress = platform.getAddress(signingKey);
     const getForAddress = () => {
         // eslint-disable-next-line no-restricted-globals
@@ -96,9 +119,18 @@ async function requestCertificate({
     const forSignature = forKey
         ? platform.signMessage(forKey, `${reqMsg}${SEPARATOR}${forAddress}`)
         : undefined;
-    return {
+    const result = {
         ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,
     };
+
+    // perform a final validation of the entire request.
+    const schema = csrSchemaFactory(platformName);
+    const { error } = schema.validate(result);
+    if (error) {
+        throw new Error(`CSR${error}`);
+    }
+
+    return result;
 }
 
 /**
@@ -114,12 +146,23 @@ async function requestCertificate({
 async function issueCertificate(request, {
     token, isTokenRoot, issuer, email,
 }, key) {
+    // argument pre-processing
+    if (_.isString(issuer)) {
+        // eslint-disable-next-line no-param-reassign
+        issuer = parseX509Fields(issuer);
+    }
+
     // check arguments
     if (!token &amp;&amp; request.type === csrTypeMapping.domain) { throw new Error('A token contract address must be provided for domain tokens.'); }
     if (!issuer) { throw new Error('Issuer information must be provided.'); }
     if (!issuer.name) { throw new Error('An issuer name must be provided.'); }
     if (!issuer.organization) { throw new Error('An issuer organization must be provided.'); }
     if (!email) { throw new Error('An email address must be provided.'); }
+    if (!key) { throw new Error('A valid private key is required to issue a certificate.'); }
+    if (request.dateRequested > Math.floor(Date.now() / 1000)) {
+        throw new Error('Request date/time must be in the past.');
+    }
+    if (!request.subject || !request.subject.name) { throw new Error('A subject name is required.'); }
 
     // process parameters.
     request.subject.name = request.subject.name.toLowerCase();
@@ -154,6 +197,7 @@ async function issueCertificate(request, {
         data: request.data,
         contractNonce: request.contractNonce,
     });
+    const actualSigAddr = await platform.recoverAddress(request.signature, msg);
     const reqMsg = `${msg}${SEPARATOR}${request.requestAddress}`;
     const actualReqAddr = platform.recoverAddress(
         request.requestSignature,
@@ -166,6 +210,9 @@ async function issueCertificate(request, {
             request.contractNonce,
         )
         : undefined;
+    if (actualSigAddr !== request.requestAddress) {
+        throw new Error('Invalid signature.');
+    }
     if (request.requestAddress !== actualReqAddr) {
         throw new Error('Inconsistent requestor address.');
     }
@@ -185,7 +232,7 @@ async function issueCertificate(request, {
     }), 'utf8'));
 
     // digitally sign the issued certificate.
-    const signature = await platform.signMessage(key, keccak256(certificate, 'bytes'));
+    const signature = await platform.signMessage(key, certificate);
 
     return {
         format: 'gzip',
@@ -232,14 +279,11 @@ async function inspectCertificate(filepath) {
     const {
         type, subject, email, imageHash, dateRequested, data, contractNonce,
     } = cert;
-    const { pathName, platformName } = extractPath(result.certificate.subject.name);
+    const { pathName, platformName } = extractPath(cert.subject.name);
     const platform = platforms[platformName];
     const msg = JSON.stringify({
         type: type.replace('Certificate', 'Request'), subject, email, imageHash, dateRequested, data, contractNonce,
     });
-    if (type === certTypeMapping.ca) {
-        hash = sha256(dateRequested + subject.name);
-    }
     const reqMsg = `${msg}${SEPARATOR}${cert.requestAddress}`;
     // these addresses must be kept out of the 'cert' object until after signature verification.
     const requestSignatureAddress = platform.recoverAddress(cert.requestSignature, reqMsg);
@@ -251,7 +295,7 @@ async function inspectCertificate(filepath) {
     // recover issuer signature address.
     result.signatureAddress = await platform.recoverAddress(
         result.signature,
-        keccak256(result.data, 'bytes'),
+        result.data,
     );
 
     if (hash !== NO_IMAGE_HASH) {
@@ -271,9 +315,12 @@ async function inspectCertificate(filepath) {
             // recover requestor and image addresses (they should match...).
             cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
         }
-        cert.requestSignatureAddress = requestSignatureAddress;
-        cert.forSignatureAddress = forSignatureAddress;
+    } else if (!cert.imageHash) {
+        cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
     }
+
+    cert.requestSignatureAddress = requestSignatureAddress;
+    cert.forSignatureAddress = forSignatureAddress;
 
     return result;
 }
@@ -285,7 +332,9 @@ async function inspectCertificate(filepath) {
  * @returns {Promise&lt;string>} Returns "Verified" if verified, otherwise returns an error message.
  */
 async function verifyCertificate(filepath, addr) {
-    const data = _.isString(filepath) ? await inspectCertificate(filepath) : filepath;
+    const data = (_.isString(filepath) || filepath.format)
+        ? await inspectCertificate(filepath)
+        : filepath;
 
     // perform a schema validation of the certificate.
     const cert = data.certificate;
@@ -366,17 +415,16 @@ async function verifyCertificate(filepath, addr) {
  * @param {string} output (optional) The output file.
  * @returns {Promise&lt;string>} The name of the installed certificate.
  */
-async function installCertificate(cert, image, output) {
-    await encodeImageData(image, JSON.stringify(cert), output || image);
-    const data = await inspectCertificate(output || image);
+async function installCertificate(cert, image, options) {
+    await encodeImageData(image, JSON.stringify(cert), options.output || image);
+    const data = await inspectCertificate(options.output || image);
     const result = await verifyCertificate(data);
     if (result !== 'Verified') {
         throw new Error(`Failed to install ${data.certificate.subject.name}: ${result}`);
     }
 
     // write the certificate to the cache.
-    // TODO: this will need to be re-evaluated later.
-    if (data.certificate.type !== certTypeMapping.token) {
+    if (options.cache === true &amp;&amp; data.certificate.type !== certTypeMapping.token) {
         const key = `${data.certificate.subject.name};${data.signatureAddress}`;
         await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }
@@ -406,7 +454,7 @@ module.exports = {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jan 19 2022 20:11:25 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Jan 20 2022 20:51:10 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
