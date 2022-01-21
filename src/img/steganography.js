@@ -5,6 +5,7 @@ const { sha256 } = require('../utils');
 const SHA256_HEX_LENGTH = 64;
 const STRLEN_LENGTH = 2;
 const STASH_MAXLENGTH = 2 ** 16 - 1;
+const MAX_MESSAGE_SIZE = 65000;
 const NULL_CHAR = '\0';
 
 /**
@@ -39,6 +40,9 @@ async function encodeImageData(filepath, message, output) {
 
                 // write the byte length as well as a SHA-256 hash to prevent bad reads later.
                 const buf = Buffer.from(message);
+                if (buf.length > MAX_MESSAGE_SIZE) {
+                    throw new Error(`Message size cannot exceed ${MAX_MESSAGE_SIZE} bytes.`);
+                }
                 stash.write(buf, offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, buf.length);
                 stash.write(sha256(buf), offset + STRLEN_LENGTH, SHA256_HEX_LENGTH);
                 // eslint-disable-next-line no-bitwise

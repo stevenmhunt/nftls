@@ -1,11 +1,10 @@
 const path = require('path');
 const fs = require('fs-extra');
-const os = require('os');
 const Jimp = require('jimp');
 
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const { fillWithColor } = require('./utils');
-const { sha256 } = require('../utils');
+const { sha256, getTempFilePath } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 
 const TOKEN_WIDTH = 512;
@@ -73,14 +72,19 @@ async function renderDomainTokenImage(token, output) {
 }
 
 async function extractImageHash(filepath, useTempFile = true) {
-    const tmpfile = useTempFile ? path.join(os.tmpdir(), path.basename(filepath)) : filepath;
+    const tmpfile = useTempFile ? getTempFilePath() : filepath;
     if (useTempFile) {
         await fs.copyFile(filepath, tmpfile);
     }
-    await encodeImageData(tmpfile, null, false);
-    const image = await fs.readFile(tmpfile);
-    if (useTempFile) {
-        await fs.unlink(tmpfile);
+
+    let image;
+    try {
+        await encodeImageData(tmpfile, null, false);
+        image = await fs.readFile(tmpfile);
+    } finally {
+        if (useTempFile) {
+            await fs.unlink(tmpfile);
+        }
     }
     return sha256(image);
 }

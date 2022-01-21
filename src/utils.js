@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const os = require('os');
+const path = require('path');
 const keccak256Internal = require('keccak256');
 
 const CA_PATH = '';
@@ -81,15 +83,15 @@ function generateSerialNumber() {
 /**
  * @private
  * Shortens a path in order to make it easier to display in images.
- * @param {string} path The path to display.
+ * @param {string} pathName The path to display.
  * @returns {string}
  */
-function shortenPath(path) {
-    if (path.length > 20) {
-        const [addr, num] = path.split('#');
+function shortenPath(pathName) {
+    if (pathName.length > 20) {
+        const [addr, num] = pathName.split('#');
         return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4, addr.length)}${num ? `#${num}` : ''}`.toLowerCase();
     }
-    return path.toLowerCase();
+    return pathName.toLowerCase();
 }
 
 const x509Mapping = {
@@ -135,6 +137,10 @@ function keccak256(val, type) {
     return `0x${result.toString('hex')}`;
 }
 
+function getTempFilePath() {
+    return path.join(os.tmpdir(), path.basename(sha256(generateSerialNumber())));
+}
+
 module.exports = {
     extractPath,
     calculateChainPaths,
@@ -144,4 +150,5 @@ module.exports = {
     parseX509Fields,
     sha256,
     keccak256,
+    getTempFilePath,
 };
