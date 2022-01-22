@@ -21,6 +21,9 @@ const {
     renderCertificateToken,
 } = require('./src/certificateTokens');
 
+const utils = require('./src/utils');
+const platforms = require('./src/platforms');
+
 /**
  * NFTLS functions
  */
@@ -36,4 +39,6 @@ module.exports = {
     inspectCertificateChain,
     validateCertificateChain,
     renderCertificateToken,
+    utils,
+    platforms,
 };

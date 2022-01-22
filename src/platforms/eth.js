@@ -28,6 +28,14 @@ function getContractAddress(address, nonce) {
 }
 
 /**
+ * Given a private key, returns the public key.
+ * @param {string} privateKey The private key.
+ */
+function getPublicKey(privateKey) {
+    return EthCrypto.publicKeyByPrivateKey(privateKey);
+}
+
+/**
  * Given a private key, returns the Ethereum address.
  * @param {string} privateKey The private key.
  * @param {number} nonce (optional) Indicates that the contract address should be calculated.
@@ -71,7 +79,8 @@ function signAuthorization(action, fields, key) {
     } else {
         data = fields;
     }
-    const msg = Buffer.concat([keccak256(action), ...data].filter((i) => i).map((i) => Buffer.from(i, 'hex')));
+    const msg = Buffer.concat([keccak256(action), ...data]
+        .filter((i) => i).map((i) => Buffer.from(i.replace('0x', ''), 'hex')));
     return signMessage(key, msg);
 }
 
@@ -139,6 +148,7 @@ function generateCallData(method, args, values) {
 module.exports = {
     generateWallet,
     getAddress,
+    getPublicKey,
     getContractAddress,
     signMessage,
     signAuthorization,
