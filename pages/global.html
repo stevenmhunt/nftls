@@ -104,7 +104,7 @@
     
 
     
-    <h4 class="name" id="addCertificateAuthority"><span class="type-signature">(async) </span>addCertificateAuthority<span class="signature">(name, filepath, isOverwrite)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    <h4 class="name" id="addCertificateAuthority"><span class="type-signature">(async) </span>addCertificateAuthority<span class="signature">(filepath, isOverwrite)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
     
 
     
@@ -146,33 +146,6 @@
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The name of the CA.</td>
-        </tr>
-
     
 
         <tr>
@@ -267,7 +240,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line14">line 14</a>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -377,7 +350,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line55">line 55</a>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line59">line 59</a>
     </li></ul></dd>
     
 
@@ -532,7 +505,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line233">line 233</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line169">line 169</a>
     </li></ul></dd>
     
 
@@ -715,7 +688,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line71">line 71</a>
+        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -920,7 +893,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line402">line 402</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line279">line 279</a>
     </li></ul></dd>
     
 
@@ -1220,7 +1193,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line125">line 125</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line106">line 106</a>
     </li></ul></dd>
     
 
@@ -1425,7 +1398,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line47">line 47</a>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line48">line 48</a>
     </li></ul></dd>
     
 
@@ -1711,7 +1684,7 @@ Note: requires an Internet connection.
     
 
     
-    <h4 class="name" id="requestCertificate"><span class="type-signature">(async) </span>requestCertificate<span class="signature">(req, signingKey, forKey)</span><span class="type-signature"> &rarr; {Promise.&lt;object>}</span></h4>
+    <h4 class="name" id="requestCertificate"><span class="type-signature">(async) </span>requestCertificate<span class="signature">(req, keys)</span><span class="type-signature"> &rarr; {Promise.&lt;object>}</span></h4>
     
 
     
@@ -1919,6 +1892,48 @@ Note: requires an Internet connection.
 
         <tr>
             
+                <td class="name"><code>keys</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The keys to use for the request.
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
                 <td class="name"><code>signingKey</code></td>
             
 
@@ -1959,6 +1974,36 @@ Note: requires an Internet connection.
             
 
             <td class="description last">(optional) The for key, or the same as signingKey.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>encryptForKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">(optional) the public key of the issuer to encrypt for.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -2057,7 +2102,7 @@ Note: requires an Internet connection.
     
 
     
-    <h4 class="name" id="verifyCertificate"><span class="type-signature">(async) </span>verifyCertificate<span class="signature">(filepath, addr)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
+    <h4 class="name" id="validateCertificate"><span class="type-signature">(async) </span>validateCertificate<span class="signature">(filepath, addr)</span><span class="type-signature"> &rarr; {Promise.&lt;object>}</span></h4>
     
 
     
@@ -2117,7 +2162,7 @@ Note: requires an Internet connection.
 
             
 
-            <td class="description last">The certificate file to verify.</td>
+            <td class="description last">The certificate file to validate.</td>
         </tr>
 
     
@@ -2140,7 +2185,7 @@ Note: requires an Internet connection.
 
             
 
-            <td class="description last">(optional) The parent address to verify with.</td>
+            <td class="description last">(optional) The parent address to validate with.</td>
         </tr>
 
     
@@ -2181,7 +2226,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line318">line 318</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line257">line 257</a>
     </li></ul></dd>
     
 
@@ -2210,7 +2255,7 @@ Note: requires an Internet connection.
 
         
 <div class="param-desc">
-    Returns "Verified" if verified, otherwise returns an error message.
+    Returns an 'error' object if invalid.
 </div>
 
 
@@ -2221,7 +2266,7 @@ Note: requires an Internet connection.
     </dt>
     <dd>
         
-<span class="param-type">Promise.&lt;string></span>
+<span class="param-type">Promise.&lt;object></span>
 
 
     </dd>
@@ -2239,7 +2284,7 @@ Note: requires an Internet connection.
     
 
     
-    <h4 class="name" id="verifyCertificateChain"><span class="type-signature">(async) </span>verifyCertificateChain<span class="signature">(context, certData)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
+    <h4 class="name" id="validateCertificateChain"><span class="type-signature">(async) </span>validateCertificateChain<span class="signature">(context, certData)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
     
 
     
@@ -2322,7 +2367,7 @@ Note: requires an Internet connection.
 
             
 
-            <td class="description last">The certificate to verify chain data from.</td>
+            <td class="description last">The certificate to validate chain data from.</td>
         </tr>
 
     
@@ -2363,7 +2408,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line115">line 115</a>
+        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line116">line 116</a>
     </li></ul></dd>
     
 
@@ -2431,13 +2476,13 @@ Note: requires an Internet connection.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addCertificateAuthority">addCertificateAuthority</a></li><li><a href="global.html#getCertificateAuthorities">getCertificateAuthorities</a></li><li><a href="global.html#inspectCertificate">inspectCertificate</a></li><li><a href="global.html#inspectCertificateChain">inspectCertificateChain</a></li><li><a href="global.html#installCertificate">installCertificate</a></li><li><a href="global.html#issueCertificate">issueCertificate</a></li><li><a href="global.html#removeCertificateAuthority">removeCertificateAuthority</a></li><li><a href="global.html#renderCertificateToken">renderCertificateToken</a></li><li><a href="global.html#requestCertificate">requestCertificate</a></li><li><a href="global.html#verifyCertificate">verifyCertificate</a></li><li><a href="global.html#verifyCertificateChain">verifyCertificateChain</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addCertificateAuthority">addCertificateAuthority</a></li><li><a href="global.html#getCertificateAuthorities">getCertificateAuthorities</a></li><li><a href="global.html#inspectCertificate">inspectCertificate</a></li><li><a href="global.html#inspectCertificateChain">inspectCertificateChain</a></li><li><a href="global.html#installCertificate">installCertificate</a></li><li><a href="global.html#issueCertificate">issueCertificate</a></li><li><a href="global.html#removeCertificateAuthority">removeCertificateAuthority</a></li><li><a href="global.html#renderCertificateToken">renderCertificateToken</a></li><li><a href="global.html#requestCertificate">requestCertificate</a></li><li><a href="global.html#validateCertificate">validateCertificate</a></li><li><a href="global.html#validateCertificateChain">validateCertificateChain</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Fri Jan 21 2022 00:46:23 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sat Jan 22 2022 15:04:50 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
