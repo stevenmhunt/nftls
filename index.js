@@ -19,6 +19,7 @@ const {
 
 const {
     renderCertificateToken,
+    authorizeCertificateToken,
 } = require('./src/certificateTokens');
 
 const utils = require('./src/utils');
@@ -39,6 +40,7 @@ module.exports = {
     inspectCertificateChain,
     validateCertificateChain,
     renderCertificateToken,
+    authorizeCertificateToken,
     utils,
     platforms,
 };
