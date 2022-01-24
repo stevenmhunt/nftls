@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: certificateAuthorities.js</title>
+    <title>JSDoc: Source: cachedCertificates.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: certificateAuthorities.js</h1>
+    <h1 class="page-title">Source: cachedCertificates.js</h1>
 
     
 
@@ -26,42 +26,33 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const _ = require('lodash');
-const { inspectCertificate, validateCertificate } = require('./certificates');
-const { addCachedCertificate, removeCachedCertificate } = require('./cachedCertificates');
-const { extractPath } = require('./utils');
-const { CA_KEY } = require('./constants');
+            <pre class="prettyprint source linenums"><code>const { inspectCertificate, validateCertificate } = require('./certificates');
+const { CERT_KEY } = require('./constants');
 
 /**
- * Adds a trusted CA for the current user.
+ * Adds a cached certificate for the current session.
  * @param {object} context The session context.
  * @param {string} filepath The CA certificate.
- * @param {boolean} isOverwrite Whether or not to overwrite an existing CA with the same name.
+ * @param {boolean} isOverwrite Whether or not to overwrite a certificate with the same name.
  * @returns {Promise&lt;boolean>} Whether or not the CA was written successfully.
  */
-async function addCertificateAuthority(context, filepath, isOverwrite = true) {
-    // validate the CA certificate before adding it.
-    const ca = await inspectCertificate(filepath);
-    const { platformName } = extractPath(ca.certificate.subject.name);
-    const address = ca.certificate.signatureAddress;
-    const { status, error } = await validateCertificate(ca, address);
+async function addCachedCertificate(context, filepath, isOverwrite = true) {
+    // validate the certificate before adding it.
+    const data = await inspectCertificate(filepath);
+    const { error } = await validateCertificate(data);
     if (error) {
         throw new Error(error);
     }
 
     // check overwrite settings and whether or not there is an existing CA.
-    const { forAddress } = ca.certificate;
-    const caName = ca.certificate.subject.organization;
-    if (!isOverwrite &amp;&amp; await context.storage.getKeyItem(CA_KEY, caName)) {
+    const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+    if (!isOverwrite &amp;&amp; await context.storage.getKeyItem(CERT_KEY, key)) {
         return null;
     }
 
     // add the CA and also cache the certificate.
-    const key = await addCachedCertificate(context, ca, isOverwrite);
-    await context.storage.addKeyItem(CA_KEY, caName, {
-        platform: platformName, address, forAddress, status, key,
-    });
-    return caName;
+    await context.storage.addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
+    return key;
 }
 
 /**
@@ -70,10 +61,9 @@ async function addCertificateAuthority(context, filepath, isOverwrite = true) {
  * @param {string} name (optional) The name of the CA to remove.
  * @returns {Promise&lt;boolean>} Whether or not the CA was removed successfully.
  */
-async function removeCertificateAuthority(context, name) {
-    const item = await context.storage.getKeyItem(CA_KEY, name);
-    await context.storage.removeKeyItem(CA_KEY, name);
-    await removeCachedCertificate(item.key);
+async function removeCachedCertificate(context, name, address) {
+    const key = !address ? name : `${name};${address}`;
+    await context.storage.removeKeyItem(CERT_KEY, key);
     return true;
 }
 
@@ -82,15 +72,19 @@ async function removeCertificateAuthority(context, name) {
  * @param {object} context The session context.
  * @returns {Promise&lt;Array>}
  */
-async function getCertificateAuthorities(context) {
-    const items = await context.storage.getItems(CA_KEY);
-    return _.keys(items).map((i) => ({ name: i, ...items[i] }));
+async function getCachedCertificate(context, name, address) {
+    const key = !address ? name : `${name};${address}`;
+    const data = await context.storage.getKeyItem(CERT_KEY, key);
+    if (!data) {
+        return null;
+    }
+    return JSON.parse(Buffer.from(data, 'base64').toString('utf8'));
 }
 
 module.exports = {
-    addCertificateAuthority,
-    removeCertificateAuthority,
-    getCertificateAuthorities,
+    addCachedCertificate,
+    removeCachedCertificate,
+    getCachedCertificate,
 };
 </code></pre>
         </article>

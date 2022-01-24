@@ -35,7 +35,10 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, targ
         try {
             const cert = await context.platforms[platformName].downloadCertificate(pathName);
             data = await inspectCertificate(cert);
-        } catch (err) { console.warn(err); }
+        } catch (err) {
+            // console.log(err);
+            // if we can't get data from the blockchain, then the chain validation is incomplete.
+        }
     }
 
     // if we don't find a certificate that matches our criteria, then the chain is broken.

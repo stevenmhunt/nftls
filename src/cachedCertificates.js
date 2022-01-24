@@ -47,6 +47,9 @@ async function removeCachedCertificate(context, name, address) {
 async function getCachedCertificate(context, name, address) {
     const key = !address ? name : `${name};${address}`;
     const data = await context.storage.getKeyItem(CERT_KEY, key);
+    if (!data) {
+        return null;
+    }
     return JSON.parse(Buffer.from(data, 'base64').toString('utf8'));
 }
 

@@ -24,14 +24,14 @@ module.exports = async function ethConnector(options = {}) {
     }
 
     async function downloadCertificate(pathName) {
-        const tokenId = ethers.BigNumber.from(keccak256(pathName));
-        const hash = await current.certificates(tokenId);
+        const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? keccak256(pathName) : 0);
+        const { certificate, isActive } = await current.getCertificate(tokenId);
         const uri = await current.tokenURI(tokenId);
         const { data } = await axios.get(uri);
 
         // we don't trust the downloaded certificate unless it matches the hash from blockchain.
-        assert.equal(keccak256(Buffer.from(data.certificate, 'base64')), hash, 'Inconsistent certificate hashes.');
-
+        assert.ok(isActive, 'The requested certificate was revoked and not re-minted.');
+        assert.equal(keccak256(Buffer.from(data.certificate, 'base64')), certificate, 'Inconsistent certificate hashes.');
         return data;
     }
 

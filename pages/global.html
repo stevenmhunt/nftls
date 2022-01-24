@@ -104,7 +104,228 @@
     
 
     
-    <h4 class="name" id="addCertificateAuthority"><span class="type-signature">(async) </span>addCertificateAuthority<span class="signature">(filepath, isOverwrite)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    <h4 class="name" id="addCachedCertificate"><span class="type-signature">(async) </span>addCachedCertificate<span class="signature">(context, filepath, isOverwrite)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Adds a cached certificate for the current session.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>filepath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The CA certificate.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isOverwrite</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">Whether or not to overwrite a certificate with the same name.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cachedCertificates.js.html">cachedCertificates.js</a>, <a href="cachedCertificates.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Whether or not the CA was written successfully.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;boolean></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addCertificateAuthority"><span class="type-signature">(async) </span>addCertificateAuthority<span class="signature">(context, filepath, isOverwrite)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
     
 
     
@@ -146,6 +367,33 @@
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
     
 
         <tr>
@@ -240,7 +488,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line15">line 15</a>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -298,7 +546,7 @@
     
 
     
-    <h4 class="name" id="getCertificateAuthorities"><span class="type-signature">(async) </span>getCertificateAuthorities<span class="signature">()</span><span class="type-signature"> &rarr; {Promise.&lt;Array>}</span></h4>
+    <h4 class="name" id="getCachedCertificate"><span class="type-signature">(async) </span>getCachedCertificate<span class="signature">(context)</span><span class="type-signature"> &rarr; {Promise.&lt;Array>}</span></h4>
     
 
     
@@ -315,6 +563,55 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -350,7 +647,162 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line59">line 59</a>
+        <a href="cachedCertificates.js.html">cachedCertificates.js</a>, <a href="cachedCertificates.js.html#line47">line 47</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;Array></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getCertificateAuthorities"><span class="type-signature">(async) </span>getCertificateAuthorities<span class="signature">(context)</span><span class="type-signature"> &rarr; {Promise.&lt;Array>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Retrieves a list of all trusted CAs.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line57">line 57</a>
     </li></ul></dd>
     
 
@@ -505,7 +957,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line169">line 169</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line168">line 168</a>
     </li></ul></dd>
     
 
@@ -688,7 +1140,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line72">line 72</a>
+        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line85">line 85</a>
     </li></ul></dd>
     
 
@@ -893,7 +1345,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line279">line 279</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line287">line 287</a>
     </li></ul></dd>
     
 
@@ -1193,7 +1645,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line106">line 106</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line105">line 105</a>
     </li></ul></dd>
     
 
@@ -1251,7 +1703,7 @@ Note: requires an Internet connection.
     
 
     
-    <h4 class="name" id="removeCertificateAuthority"><span class="type-signature">(async) </span>removeCertificateAuthority<span class="signature">(name, address, forAddress)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    <h4 class="name" id="removeCachedCertificate"><span class="type-signature">(async) </span>removeCachedCertificate<span class="signature">(context, name)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
     
 
     
@@ -1295,6 +1747,29 @@ Note: requires an Internet connection.
 
         <tr>
             
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>name</code></td>
             
 
@@ -1312,52 +1787,6 @@ Note: requires an Internet connection.
             
 
             <td class="description last">(optional) The name of the CA to remove.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>address</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">(optional) The address of the CA to remove.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>forAddress</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">(optional) The for address of the CA to remove.</td>
         </tr>
 
     
@@ -1398,7 +1827,189 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line48">line 48</a>
+        <a href="cachedCertificates.js.html">cachedCertificates.js</a>, <a href="cachedCertificates.js.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Whether or not the CA was removed successfully.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;boolean></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeCertificateAuthority"><span class="type-signature">(async) </span>removeCertificateAuthority<span class="signature">(context, name)</span><span class="type-signature"> &rarr; {Promise.&lt;boolean>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Removes a trusted CA, either by name or address/for.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The session context.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">(optional) The name of the CA to remove.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="certificateAuthorities.js.html">certificateAuthorities.js</a>, <a href="certificateAuthorities.js.html#line45">line 45</a>
     </li></ul></dd>
     
 
@@ -1626,7 +2237,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateTokens.js.html">certificateTokens.js</a>, <a href="certificateTokens.js.html#line20">line 20</a>
+        <a href="certificateTokens.js.html">certificateTokens.js</a>, <a href="certificateTokens.js.html#line17">line 17</a>
     </li></ul></dd>
     
 
@@ -2044,7 +2655,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line32">line 32</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line31">line 31</a>
     </li></ul></dd>
     
 
@@ -2226,7 +2837,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line257">line 257</a>
+        <a href="certificates.js.html">certificates.js</a>, <a href="certificates.js.html#line265">line 265</a>
     </li></ul></dd>
     
 
@@ -2408,7 +3019,7 @@ Note: requires an Internet connection.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line116">line 116</a>
+        <a href="certificateChains.js.html">certificateChains.js</a>, <a href="certificateChains.js.html#line128">line 128</a>
     </li></ul></dd>
     
 
@@ -2476,13 +3087,13 @@ Note: requires an Internet connection.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addCertificateAuthority">addCertificateAuthority</a></li><li><a href="global.html#getCertificateAuthorities">getCertificateAuthorities</a></li><li><a href="global.html#inspectCertificate">inspectCertificate</a></li><li><a href="global.html#inspectCertificateChain">inspectCertificateChain</a></li><li><a href="global.html#installCertificate">installCertificate</a></li><li><a href="global.html#issueCertificate">issueCertificate</a></li><li><a href="global.html#removeCertificateAuthority">removeCertificateAuthority</a></li><li><a href="global.html#renderCertificateToken">renderCertificateToken</a></li><li><a href="global.html#requestCertificate">requestCertificate</a></li><li><a href="global.html#validateCertificate">validateCertificate</a></li><li><a href="global.html#validateCertificateChain">validateCertificateChain</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addCachedCertificate">addCachedCertificate</a></li><li><a href="global.html#addCertificateAuthority">addCertificateAuthority</a></li><li><a href="global.html#getCachedCertificate">getCachedCertificate</a></li><li><a href="global.html#getCertificateAuthorities">getCertificateAuthorities</a></li><li><a href="global.html#inspectCertificate">inspectCertificate</a></li><li><a href="global.html#inspectCertificateChain">inspectCertificateChain</a></li><li><a href="global.html#installCertificate">installCertificate</a></li><li><a href="global.html#issueCertificate">issueCertificate</a></li><li><a href="global.html#removeCachedCertificate">removeCachedCertificate</a></li><li><a href="global.html#removeCertificateAuthority">removeCertificateAuthority</a></li><li><a href="global.html#renderCertificateToken">renderCertificateToken</a></li><li><a href="global.html#requestCertificate">requestCertificate</a></li><li><a href="global.html#validateCertificate">validateCertificate</a></li><li><a href="global.html#validateCertificateChain">validateCertificateChain</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sat Jan 22 2022 15:04:50 GMT-0500 (Eastern Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jan 24 2022 15:49:20 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
