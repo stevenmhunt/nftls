@@ -4,6 +4,7 @@ console.info = function info() {};
 
 const _ = require('lodash');
 const EthCrypto = require('eth-crypto');
+const { ethers } = require('ethers');
 const { keccak256 } = require('../utils');
 
 // Note: the 'eth-crypto' library outputs to stdout. this code suppresses that output.
@@ -61,6 +62,10 @@ function signMessage(key, msg) {
     return EthCrypto.sign(key, keccak256(msg));
 }
 
+function toUInt32(value) {
+    return value.toHexString().replace('0x', '').padStart(32 / (8 / 2), '0');
+}
+
 /**
  * Given a private key and data fields, generates an authorization signature.
  * @param {string} action The action being allowed by the authorization.
@@ -72,9 +77,10 @@ function signAuthorization(action, fields, key) {
     let data;
     if (action === 'mint') {
         const [recipient, path, version, hash] = fields;
+        const versionHex = toUInt32(ethers.BigNumber.from(version || 0));
         const newPath = version ? keccak256(Buffer.concat([
-            path, version,
-        ].map((i) => Buffer.from(i, 'hex')))) : path;
+            path, versionHex,
+        ].map((i) => Buffer.from(i.replace('0x', ''), 'hex')))) : path;
         data = [recipient, newPath, hash];
     } else {
         data = fields;

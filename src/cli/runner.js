@@ -44,9 +44,6 @@ async function main({ app, cli }) {
     if (argv.h === true || argv.help === true || !command) {
         console.log(`${app} ${pkg.version}`);
         console.log(pkg.description);
-        if (app === 'nftls-lookup') {
-            console.log('Powered by Etherscan.io APIs.');
-        }
         console.log(`\nUsage:\n    ${app} <command> ...<args>`);
         console.log('\nCommands:');
         console.log(_.keys(cli).sort().map((k) => `    ${k.padEnd(20, ' ')}${cli[k].getHelpText()}`).join('\n'));
