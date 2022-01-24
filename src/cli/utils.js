@@ -5,6 +5,7 @@ const readline = require('readline');
 const clc = require('cli-color');
 const { Spinner } = require('cli-spinner');
 const { parseX509Fields } = require('../utils');
+const { userProfile } = require('../storage');
 
 async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
@@ -85,6 +86,22 @@ async function withProgress(fn, message) {
     return result;
 }
 
+let session;
+async function getSessionContext() {
+    if (!session) {
+        session = {
+            platforms: {
+                eth: {
+                    setTokenContract() { },
+                    downloadCertificate() { },
+                },
+            },
+            storage: await userProfile(),
+        };
+    }
+    return session;
+}
+
 module.exports = {
     readLine,
     processCoordinatesArg,
@@ -92,4 +109,5 @@ module.exports = {
     displayStatus,
     withOutput,
     withProgress,
+    getSessionContext,
 };

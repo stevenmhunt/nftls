@@ -12,7 +12,6 @@ async function helpCommand() {
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
     console.log('     nftls authorize <certificate file> <signing key>');
-    console.log('        add to cache:   (--cache)');
     console.log('        output file:    (--output [-o] <file | [stdout]>)');
 }
 
@@ -24,9 +23,8 @@ async function defaultCommand(args, signingKey) {
         signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
     }
     const output = args.o || args.output || 'stdout';
-    const cache = args.cache || false;
 
-    return withOutput(await authorizeCertificateToken(filepath, signingKey, { cache }), output);
+    return withOutput(await authorizeCertificateToken(filepath, signingKey), output);
 }
 
 module.exports = {

@@ -1,18 +1,17 @@
 const _ = require('lodash');
-const {
-    addKeyItem, removeKeyItem, getItems, getKeyItem,
-} = require('./storage');
 const { inspectCertificate, validateCertificate } = require('./certificates');
+const { addCachedCertificate, removeCachedCertificate } = require('./cachedCertificates');
 const { extractPath } = require('./utils');
-const { CA_KEY, CERT_KEY } = require('./constants');
+const { CA_KEY } = require('./constants');
 
 /**
  * Adds a trusted CA for the current user.
+ * @param {object} context The session context.
  * @param {string} filepath The CA certificate.
  * @param {boolean} isOverwrite Whether or not to overwrite an existing CA with the same name.
  * @returns {Promise<boolean>} Whether or not the CA was written successfully.
  */
-async function addCertificateAuthority(filepath, isOverwrite = true) {
+async function addCertificateAuthority(context, filepath, isOverwrite = true) {
     // validate the CA certificate before adding it.
     const ca = await inspectCertificate(filepath);
     const { platformName } = extractPath(ca.certificate.subject.name);
@@ -25,39 +24,38 @@ async function addCertificateAuthority(filepath, isOverwrite = true) {
     // check overwrite settings and whether or not there is an existing CA.
     const { forAddress } = ca.certificate;
     const caName = ca.certificate.subject.organization;
-    if (!isOverwrite && getKeyItem(CA_KEY, caName)) {
+    if (!isOverwrite && await context.storage.getKeyItem(CA_KEY, caName)) {
         return null;
     }
 
     // add the CA and also cache the certificate.
-    const key = `${ca.certificate.subject.name};${address}`;
-    await addKeyItem(CA_KEY, caName, {
+    const key = await addCachedCertificate(context, ca, isOverwrite);
+    await context.storage.addKeyItem(CA_KEY, caName, {
         platform: platformName, address, forAddress, status, key,
     });
-    await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(ca)).toString('base64'));
     return caName;
 }
 
 /**
  * Removes a trusted CA, either by name or address/for.
+ * @param {object} context The session context.
  * @param {string} name (optional) The name of the CA to remove.
- * @param {string} address (optional) The address of the CA to remove.
- * @param {string} forAddress (optional) The for address of the CA to remove.
  * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
  */
-async function removeCertificateAuthority(name) {
-    const item = getKeyItem(CA_KEY, name);
-    await removeKeyItem(CA_KEY, name);
-    await removeKeyItem(CERT_KEY, item.key);
+async function removeCertificateAuthority(context, name) {
+    const item = await context.storage.getKeyItem(CA_KEY, name);
+    await context.storage.removeKeyItem(CA_KEY, name);
+    await removeCachedCertificate(item.key);
     return true;
 }
 
 /**
  * Retrieves a list of all trusted CAs.
+ * @param {object} context The session context.
  * @returns {Promise<Array>}
  */
-async function getCertificateAuthorities() {
-    const items = await getItems(CA_KEY);
+async function getCertificateAuthorities(context) {
+    const items = await context.storage.getItems(CA_KEY);
     return _.keys(items).map((i) => ({ name: i, ...items[i] }));
 }
 

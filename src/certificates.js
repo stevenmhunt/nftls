@@ -7,9 +7,8 @@ const { extractImageHash, extractImageCode, extractImageSignature } = require('.
 const {
     generateSerialNumber, shortenPath, extractPath, keccak256, parseX509Fields,
 } = require('./utils');
-const { addKeyItem } = require('./storage');
 const {
-    SEPARATOR, CERT_KEY, csrTypeMapping, certTypeMapping,
+    SEPARATOR, csrTypeMapping, certTypeMapping,
 } = require('./constants');
 const { runCertificateRequestValidation, runCertificateValidation } = require('./validators');
 
@@ -185,12 +184,21 @@ async function inspectCertificate(filepath, includeData = false) {
     // handle different certificate formats.
     let result = null;
     if (certData.format === 'gzip') {
+        // gzip formatted certificate.
         const certBytes = Buffer.from(certData.certificate, 'base64');
         result = {
             data: certBytes,
             certificate: JSON.parse((await ungzip(certBytes)).toString('utf8')),
             signature: certData.signature,
         };
+    } else if (certData.certificate
+        && certData.certificate.type
+        && _.values(certTypeMapping).indexOf(certData.certificate.type) >= 0) {
+        // the certificate has already been inspected.
+        if (!includeData) {
+            delete certData.data;
+        }
+        return certData;
     } else {
         throw new Error(`Unknown certificate format '${certData.format}'.`);
     }
@@ -282,12 +290,6 @@ async function installCertificate(cert, image, options) {
     const { error } = await validateCertificate(data);
     if (error) {
         throw new Error(`Failed to install ${data.certificate.subject.name}: ${error}`);
-    }
-
-    // write the certificate to the cache.
-    if (options.cache === true && data.certificate.type !== certTypeMapping.token) {
-        const key = `${data.certificate.subject.name};${data.signatureAddress}`;
-        await addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     }
     return data.certificate.subject.name;
 }

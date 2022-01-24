@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const { validateCertificateChain } = require('../../certificateChains');
-const { displayStatus } = require('../utils');
+const { displayStatus, getSessionContext } = require('../utils');
 
 function getHelpText() {
     return 'Verifies the authenticity of a certificate chain.';
@@ -15,17 +15,7 @@ async function helpCommand() {
 
 async function defaultCommand(args) {
     const filepath = args.target;
-    const context = {
-        eth: {
-            locateCertificate(name, address) {
-                return new Promise((resolve) => {
-                    console.log(`Searching blockchain for certificate '${name}' @ ${address}...`);
-                    setTimeout(resolve, 1000);
-                    // TODO: actually implement this...
-                });
-            },
-        },
-    };
+    const context = await getSessionContext();
     const result = await validateCertificateChain(context, filepath);
     displayStatus(result);
     if (result.error) {

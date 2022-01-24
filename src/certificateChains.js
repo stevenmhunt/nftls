@@ -1,39 +1,49 @@
+const _ = require('lodash');
 const platforms = require('./platforms');
+const connectors = require('./connectors');
 const { inspectCertificate, validateCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
 const { calculateChainPaths, extractPath } = require('./utils');
-const { getItems } = require('./storage');
-const { CERT_KEY, ROOT_CERT_PATH } = require('./constants');
+const { inMemory } = require('./storage');
+const { ROOT_CERT_PATH } = require('./constants');
+const { getCachedCertificate } = require('./cachedCertificates');
 
 /**
  * @private
  * Follows a predicted certificate chain path in order to locate and validate certificates.
- * @param {object} context The blockchain connector context.
- * @param {object} inputs The cache data and list of path names to follow.
+ * @param {object} context The session context.
+ * @param {object} paths The path names to follow.
  * @param {string} name The next path name to find.
  * @param {string} addr The next address to find.
  * @param {string} forAddr The next for address to find.
  * @param {string} target The target address we're trying to reach.
  * @returns {Array} A list of all acquired certificates.
  */
-async function resolveCertificateChain(context, { cache, paths }, name, addr, forAddr, target) {
-    const { platformName } = extractPath(name);
+async function resolveCertificateChain(context, paths, name, addr, forAddr, target) {
+    const { pathName, platformName } = extractPath(name);
     if (paths.length === 0 || (addr === target && paths[0] !== ROOT_CERT_PATH)) {
         // if we ran out of paths to validate, then we successfully walked across the chain.
         return [];
     }
+    if (forAddr) {
+        await context.platforms[platformName].setTokenContract(forAddr);
+    }
 
     // acquire certificate.
-    const cert = cache[`${name};${addr}`]
-        || await context[platformName].locateCertificate(name, forAddr || addr);
+    let data = await getCachedCertificate(context, name, addr);
+    if (!data) {
+        try {
+            const cert = await context.platforms[platformName].downloadCertificate(pathName);
+            data = await inspectCertificate(cert);
+        } catch (err) { console.warn(err); }
+    }
 
     // if we don't find a certificate that matches our criteria, then the chain is broken.
-    if (!cert) {
+    if (!data) {
         return [null];
     }
 
     // analyze certificate.
-    const data = JSON.parse(Buffer.from(cert, 'base64').toString('utf8'));
     const nextAddress = data.certificate.requestAddress;
     const nextfor = data.certificate.forAddress;
     const { status, error } = await validateCertificate(data, addr);
@@ -52,7 +62,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
     return [data,
         ...await resolveCertificateChain(
             context,
-            { cache, paths: paths.slice(1) },
+            paths.slice(1),
             `${paths[0]}@${platformName}`,
             nextAddress,
             nextfor,
@@ -65,7 +75,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
 /**
  * Inspects certificate chain information for a given certificate.
  * Note: requires an Internet connection.
- * @param {object} context The blockchain connector context.
+ * @param {object} context The session context.
  * @param {*} certData The certificate to inspect chain data from.
  * @returns {Promise<object>} Any located certificates, as well as whether the chain status.
  */
@@ -82,16 +92,15 @@ async function inspectCertificateChain(context, certData) {
         certPath,
         ...calculateChainPaths(certPath),
     ].reverse().slice(1);
-    const CAs = (await getCertificateAuthorities())
+    const CAs = (await getCertificateAuthorities(context))
         .filter((i) => i.platform === certPlatform
             || platforms[certPlatform].getCompatiblePlatforms().indexOf(i.platform) >= 0);
-    const cache = await getItems(CERT_KEY);
     // TODO: reseach whether this process could be performed in parallel safely.
     for (let i = 0; i < CAs.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop
         const chain = await resolveCertificateChain(
             context,
-            { cache, paths },
+            paths,
             `@${certPlatform}`,
             CAs[i].address,
             CAs[i].forAddress,
@@ -109,7 +118,7 @@ async function inspectCertificateChain(context, certData) {
 
 /**
  * Verifies whether a certificate and its chain of certificates is valid.
- * @param {object} context The blockchain connector context.
+ * @param {object} context The session context.
  * @param {*} certData The certificate to validate chain data from.
  * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
@@ -121,7 +130,19 @@ async function validateCertificateChain(context, certData) {
     return { status: 'Invalid', error: status };
 }
 
+async function acquireSessionContext(platformOptions, storageOptions = null) {
+    const platformConnectors = {};
+    await Promise.all(_.keys(platformOptions).map(async (platform) => {
+        platformConnectors[platform] = await connectors[platform](platformOptions[platform]);
+    }));
+    return {
+        platforms: platformConnectors,
+        storage: storageOptions || await inMemory(),
+    };
+}
+
 module.exports = {
     inspectCertificateChain,
     validateCertificateChain,
+    acquireSessionContext,
 };

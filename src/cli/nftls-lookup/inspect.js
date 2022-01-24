@@ -4,7 +4,7 @@ const { inspectCertificateChain } = require('../../certificateChains');
 const { certTypeMapping } = require('../../constants');
 const { shortenPath, extractPath } = require('../../utils');
 const { displayCertificate } = require('../text');
-const { displayStatus, withProgress } = require('../utils');
+const { displayStatus, withProgress, getSessionContext } = require('../utils');
 
 function getHelpText() {
     return 'Inspects the contents of a certificate chain.';
@@ -20,19 +20,10 @@ async function helpCommand() {
 
 async function defaultCommand(args) {
     const format = args.f || args.format || 'tree';
-    const context = {
-        eth: {
-            locateCertificate() {
-                return new Promise((resolve) => {
-                    setTimeout(resolve, 3000);
-                    // TODO: actually implement this...
-                });
-            },
-        },
-    };
+    const context = await getSessionContext();
     const { chain, status } = await withProgress(
         () => inspectCertificateChain(context, args.target),
-        'Scanning the blockhain (Powered by etherscan.io)',
+        'Scanning the blockhain...',
     );
     if (format === 'tree') {
         console.log('┌ NFTLS Certificate Chain:');

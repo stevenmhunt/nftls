@@ -36,7 +36,7 @@ const { CERT_KEY, ROOT_CERT_PATH } = require('./constants');
 /**
  * @private
  * Follows a predicted certificate chain path in order to locate and validate certificates.
- * @param {object} context The blockchain connector context.
+ * @param {object} context The session context.
  * @param {object} inputs The cache data and list of path names to follow.
  * @param {string} name The next path name to find.
  * @param {string} addr The next address to find.
@@ -93,7 +93,7 @@ async function resolveCertificateChain(context, { cache, paths }, name, addr, fo
 /**
  * Inspects certificate chain information for a given certificate.
  * Note: requires an Internet connection.
- * @param {object} context The blockchain connector context.
+ * @param {object} context The session context.
  * @param {*} certData The certificate to inspect chain data from.
  * @returns {Promise&lt;object>} Any located certificates, as well as whether the chain status.
  */
@@ -137,7 +137,7 @@ async function inspectCertificateChain(context, certData) {
 
 /**
  * Verifies whether a certificate and its chain of certificates is valid.
- * @param {object} context The blockchain connector context.
+ * @param {object} context The session context.
  * @param {*} certData The certificate to validate chain data from.
  * @returns {Promise&lt;string>} Returns "Verified" if verified, otherwise returns an error message.
  */

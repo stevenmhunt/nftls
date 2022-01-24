@@ -7,6 +7,12 @@ const {
 } = require('./src/certificates');
 
 const {
+    addCachedCertificate,
+    removeCachedCertificate,
+    getCachedCertificate,
+} = require('./src/cachedCertificates');
+
+const {
     addCertificateAuthority,
     removeCertificateAuthority,
     getCertificateAuthorities,
@@ -15,6 +21,7 @@ const {
 const {
     inspectCertificateChain,
     validateCertificateChain,
+    acquireSessionContext,
 } = require('./src/certificateChains');
 
 const {
@@ -34,11 +41,15 @@ module.exports = {
     installCertificate,
     inspectCertificate,
     validateCertificate,
+    addCachedCertificate,
+    removeCachedCertificate,
+    getCachedCertificate,
     addCertificateAuthority,
     removeCertificateAuthority,
     getCertificateAuthorities,
     inspectCertificateChain,
     validateCertificateChain,
+    acquireSessionContext,
     renderCertificateToken,
     authorizeCertificateToken,
     utils,

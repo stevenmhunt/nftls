@@ -15,7 +15,6 @@ async function helpCommand() {
     console.log('\nUsage:');
     console.log('     nftls install <certificate file>');
     console.log('        target image:  --image <file>');
-    console.log('        add to cache: (--cache)');
     console.log('        output file:  (--output [-o] <file>)');
 }
 
@@ -23,7 +22,6 @@ async function defaultCommand(args) {
     const cert = await fs.readJSON(args.target);
     const { image } = args;
     const output = args.o || args.output || image;
-    const cache = args.cache || false;
 
     // check required parameters.
     if (!image) {
@@ -31,7 +29,7 @@ async function defaultCommand(args) {
     }
 
     const { pathName, platformName } = extractPath(await installCertificate(cert, image, {
-        output, cache,
+        output,
     }));
     displayStatus(`Certificate for ${clc.magenta(platformName)} ${clc.yellow(pathName)} is installed and verified.`, true);
 }

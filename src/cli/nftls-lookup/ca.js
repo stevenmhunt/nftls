@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const { addCertificateAuthority, getCertificateAuthorities, removeCertificateAuthority } = require('../../certificateAuthorities');
-const { readLine, displayStatus } = require('../utils');
+const { readLine, displayStatus, getSessionContext } = require('../utils');
 
 function getHelpText() {
     return 'Manages the Certificate Authority references used for lookups.';
@@ -22,12 +22,13 @@ async function defaultCommand(args) {
 }
 
 async function addRootCli(args, filepath) {
+    const context = await getSessionContext();
     const isForced = args.f === true || args.force === true;
-    let result = await addCertificateAuthority(filepath, isForced);
+    let result = await addCertificateAuthority(context, filepath, isForced);
     if (!result && !isForced) {
         const prompt = await readLine('Warning: a CA with this name already exists. Overwrite? (y/n) ');
         if (prompt.toLowerCase() === 'y') {
-            result = await addCertificateAuthority(filepath, true);
+            result = await addCertificateAuthority(context, filepath, true);
         } else {
             process.exit(1);
         }
@@ -39,14 +40,16 @@ async function addRootCli(args, filepath) {
 }
 
 async function removeRootCli(args) {
+    const context = await getSessionContext();
     const name = args.n || args.name;
-    await removeCertificateAuthority(name);
+    await removeCertificateAuthority(context, name);
     displayStatus(`Successfully removed certificate authority '${name}'.`, true);
 }
 
 async function listRootCli(args) {
+    const context = await getSessionContext();
     const format = args.f || args.format || 'text';
-    const data = await getCertificateAuthorities();
+    const data = await getCertificateAuthorities(context);
     if (format === 'text') {
         console.log('NFTLS Certificate Authorities:');
         data.forEach((ca) => {
