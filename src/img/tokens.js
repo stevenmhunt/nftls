@@ -4,7 +4,7 @@ const Jimp = require('jimp');
 
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const { fillWithColor } = require('./utils');
-const { sha256, getTempFilePath } = require('../utils');
+const { keccak256, getTempFilePath } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 
 const TOKEN_WIDTH = 512;
@@ -86,7 +86,7 @@ async function extractImageHash(filepath, useTempFile = true) {
             await fs.unlink(tmpfile);
         }
     }
-    return sha256(image);
+    return keccak256(image);
 }
 
 async function extractImageSignature(filepath) {

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const os = require('os');
 const path = require('path');
+const _ = require('lodash');
 const keccak256Internal = require('keccak256');
 
 const CA_PATH = '';
@@ -137,8 +138,30 @@ function keccak256(val, type) {
     return `0x${result.toString('hex')}`;
 }
 
+function toUInt32(value) {
+    return value.replace('0x', '').padStart(32 / (8 / 2), '0');
+}
+
+function calculatePath(pathName, version = 0) {
+    const data = keccak256(pathName);
+    if (!version || version <= 0) {
+        return data;
+    }
+    return keccak256(Buffer.concat([
+        data,
+        toUInt32(version.toString(16)),
+    ].map((i) => Buffer.from(i, 'hex'))));
+}
+
 function getTempFilePath() {
     return path.join(os.tmpdir(), path.basename(sha256(generateSerialNumber())));
+}
+
+function getCertHash(data, sig) {
+    return keccak256(Buffer.concat([
+        _.isBuffer(data) ? data : Buffer.from(data, 'base64'),
+        Buffer.from(sig.replace('0x', ''), 'hex'),
+    ]));
 }
 
 module.exports = {
@@ -151,4 +174,7 @@ module.exports = {
     sha256,
     keccak256,
     getTempFilePath,
+    getCertHash,
+    toUInt32,
+    calculatePath,
 };

@@ -4,7 +4,7 @@ const path = require('path');
 const { expect } = require('chai');
 const fs = require('fs-extra');
 const { encodeImageData, decodeImageData } = require('../src/img/steganography');
-const { getTempFilePath, sha256 } = require('../src/utils');
+const { getTempFilePath, keccak256 } = require('../src/utils');
 
 const tinyImage = path.join(__dirname, './data/images/tiny.png');
 const artImage = path.join(__dirname, './data/images/art.png');
@@ -38,7 +38,7 @@ describe('steganography', () => {
         expect(result).to.equal(data);
     });
 
-    it('should be able to encode null data to encoded images with same 512x512 base image and compare SHA-256 hashes', async () => {
+    it('should be able to encode null data to encoded images with same 512x512 base image and compare hashes', async () => {
         // arrange
         const tempFile1 = getTempFilePath();
         const tempFile2 = getTempFilePath();
@@ -50,8 +50,8 @@ describe('steganography', () => {
         await encodeImageData(tempFile1, null);
         await encodeImageData(artImage, data2, tempFile2);
         await encodeImageData(tempFile2, null);
-        const hash1 = sha256(await fs.readFile(tempFile1));
-        const hash2 = sha256(await fs.readFile(tempFile2));
+        const hash1 = keccak256(await fs.readFile(tempFile1));
+        const hash2 = keccak256(await fs.readFile(tempFile2));
         await Promise.all([fs.unlink(tempFile1), fs.unlink(tempFile2)]);
 
         // assert

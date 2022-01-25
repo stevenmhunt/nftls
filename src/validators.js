@@ -141,7 +141,7 @@ function runCertificateValidation(certificate, data = null, addr = null) {
     const { addressesAreEqual } = platforms[platformName];
 
     if (data.imageHash && data.imageHash !== certificate.imageHash) {
-        throw new Error('The SHA-256 hash in the certificate does not match actual hash of the image.');
+        throw new Error('The hash in the certificate does not match actual hash of the image.');
     }
 
     if (certificate.requestSignatureAddress

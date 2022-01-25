@@ -5,7 +5,7 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, extractPath, keccak256, parseX509Fields,
+    generateSerialNumber, shortenPath, extractPath, calculatePath, parseX509Fields, getCertHash,
 } = require('./utils');
 const {
     SEPARATOR, csrTypeMapping, certTypeMapping,
@@ -13,6 +13,22 @@ const {
 const { runCertificateRequestValidation, runCertificateValidation } = require('./validators');
 
 const NO_IMAGE_HASH = 'N/A';
+
+async function getCertificateHash(filepath) {
+    let data;
+    if (_.isString(filepath)) {
+        data = await fs.readJSON(filepath);
+    } else {
+        data = filepath;
+    }
+    if (data.data) {
+        return getCertHash(data.data, data.signature);
+    }
+    if (data.certificate) {
+        return getCertHash(data.certificate, data.signature);
+    }
+    return null;
+}
 
 /**
  * Generates a certificate signing request (CSR).
@@ -132,7 +148,7 @@ async function issueCertificate(request, {
         } else if (isTokenRoot) {
             id = `${token}#0`;
         } else {
-            id = `${token}#${keccak256(pathName)}`;
+            id = `${token}#${calculatePath(pathName, request.version)}`;
         }
     }
 
@@ -295,6 +311,7 @@ async function installCertificate(cert, image, options) {
 }
 
 module.exports = {
+    getCertificateHash,
     requestCertificate,
     issueCertificate,
     installCertificate,

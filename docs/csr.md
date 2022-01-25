@@ -4,7 +4,7 @@
 - `type` - the type of certificate that is being requested. Example: 'NFTLS Address Request'
 - `subject` - contains the requested FQDN or FQTN as well identity information from the requestor.
 - `email` - the email address of the requestor. Registrars will generally provide issued certificates to this email address only.
-- `imageHash` - A SHA-256 hash of the image being certified by the request.
+- `imageHash` - A hash of the image being certified by the request.
 - `dateRequested` - The ISO date/time when the request was made.
 - `signature` - The hashed contents of the request, signed by the requestor's private key.
 - `requestAddress` - The requestor's address.

@@ -1,7 +1,7 @@
 const assert = require('assert');
 const ethersLocal = require('ethers');
 const axios = require('axios').default;
-const { keccak256 } = require('../utils');
+const { getCertHash, calculatePath } = require('../utils');
 
 module.exports = async function ethConnector(options = {}) {
     const ethers = options.ethers || ethersLocal;
@@ -24,14 +24,14 @@ module.exports = async function ethConnector(options = {}) {
     }
 
     async function downloadCertificate(pathName) {
-        const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? keccak256(pathName) : 0);
+        const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? calculatePath(pathName) : 0);
         const { certificate, isActive } = await current.getCertificate(tokenId);
         const uri = await current.tokenURI(tokenId);
         const { data } = await axios.get(uri);
 
         // we don't trust the downloaded certificate unless it matches the hash from blockchain.
         assert.ok(isActive, 'The requested certificate was revoked and not re-minted.');
-        assert.equal(keccak256(Buffer.from(data.certificate, 'base64')), certificate, 'Inconsistent certificate hashes.');
+        assert.equal(getCertHash(data.certificate, data.signature), certificate, 'Inconsistent certificate hashes.');
         return data;
     }
 

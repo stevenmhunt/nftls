@@ -1,10 +1,10 @@
 const { renderDomainTokenImage } = require('./img/tokens');
 const platforms = require('./platforms');
 const {
-    generateCode, shortenPath, extractPath, keccak256,
+    generateCode, shortenPath, extractPath, calculatePath,
 } = require('./utils');
 const { SEPARATOR } = require('./constants');
-const { inspectCertificate, validateCertificate } = require('./certificates');
+const { inspectCertificate, validateCertificate, getCertificateHash } = require('./certificates');
 
 /**
  * Renders a new certificate token image for deployment as an NFT.
@@ -36,9 +36,9 @@ async function authorizeCertificateToken(certData, signingKey) {
     const { pathName, platformName } = extractPath(data.certificate.subject.name);
     const platform = platforms[platformName];
     const recipient = data.certificate.requestAddress;
-    const path = keccak256(pathName);
+    const path = calculatePath(pathName);
     const { version } = data.certificate;
-    const hash = keccak256(data.data);
+    const hash = await getCertificateHash(data);
     const signature = platform.signAuthorization('mint', [
         recipient,
         path,

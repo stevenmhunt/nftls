@@ -33,7 +33,7 @@ function displayCertificate({
     }
     console.log(`        Date Issued: ${new Date(certificate.dateIssued * 1000).toISOString()}`);
     if (certificate.imageHash) {
-        console.log('    SHA-256:');
+        console.log('    Image Hash::');
         console.log(`        ${certificate.imageHash}`);
     }
     console.log('    Requestor Signature:');
@@ -50,7 +50,7 @@ function displayCertificate({
             if (code) {
                 console.log(`        Code: ${code}`);
             }
-            console.log(`        SHA-256: ${imageHash}`);
+            console.log(`        Hash: ${imageHash}`);
             if (signatureMark) {
                 console.log('        Signature:');
                 console.log(`            ${signatureMark}`);

@@ -1,4 +1,5 @@
 const {
+    getCertificateHash,
     requestCertificate,
     issueCertificate,
     installCertificate,
@@ -36,6 +37,7 @@ const platforms = require('./src/platforms');
  * NFTLS functions
  */
 module.exports = {
+    getCertificateHash,
     requestCertificate,
     issueCertificate,
     installCertificate,

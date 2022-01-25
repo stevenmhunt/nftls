@@ -1,12 +1,16 @@
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
 const {
-    requestCertificate, issueCertificate, inspectCertificate, validateCertificate,
+    getCertificateHash,
+    requestCertificate,
+    issueCertificate,
+    inspectCertificate,
+    validateCertificate,
 } = require('../src/certificates');
 const {
     authorizeCertificateToken,
 } = require('../src/certificateTokens');
-const { parseX509Fields, keccak256 } = require('../src/utils');
+const { parseX509Fields, calculatePath } = require('../src/utils');
 const { generateWallet } = require('../src/platforms/eth');
 
 const NFTLS_SUBJECT = 'O=nftls.io, OU=QA Department, C=US, S=New York, L=Rochester';
@@ -47,11 +51,10 @@ describe('Scenarios', () => {
         const authorization = await authorizeCertificateToken(rootCertificate, caKey);
 
         // assert
-        const rootCertBytes = Buffer.from(rootCertificate.certificate, 'base64');
         expect((await validateCertificate(caCertificate)).error).is.undefined;
         expect((await validateCertificate(rootCertificate)).error).is.undefined;
         expect(authorization.recipient).is.equal(rootAddress);
-        expect(authorization.path).is.equal(keccak256(rootPath));
-        expect(authorization.hash).is.equal(keccak256(rootCertBytes));
+        expect(authorization.path).is.equal(calculatePath(rootPath));
+        expect(authorization.hash).is.equal(await getCertificateHash(rootCertificate));
     });
 });
