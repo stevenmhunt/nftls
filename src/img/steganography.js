@@ -1,8 +1,8 @@
 const fs = require('fs-extra');
 const pngStash = require('png-stash');
-const { sha256 } = require('../utils');
+const { keccak256 } = require('../utils');
 
-const SHA256_HEX_LENGTH = 64;
+const HASH_LENGTH = 64;
 const STRLEN_LENGTH = 2;
 const STASH_MAXLENGTH = 2 ** 16 - 1;
 const MAX_MESSAGE_SIZE = 65000;
@@ -30,7 +30,7 @@ async function encodeImageData(filepath, message, output = null) {
                 // if there is no message, encode using the default "blank" message.
                 // this is how we encode the image's hash into itself without breaking anything.
                 if (message === null) {
-                    const boundary = stash.length - offset - STRLEN_LENGTH - SHA256_HEX_LENGTH;
+                    const boundary = stash.length - offset - STRLEN_LENGTH - HASH_LENGTH;
                     const size = boundary < MAX_MESSAGE_SIZE
                         ? boundary
                         : MAX_MESSAGE_SIZE;
@@ -38,13 +38,13 @@ async function encodeImageData(filepath, message, output = null) {
                     message = NULL_CHAR.repeat(size);
                 }
 
-                // write the byte length as well as a SHA-256 hash to prevent bad reads later.
+                // write the byte length as well as a hash to prevent bad reads later.
                 const buf = Buffer.from(message);
                 if (buf.length > MAX_MESSAGE_SIZE) {
                     throw new Error(`Message size cannot exceed ${MAX_MESSAGE_SIZE} bytes.`);
                 }
-                stash.write(buf, offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, buf.length);
-                stash.write(sha256(buf), offset + STRLEN_LENGTH, SHA256_HEX_LENGTH);
+                stash.write(buf, offset + STRLEN_LENGTH + HASH_LENGTH, buf.length);
+                stash.write(keccak256(buf).replace('0x', ''), offset + STRLEN_LENGTH, HASH_LENGTH);
                 // eslint-disable-next-line no-bitwise
                 const b0 = (message.length >> 8) & 0xff;
                 // eslint-disable-next-line no-bitwise
@@ -81,10 +81,10 @@ async function decodeImageData(filepath) {
                     return resolve(null);
                 }
 
-                // check the buffer sizes and SHA-256 hash.
-                const hash = stash.read(offset + STRLEN_LENGTH, SHA256_HEX_LENGTH).toString('utf8');
-                const result = stash.read(offset + STRLEN_LENGTH + SHA256_HEX_LENGTH, msgLen);
-                if (hash !== sha256(result)) {
+                // check the buffer sizes and hash.
+                const hash = stash.read(offset + STRLEN_LENGTH, HASH_LENGTH).toString('utf8');
+                const result = stash.read(offset + STRLEN_LENGTH + HASH_LENGTH, msgLen);
+                if (hash !== keccak256(result).replace('0x', '')) {
                     return resolve(null);
                 }
 

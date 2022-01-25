@@ -2,6 +2,7 @@
 const silence = console.log;
 console.info = function info() {};
 
+const _ = require('lodash');
 const EthCrypto = require('eth-crypto');
 const { ethers } = require('ethers');
 const { keccak256, toUInt32 } = require('../utils');
@@ -42,6 +43,11 @@ function getPublicKey(privateKey) {
  * @returns {string}
  */
 function getAddress(privateKey, nonce = undefined) {
+    // check if the key is an ethers wallet.
+    if (privateKey.address) {
+        return privateKey.address;
+    }
+
     const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
     const result = EthCrypto.publicKey.toAddress(publicKey);
     // eslint-disable-next-line no-restricted-globals
@@ -57,8 +63,14 @@ function getAddress(privateKey, nonce = undefined) {
  * @param {string} msg The message.
  * @returns {string} A digital signature.
  */
-function signMessage(key, msg) {
-    return EthCrypto.sign(key, keccak256(msg));
+async function signMessage(key, msg) {
+    // check if the key is an ethers wallet.
+    if (key.signMessage && _.isFunction(key.signMessage)) {
+        const result = await key.signMessage(msg);
+        return result;
+    }
+    const data = EthCrypto.sign(key, ethers.utils.hashMessage(msg));
+    return data;
 }
 
 /**
@@ -68,7 +80,7 @@ function signMessage(key, msg) {
  * @param {string} key The private key.
  * @returns {string} A digital signature.
  */
-function signAuthorization(action, fields, key) {
+async function signAuthorization(action, fields, key) {
     let data;
     if (action === 'mint') {
         const [recipient, path, version, hash] = fields;
@@ -93,7 +105,7 @@ function signAuthorization(action, fields, key) {
  * @returns {string} The recovered Ethereum address.
  */
 function recoverAddress(sig, msg, nonce = undefined) {
-    const result = EthCrypto.recover(sig, keccak256(msg));
+    const result = ethers.utils.recoverAddress(ethers.utils.hashMessage(msg), sig);
     // eslint-disable-next-line no-restricted-globals
     if (!isNaN(nonce)) {
         return getContractAddress(result, nonce);

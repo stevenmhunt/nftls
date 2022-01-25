@@ -45,6 +45,7 @@ function runCertificateRequestValidation(request, isSigned = true) {
     const currentType = requestType || _.invert(csrTypeMapping)[request.type];
     if (currentType === 'ca' && pathName && pathName.length > 0) { throw new Error('CA certificates cannot have a non-zero length path.'); }
     if (currentType === 'ca' && version > 0) { throw new Error('CA certificates cannot be re-issued.'); }
+    if (currentType === 'ca' && contractNonce === undefined) { throw new Error('CA certificates must specify a contract nonce to establish a token.'); }
     if (currentType !== 'ca') {
         const schema = platformSchemas[platformName][currentType];
         const { error } = schema().validate(pathName);

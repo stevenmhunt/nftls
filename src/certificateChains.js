@@ -19,13 +19,15 @@ const { getCachedCertificate } = require('./cachedCertificates');
  * @param {string} target The target address we're trying to reach.
  * @returns {Array} A list of all acquired certificates.
  */
-async function resolveCertificateChain(context, paths, name, addr, forAddr, target) {
+async function resolveCertificateChain(context, paths, name, addr, forAddr, isContract, target) {
     const { pathName, platformName } = extractPath(name);
     if (paths.length === 0 || (addr === target && paths[0] !== ROOT_CERT_PATH)) {
         // if we ran out of paths to validate, then we successfully walked across the chain.
         return [];
     }
-    if (forAddr) {
+
+    // a contract has been encounted which means we've crossed a token boundary.
+    if (forAddr && isContract) {
         await context.platforms[platformName].setTokenContract(forAddr);
     }
 
@@ -49,6 +51,7 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, targ
     // analyze certificate.
     const nextAddress = data.certificate.requestAddress;
     const nextfor = data.certificate.forAddress;
+    const nextIsContract = data.certificate.contractNonce !== undefined;
     const { status, error } = await validateCertificate(data, addr);
     data.status = status;
 
@@ -69,6 +72,7 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, targ
             `${paths[0]}@${platformName}`,
             nextAddress,
             nextfor,
+            nextIsContract,
             target,
         ),
     ];
@@ -107,6 +111,7 @@ async function inspectCertificateChain(context, certData) {
             `@${certPlatform}`,
             CAs[i].address,
             CAs[i].forAddress,
+            true,
             targetAddress,
         );
         if (chain.length === 0 || chain[chain.length - 1]) {

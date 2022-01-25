@@ -44,7 +44,7 @@ const invalidVersions = [-5, 5.5, 'test'];
 
 describe('requestCertificate', () => {
     // valid CSR types:
-    validRequestTypes.forEach((requestType) => {
+    validRequestTypes.filter((i) => i !== 'ca').forEach((requestType) => {
         it(`should be able to create a CSR for a '${requestType}' certificate`, async () => {
             // arrange
             const subject = `CN=${validNames[requestType]}, ${validSubject}`;
@@ -103,7 +103,7 @@ describe('requestCertificate', () => {
     });
 
     // valid CSRs with for address:
-    validRequestTypes.forEach((requestType) => {
+    validRequestTypes.filter((i) => i !== 'ca').forEach((requestType) => {
         it(`should be able to create a CSR for a '${requestType}' certificate with a for address`, async () => {
             // arrange
             const subject = `CN=${validNames[requestType]}, ${validSubject}`;
@@ -123,7 +123,7 @@ describe('requestCertificate', () => {
     });
 
     // valid CSRs with encrypt for:
-    validRequestTypes.forEach((requestType) => {
+    validRequestTypes.filter((i) => i !== 'ca').forEach((requestType) => {
         it(`should be able to create a CSR for a '${requestType}' certificate with an encrypt for public key`, async () => {
             // arrange
             const subject = `CN=${validNames[requestType]}, ${validSubject}`;
@@ -144,15 +144,14 @@ describe('requestCertificate', () => {
     });
 
     // valid version number (re-issue):
-    validRequestTypes.forEach((requestType) => {
+    validRequestTypes.filter((i) => i !== 'ca').forEach((requestType) => {
         it(`should be able to create a CSR for a new version of a '${requestType}' certificate`, async () => {
             // arrange
             const subject = `CN=${validNames[requestType]}, ${validSubject}`;
-            const version = requestType === 'ca' ? undefined : validVersion;
 
             // act
             const result = await requestCertificate({
-                requestType, subject, email: validEmail, version,
+                requestType, subject, email: validEmail, version: validVersion,
             }, { signingKey: validKey1 });
 
             // assert
@@ -160,7 +159,7 @@ describe('requestCertificate', () => {
             expect(result.type).to.equal(csrTypeMapping[requestType], 'Unexpected CSR type.');
             expect(result.requestAddress).to.equal(validAddress1, 'Expected request address to match corresponding private key.');
             expect(result.subject.name).to.equal(validNames[requestType].toLowerCase());
-            expect(result.version).to.equal(version);
+            expect(result.version).to.equal(validVersion);
         });
     });
 

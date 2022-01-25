@@ -20,7 +20,10 @@ const identity = (platform) => Joi.object({
     city: Joi.string().required(),
 });
 
+const hash = () => Joi.string().regex(/^0x[a-f0-9]{64}$/);
+
 module.exports = {
     identity,
     platforms,
+    hash,
 };

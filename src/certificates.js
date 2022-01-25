@@ -84,11 +84,11 @@ async function requestCertificate({
 
     // digitally sign the request.
     const msg = JSON.stringify(payload);
-    const signature = platform.signMessage(signingKey, `${code ? code + SEPARATOR : ''}${msg}`);
+    const signature = await platform.signMessage(signingKey, `${code ? code + SEPARATOR : ''}${msg}`);
     const reqMsg = `${msg}${SEPARATOR}${requestAddress}`;
-    const requestSignature = platform.signMessage(signingKey, reqMsg);
+    const requestSignature = await platform.signMessage(signingKey, reqMsg);
     const forSignature = forAddress
-        ? platform.signMessage(forKey || signingKey, `${reqMsg}${SEPARATOR}${forAddress}`)
+        ? await platform.signMessage(forKey || signingKey, `${reqMsg}${SEPARATOR}${forAddress}`)
         : undefined;
     const result = {
         ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,

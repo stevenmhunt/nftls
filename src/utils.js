@@ -116,16 +116,6 @@ function parseX509Fields(data) {
 
 /**
  * @private
- * Generates a SHA-256 hash for the given value.
- * @param {*} val The value.
- * @returns {string} The hash value (in hexidecimal)
- */
-function sha256(val) {
-    return crypto.createHash('sha256').update(val).digest().toString('hex');
-}
-
-/**
- * @private
  * Generates a Keccak256 hash for the given value.
  * @param {*} val The value.
  * @returns {string} The hash value (in hexidecimal)
@@ -135,7 +125,7 @@ function keccak256(val, type) {
     if (type === 'bytes') {
         return result;
     }
-    return `0x${result.toString('hex')}`;
+    return `0x${result.toString('hex').padStart('0', 256 / (8 / 2))}`;
 }
 
 function toUInt32(value) {
@@ -154,7 +144,7 @@ function calculatePath(pathName, version = 0) {
 }
 
 function getTempFilePath() {
-    return path.join(os.tmpdir(), path.basename(sha256(generateSerialNumber())));
+    return path.join(os.tmpdir(), path.basename(keccak256(generateSerialNumber()).replace('0x', '')));
 }
 
 function getCertHash(data, sig) {
@@ -171,7 +161,6 @@ module.exports = {
     generateSerialNumber,
     shortenPath,
     parseX509Fields,
-    sha256,
     keccak256,
     getTempFilePath,
     getCertHash,

@@ -21,7 +21,7 @@ function invalidCSRTestCase(title, fn, errorMessage) {
     _.keys(validRequests).forEach((requestName) => {
         it(`should not be able to issue a certificate for the certificate request '${requestName}' with invalid ${title}`, async () => {
             // arrange
-            const request = fn(_.cloneDeep(validRequests[requestName]));
+            const request = await fn(_.cloneDeep(validRequests[requestName]));
 
             // act
             try {
@@ -132,9 +132,9 @@ describe('issueCertificate', () => {
     }, 'An email address must be provided.');
 
     // invalid signature.
-    invalidCSRTestCase('signature', (request) => {
+    invalidCSRTestCase('signature', async (request) => {
         const req = request;
-        req.signature = signMessage(validKey1, 'invalid signature');
+        req.signature = await signMessage(validKey1, 'invalid signature');
         return req;
     }, 'Invalid signature.');
 
@@ -153,9 +153,9 @@ describe('issueCertificate', () => {
     }, 'Invalid signature.');
 
     // invalid signature.
-    invalidCSRTestCase('request signature', (request) => {
+    invalidCSRTestCase('request signature', async (request) => {
         const req = request;
-        req.requestSignature = signMessage(validKey1, 'invalid signature');
+        req.requestSignature = await signMessage(validKey1, 'invalid signature');
         return req;
     }, 'Inconsistent requestor address.');
 

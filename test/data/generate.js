@@ -13,8 +13,7 @@ const validNonce = 0;
 
 async function main() {
     const [
-        ca,
-        caFor,
+        caContract,
         caForContract,
         rootDomain,
         wildcardDomain,
@@ -22,8 +21,9 @@ async function main() {
         address,
         token,
     ] = await Promise.all([
-        requestCertificate({ requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
-        requestCertificate({ requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1, forKey: validKey2 }),
+        requestCertificate({
+            requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail, contractNonce: validNonce,
+        }, { signingKey: validKey1 }),
         requestCertificate({
             requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail, contractNonce: validNonce,
         }, { signingKey: validKey1, forKey: validKey2 }),
@@ -35,7 +35,7 @@ async function main() {
     ]);
 
     await fs.writeJSON('./validRequests.json', {
-        ca, caFor, caForContract, rootDomain, wildcardDomain, domain, address, token,
+        caContract, caForContract, rootDomain, wildcardDomain, domain, address, token,
     }, { spaces: 4 });
 }
 

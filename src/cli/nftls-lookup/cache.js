@@ -34,7 +34,7 @@ async function addCachedCertCli(args, filepath) {
     }
 
     if (result) {
-        displayStatus(`Successfully added certificate '${result}' to the cache.`, true);
+        displayStatus(`Successfully added certificate '${result.split(';')[0]}' to the cache.`, true);
     } else { process.exit(1); }
 }
 
