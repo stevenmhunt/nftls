@@ -22,7 +22,6 @@ const validSubject = 'O=nftls.io, OU=QA Department, C=US, S=New York, L=Rocheste
 const validEmail = 'test@nftls.io';
 const validNonce = 5;
 const validVersion = 5;
-// const validCode = 100000000;
 
 const invalidRequestTypes = ['other', undefined, 0, null, ''];
 const invalidNames = {
@@ -40,7 +39,6 @@ const invalidPlatformNames = {
 const invalidEmails = ['blah'];
 const invalidNonces = [-5, 5.5, 'test'];
 const invalidVersions = [-5, 5.5, 'test'];
-// const invalidCodes = [-999999, 999.5223];
 
 describe('requestCertificate', () => {
     // valid CSR types:

@@ -2,7 +2,7 @@ const _ = require('lodash');
 const platforms = require('./platforms');
 const { platforms: platformSchemas } = require('./schemas/common');
 const {
-    csrTypeMapping, certTypeMapping, csrTypes, SEPARATOR,
+    csrTypeMapping, certTypeMapping, csrTypes,
 } = require('./constants');
 const csrSchemaFactory = require('./schemas/csrSchema');
 const certificateSchemaFactory = require('./schemas/certificateSchema');
@@ -16,7 +16,7 @@ const { extractPath, calculateChainPaths } = require('./utils');
  */
 function runCertificateRequestValidation(request, isSigned = true) {
     const {
-        requestType, version, subject, email, code, contractNonce,
+        requestType, version, subject, email, contractNonce,
     } = request;
 
     // check arguments
@@ -30,9 +30,6 @@ function runCertificateRequestValidation(request, isSigned = true) {
     if (!email) { throw new Error('An email address must be provided.'); }
     if (version !== undefined && (!Number.isInteger(version) || version < 0)) {
         throw new Error('A version must be a non-negative integer value.');
-    }
-    if (code !== undefined && (!Number.isInteger(code) || code < 0)) {
-        throw new Error('A security code must be non-negative integer value.');
     }
     if (contractNonce !== undefined && (!Number.isInteger(contractNonce) || contractNonce < 0)) {
         throw new Error('A contract nonce must be non-negative integer value.');
@@ -77,26 +74,18 @@ function runCertificateRequestValidation(request, isSigned = true) {
         data: request.data,
         contractNonce: request.contractNonce,
     });
-    const actualSigAddr = platform.recoverAddress(request.signature, `${code ? code + SEPARATOR : ''}${msg}`);
-    const reqMsg = `${msg}${SEPARATOR}${request.requestAddress}`;
-    const actualReqAddr = platform.recoverAddress(
-        request.requestSignature,
-        reqMsg,
-    );
+    const actualSigAddr = platform.recoverAddress(request.signature, msg);
     const actualforAddr = request.forSignature
         ? platform.recoverAddress(
             request.forSignature,
-            `${reqMsg}${SEPARATOR}${request.forAddress}`,
+            msg,
             request.contractNonce,
         )
         : undefined;
     if (actualSigAddr !== request.requestAddress) {
         throw new Error('Invalid signature.');
     }
-    if (request.requestAddress !== actualReqAddr) {
-        throw new Error('Inconsistent requestor address.');
-    }
-    if (request.forAddress && request.forAddress !== actualforAddr) {
+    if (request.forAddress && request.forSignature && request.forAddress !== actualforAddr) {
         throw new Error('Inconsistent for address.');
     }
 }
@@ -127,7 +116,7 @@ function runCertificateValidation(certificate, data = null, addr = null) {
     if (!id && currentType === 'domain') { throw new Error('A token contract address must be provided for domain tokens.'); }
 
     // validate the underlying request.
-    const keysToRemove = ['id', 'token', 'isTokenRoot', 'issuer', 'issuerEmail', 'dateIssued', 'serialNumber', 'signatureAddress', 'requestSignatureAddress', 'forSignatureAddress'];
+    const keysToRemove = ['id', 'token', 'isTokenRoot', 'issuer', 'issuerEmail', 'dateIssued', 'serialNumber', 'signatureAddress', 'forSignatureAddress'];
     const request = _.pickBy(certificate, (v, k) => keysToRemove.indexOf(k) === -1);
     runCertificateRequestValidation({ ...request, type: request.type.replace('Certificate', 'Request') });
 
@@ -145,12 +134,11 @@ function runCertificateValidation(certificate, data = null, addr = null) {
         throw new Error('The hash in the certificate does not match actual hash of the image.');
     }
 
-    if (certificate.requestSignatureAddress
-        && !addressesAreEqual(
-            certificate.requestSignatureAddress,
-            certificate.requestAddress,
-        )) {
-        throw new Error('The requestor signature is inconsistent.');
+    if (!addressesAreEqual(
+        certificate.signatureAddress,
+        certificate.requestAddress,
+    )) {
+        throw new Error('The signature is inconsistent.');
     }
 
     if (certificate.forAddress
@@ -202,7 +190,7 @@ function runCertificateValidation(certificate, data = null, addr = null) {
 
     if (addr) {
         if (!addressesAreEqual(data.signatureAddress, addr)) {
-            throw new Error('Invalid embedded signature address.');
+            throw new Error('Unexpected signature address.');
         }
     }
 }

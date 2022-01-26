@@ -37,7 +37,6 @@ async function getCertificateHash(filepath) {
  * @param {string} req.image The image file where the certificate will be installed.
  * @param {string} req.subject The scope of the certificate and the identity of the requestor.
  * @param {string} req.email The email address of the requestor.
- * @param {number} req.code (optional) A security code typically used for domain tokens.
  * @param {object} keys The keys to use for the request.
  * @param {string} keys.signingKey The private key to sign the request with.
  * @param {string} keys.forKey (optional) The for key, or the same as signingKey.
@@ -45,7 +44,7 @@ async function getCertificateHash(filepath) {
  * @returns {Promise<object>} The constructed CSR.
  */
 async function requestCertificate({
-    requestType, version, image, subject, email, data, code, contractNonce,
+    requestType, version, image, subject, email, data, contractNonce,
 }, { signingKey, forKey, encryptForKey }) {
     // argument pre-processing
     if (_.isString(subject)) {
@@ -59,7 +58,7 @@ async function requestCertificate({
 
     // validate the request before proceeding.
     runCertificateRequestValidation({
-        requestType, version, image, subject, email, data, code, contractNonce,
+        requestType, version, image, subject, email, data, contractNonce,
     }, false);
 
     const type = csrTypeMapping[requestType];
@@ -69,29 +68,27 @@ async function requestCertificate({
     const platform = platforms[platformName];
 
     // build certificate request object.
-    const requestAddress = platform.getAddress(signingKey);
-    const getForAddress = () => {
+    const requestAddress = await platform.getAddress(signingKey);
+    const getForAddress = async () => {
         // eslint-disable-next-line no-restricted-globals
         if (isNaN(contractNonce)) {
             return forKey ? platform.getAddress(forKey) : undefined;
         }
         return platform.getAddress(forKey || signingKey, contractNonce);
     };
-    const forAddress = getForAddress();
+    const forAddress = await getForAddress();
     const payload = {
         type, version, subject, email, imageHash, dateRequested, data, contractNonce,
     };
 
     // digitally sign the request.
     const msg = JSON.stringify(payload);
-    const signature = await platform.signMessage(signingKey, `${code ? code + SEPARATOR : ''}${msg}`);
-    const reqMsg = `${msg}${SEPARATOR}${requestAddress}`;
-    const requestSignature = await platform.signMessage(signingKey, reqMsg);
-    const forSignature = forAddress
-        ? await platform.signMessage(forKey || signingKey, `${reqMsg}${SEPARATOR}${forAddress}`)
+    const signature = await platform.signMessage(signingKey, msg);
+    const forSignature = forAddress && forKey
+        ? await platform.signMessage(forKey, msg)
         : undefined;
     const result = {
-        ...payload, signature, requestAddress, requestSignature, forAddress, forSignature,
+        ...payload, signature, requestAddress, forAddress, forSignature,
     };
 
     // perform a final validation of the entire request.
@@ -228,42 +225,33 @@ async function inspectCertificate(filepath, includeData = false) {
     const msg = JSON.stringify({
         type: type.replace('Certificate', 'Request'), version, subject, email, imageHash, dateRequested, data, contractNonce,
     });
-    const reqMsg = `${msg}${SEPARATOR}${cert.requestAddress}`;
-    // these addresses must be kept out of the 'cert' object until after signature verification.
-    const requestSignatureAddress = platform.recoverAddress(cert.requestSignature, reqMsg);
-    const forSignatureAddress = cert.forSignature ? platform.recoverAddress(
-        cert.forSignature,
-        `${reqMsg}${SEPARATOR}${cert.forAddress}`,
-    ) : undefined;
+
+    let forSignatureAddress;
+    if (cert.forSignature) {
+        forSignatureAddress = platform.recoverAddress(cert.forSignature, msg);
+    } else if (contractNonce) {
+        forSignatureAddress = platform.getContractAddress(cert.requestAddress, contractNonce);
+    }
 
     // recover issuer signature address.
-    result.signatureAddress = await platform.recoverAddress(
-        result.signature,
-        result.data,
-    );
+    result.signatureAddress = await platform.recoverAddress(result.signature, result.data);
+
+    // recover subject signature address.
+    cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
 
     if (hash !== NO_IMAGE_HASH) {
         result.imageHash = hash;
         if (type === certTypeMapping.domain) {
             // extract additional metadata from the domain token image.
-            result.code = certData.code || await extractImageCode(filepath);
+            result.code = await extractImageCode(filepath);
             result.signatureMark = certData.signatureMark || await extractImageSignature(filepath);
-
-            // recover requestor and image addresses (they should match...).
-            cert.signatureAddress = await platform.recoverAddress(cert.signature, `${result.code ? result.code + SEPARATOR : ''}${msg}`);
             const markMsg = [
                 shortenPath(pathName), platformName, 'NFTLS.IO', result.code,
             ].filter((i) => i).join(SEPARATOR);
             result.signatureMarkAddress = platform.recoverAddress(result.signatureMark, markMsg);
-        } else {
-            // recover requestor and image addresses (they should match...).
-            cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
         }
-    } else if (!cert.imageHash) {
-        cert.signatureAddress = await platform.recoverAddress(cert.signature, msg);
     }
 
-    cert.requestSignatureAddress = requestSignatureAddress;
     cert.forSignatureAddress = forSignatureAddress;
 
     if (!includeData) {

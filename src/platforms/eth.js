@@ -42,14 +42,17 @@ function getPublicKey(privateKey) {
  * @param {number} nonce (optional) Indicates that the contract address should be calculated.
  * @returns {string}
  */
-function getAddress(privateKey, nonce = undefined) {
+async function getAddress(privateKey, nonce = undefined) {
     // check if the key is an ethers wallet.
+    let result;
     if (privateKey.address) {
-        return privateKey.address;
+        result = privateKey.address;
+    } else if (privateKey.getAddress && _.isFunction(privateKey.getAddress)) {
+        result = await privateKey.getAddress();
+    } else {
+        result = EthCrypto.publicKey.toAddress(EthCrypto.publicKeyByPrivateKey(privateKey));
     }
 
-    const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
-    const result = EthCrypto.publicKey.toAddress(publicKey);
     // eslint-disable-next-line no-restricted-globals
     if (!isNaN(nonce)) {
         return getContractAddress(result, nonce);
@@ -66,11 +69,9 @@ function getAddress(privateKey, nonce = undefined) {
 async function signMessage(key, msg) {
     // check if the key is an ethers wallet.
     if (key.signMessage && _.isFunction(key.signMessage)) {
-        const result = await key.signMessage(msg);
-        return result;
+        return key.signMessage(msg);
     }
-    const data = EthCrypto.sign(key, ethers.utils.hashMessage(msg));
-    return data;
+    return EthCrypto.sign(key, ethers.utils.hashMessage(msg));
 }
 
 /**

@@ -16,7 +16,6 @@ async function helpCommand() {
     console.log('        subject data:      --subject <x509 data | json file>');
     console.log('        email address:     --email <email address>');
     console.log('        for address:      (--for <for key>)');
-    console.log('        security code:    (--code <number>)');
     console.log('        re-issue version: (--version <number>)');
     console.log('        contract nonce:   (--contract <nonce>)');
     console.log('        encrypt for RA:   (--encrypt-for <public key>)');
@@ -35,7 +34,6 @@ function generateRequestCli(requestType) {
         const subject = await processIdentityArg(args.subject);
         const { email } = args;
         const version = args.version !== undefined ? parseInt(args.version || '0', 10) : 0;
-        const code = args.code !== undefined ? parseInt(args.code || '0', 10) : undefined;
         const contractNonce = args.contract !== undefined ? parseInt(args.contract || '0', 10) : undefined;
         const encryptForKey = args['encrypt-for'];
         let forKey = args.for;
@@ -56,7 +54,7 @@ function generateRequestCli(requestType) {
         const output = args.o || args.output || 'stdout';
 
         return withOutput(await requestCertificate({
-            requestType, version, image, subject, email, code, contractNonce,
+            requestType, version, image, subject, email, contractNonce,
         }, { signingKey, forKey, encryptForKey }), output);
     };
 }

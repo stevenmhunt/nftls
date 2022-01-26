@@ -152,13 +152,6 @@ describe('issueCertificate', () => {
         return req;
     }, 'Invalid signature.');
 
-    // invalid signature.
-    invalidCSRTestCase('request signature', async (request) => {
-        const req = request;
-        req.requestSignature = await signMessage(validKey1, 'invalid signature');
-        return req;
-    }, 'Inconsistent requestor address.');
-
     invalidParametersTestCase('issuer', (data) => {
         const d = data;
         d.issuer = undefined;

@@ -10,7 +10,8 @@
   "scripts": {
     "test": "npx mocha",
     "lint": "npx eslint .",
-    "jsdoc": "npx jsdoc ./src README.md -d ./pages"
+    "jsdoc": "npx jsdoc ./src README.md -d ./pages",
+    "browserify": "browserify --ignore fs-extra index.js --standalone nftls -o ../nftls-web/nftls.js"
   },
   "dependencies": {
     "axios": "^0.24.0",

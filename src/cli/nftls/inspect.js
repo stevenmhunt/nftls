@@ -12,13 +12,11 @@ async function helpCommand() {
     console.log('\nUsage:');
     console.log('     nftls inspect <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
-    console.log('        certificate code:  ( --code <number>)');
 }
 
 async function defaultCommand(args) {
     const format = args.f || args.format || 'text';
-    const code = parseInt(args.code || '0', 10);
-    const cert = await inspectCertificate(args.target, code);
+    const cert = await inspectCertificate(args.target);
     if (format === 'json') {
         console.log(JSON.stringify(cert, null, 4));
     }

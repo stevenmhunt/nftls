@@ -12,7 +12,6 @@ module.exports = (platform) => Joi.object({
     data: Joi.string(),
     contractNonce: Joi.number(),
     signature: platforms[platform].signature().required(),
-    requestSignature: platforms[platform].signature().required(),
     forSignature: platforms[platform].signature(),
     requestAddress: platforms[platform].address().required(),
     forAddress: platforms[platform].address(),
