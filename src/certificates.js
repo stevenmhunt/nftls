@@ -5,7 +5,7 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, extractPath, calculatePath, parseX509Fields, getCertHash,
+    generateSerial, shortenPath, extractPath, calculatePath, parseX509Fields, getCertHash, toBase64,
 } = require('./utils');
 const {
     SEPARATOR, csrTypeMapping, certTypeMapping,
@@ -82,7 +82,7 @@ async function requestCertificate({
     };
 
     // digitally sign the request.
-    const msg = JSON.stringify(payload);
+    const msg = toBase64(JSON.stringify(payload));
     const signature = await platform.signMessage(signingKey, msg);
     const forSignature = forAddress && forKey
         ? await platform.signMessage(forKey, msg)
@@ -157,7 +157,7 @@ async function issueCertificate(request, {
         issuer,
         issuerEmail: email,
         dateIssued: Math.floor(Date.now() / 1000),
-        serialNumber: generateSerialNumber(),
+        serialNumber: generateSerial(),
     };
 
     // validate the certificate data before proceeding.
@@ -222,9 +222,9 @@ async function inspectCertificate(filepath, includeData = false) {
     } = cert;
     const { pathName, platformName } = extractPath(cert.subject.name);
     const platform = platforms[platformName];
-    const msg = JSON.stringify({
+    const msg = toBase64(JSON.stringify({
         type: type.replace('Certificate', 'Request'), version, subject, email, imageHash, dateRequested, data, contractNonce,
-    });
+    }));
 
     let forSignatureAddress;
     if (cert.forSignature) {

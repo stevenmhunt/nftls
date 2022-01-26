@@ -77,7 +77,7 @@ function generateCode() {
  * Generates a 128 bit random number which is used for adding entropy to a certificate.
  * @returns {string} the serial number (in hexidecimal)
  */
-function generateSerialNumber() {
+function generateSerial() {
     return crypto.randomBytes(16).toString('hex');
 }
 
@@ -144,7 +144,7 @@ function calculatePath(pathName, version = 0) {
 }
 
 function getTempFilePath() {
-    return path.join(os.tmpdir(), path.basename(keccak256(generateSerialNumber()).replace('0x', '')));
+    return path.join(os.tmpdir(), path.basename(keccak256(generateSerial()).replace('0x', '')));
 }
 
 function getCertHash(data, sig) {
@@ -154,11 +154,15 @@ function getCertHash(data, sig) {
     ]));
 }
 
+function toBase64(str) {
+    return Buffer.from(str).toString('base64');
+}
+
 module.exports = {
     extractPath,
     calculateChainPaths,
     generateCode,
-    generateSerialNumber,
+    generateSerial,
     shortenPath,
     parseX509Fields,
     keccak256,
@@ -166,4 +170,5 @@ module.exports = {
     getCertHash,
     toUInt32,
     calculatePath,
+    toBase64,
 };

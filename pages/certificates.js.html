@@ -33,7 +33,7 @@ const platforms = require('./platforms');
 const { encodeImageData, decodeImageData } = require('./img/steganography');
 const { extractImageHash, extractImageCode, extractImageSignature } = require('./img/tokens');
 const {
-    generateSerialNumber, shortenPath, extractPath, calculatePath, parseX509Fields, getCertHash,
+    generateSerial, shortenPath, extractPath, calculatePath, parseX509Fields, getCertHash,
 } = require('./utils');
 const {
     SEPARATOR, csrTypeMapping, certTypeMapping,
@@ -185,7 +185,7 @@ async function issueCertificate(request, {
         issuer,
         issuerEmail: email,
         dateIssued: Math.floor(Date.now() / 1000),
-        serialNumber: generateSerialNumber(),
+        serialNumber: generateSerial(),
     };
 
     // validate the certificate data before proceeding.

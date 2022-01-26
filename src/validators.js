@@ -6,7 +6,7 @@ const {
 } = require('./constants');
 const csrSchemaFactory = require('./schemas/csrSchema');
 const certificateSchemaFactory = require('./schemas/certificateSchema');
-const { extractPath, calculateChainPaths } = require('./utils');
+const { extractPath, calculateChainPaths, toBase64 } = require('./utils');
 
 /**
  * @private
@@ -64,7 +64,7 @@ function runCertificateRequestValidation(request, isSigned = true) {
     }
 
     // validate request signatures
-    const msg = JSON.stringify({
+    const msg = toBase64(JSON.stringify({
         type: request.type,
         version: request.version,
         subject: request.subject,
@@ -73,7 +73,7 @@ function runCertificateRequestValidation(request, isSigned = true) {
         dateRequested: request.dateRequested,
         data: request.data,
         contractNonce: request.contractNonce,
-    });
+    }));
     const actualSigAddr = platform.recoverAddress(request.signature, msg);
     const actualforAddr = request.forSignature
         ? platform.recoverAddress(
