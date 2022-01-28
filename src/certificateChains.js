@@ -138,7 +138,7 @@ async function validateCertificateChain(context, certData) {
     return { status: 'Invalid', error: status };
 }
 
-async function acquireSessionContext(platformOptions, storageOptions = null) {
+async function createSessionContext(platformOptions, storageOptions = null) {
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {
         platformConnectors[platform] = await connectors[platform](platformOptions[platform]);
@@ -152,5 +152,5 @@ async function acquireSessionContext(platformOptions, storageOptions = null) {
 module.exports = {
     inspectCertificateChain,
     validateCertificateChain,
-    acquireSessionContext,
+    createSessionContext,
 };

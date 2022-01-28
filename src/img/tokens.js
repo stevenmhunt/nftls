@@ -1,10 +1,11 @@
 const path = require('path');
 const _ = require('lodash');
 const Jimp = require('jimp');
+const fs = require('fs-extra');
 
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const { fillWithColor } = require('./utils');
-const { keccak256 } = require('../utils');
+const { keccak256, getTempFilePath } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 
 const TOKEN_WIDTH = 512;
@@ -71,11 +72,22 @@ async function renderDomainTokenImage(token, output) {
     return output;
 }
 
-async function extractImageHash(filepath) {
-    if (!filepath) { return undefined; }
-    const data = _.isBuffer(filepath) ? filepath : filepath;
-    await encodeImageData(data, null, false);
-    return keccak256(data);
+async function extractImageHash(filepath, useTempFile = true) {
+    const isTmp = useTempFile || _.isBuffer(filepath);
+    const tmpfile = isTmp ? getTempFilePath() : filepath;
+    if (isTmp) {
+        if (_.isBuffer(filepath)) {
+            await fs.writeFile(tmpfile, filepath);
+        } else {
+            await fs.copyFile(filepath, tmpfile);
+        }
+    }
+    await encodeImageData(tmpfile, null, false);
+    const image = await fs.readFile(tmpfile);
+    if (isTmp) {
+        await fs.unlink(tmpfile);
+    }
+    return keccak256(image);
 }
 
 async function extractImageSignature(filepath) {

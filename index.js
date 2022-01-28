@@ -22,7 +22,7 @@ const {
 const {
     inspectCertificateChain,
     validateCertificateChain,
-    acquireSessionContext,
+    createSessionContext,
 } = require('./src/certificateChains');
 
 const {
@@ -31,7 +31,10 @@ const {
 } = require('./src/certificateTokens');
 
 const utils = require('./src/utils');
+const { extractImageHash } = require('./src/img/tokens');
 const platforms = require('./src/platforms');
+
+utils.extractImageHash = extractImageHash;
 
 /**
  * NFTLS functions
@@ -51,14 +54,11 @@ const library = {
     getCertificateAuthorities,
     inspectCertificateChain,
     validateCertificateChain,
-    acquireSessionContext,
+    createSessionContext,
     renderCertificateToken,
     authorizeCertificateToken,
     utils,
     platforms,
 };
 
-if (typeof window !== 'undefined') {
-    window.nftls = library;
-}
 module.exports = library;
