@@ -10,8 +10,8 @@
   "scripts": {
     "test": "npx mocha",
     "lint": "npx eslint .",
-    "jsdoc": "npx jsdoc ./src README.md -d ./pages",
-    "browserify": "browserify --ignore fs-extra index.js --standalone nftls -o ../nftls-web/nftls.js"
+    "jsdoc": "npx jsdoc ./src README.md -d ../nftls-web/api-docs",
+    "browserify": "browserify --ignore fs-extra --standalone nftls index.js -o ../nftls-web/js/nftls.js"
   },
   "dependencies": {
     "axios": "^0.24.0",
@@ -34,6 +34,7 @@
     "secp256k1": "^3.8.0"
   },
   "devDependencies": {
+    "browserify-fs": "^1.0.0",
     "chai": "^4.3.4",
     "eslint": "^8.6.0",
     "eslint-config-airbnb-base": "^15.0.0",

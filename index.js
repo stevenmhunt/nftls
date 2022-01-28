@@ -36,7 +36,7 @@ const platforms = require('./src/platforms');
 /**
  * NFTLS functions
  */
-module.exports = {
+const library = {
     getCertificateHash,
     requestCertificate,
     issueCertificate,
@@ -57,3 +57,8 @@ module.exports = {
     utils,
     platforms,
 };
+
+if (typeof window !== 'undefined') {
+    window.nftls = library;
+}
+module.exports = library;

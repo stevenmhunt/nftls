@@ -63,7 +63,12 @@ async function requestCertificate({
 
     const type = csrTypeMapping[requestType];
     const dateRequested = Math.floor(Date.now() / 1000);
-    const imageHash = image ? await extractImageHash(image) : undefined;
+    let imageHash;
+    if (image) {
+        if (image.startsWith('0x') && image.length === (256 / 8) * 2 + 2) {
+            imageHash = image;
+        } else { imageHash = await extractImageHash(image); }
+    } else { imageHash = undefined; }
     const { platformName } = await extractPath(subject.name);
     const platform = platforms[platformName];
 

@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const sigmark = require('eth-signature-mark');
-const { inspectCertificate } = require('../../certificates');
+const { inspectCertificate, getCertificateHash } = require('../../certificates');
+const { extractImageHash } = require('../../img/tokens');
 const { processCoordinatesArg } = require('../utils');
 
 function getHelpText() {
@@ -11,7 +12,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash | requestor-address | for-address> <file>');
+    console.log('     nftls extract <image-code | image-hash | requestor-signature | issuer-signature | image-signature | expected-hash | requestor-address | for-address | cert-hash> <file>');
     console.log('        formatting option: ( --format [-f] <[text] | json | compact-json> )');
     console.log('        image coordinates: ( --coordinates "<x>,<y>,<w>,<h>" )');
 }
@@ -55,8 +56,12 @@ async function extractHashCli(args, filepath) {
 }
 
 async function extractActualHashCli(args, filepath) {
-    const data = await inspectCertificate(filepath);
-    console.log(data.imageHash);
+    try {
+        const data = await inspectCertificate(filepath);
+        console.log(data.imageHash);
+    } catch (err) {
+        console.log(await extractImageHash(filepath));
+    }
 }
 
 async function extractReqAddressCli(args, filepath) {
@@ -67,6 +72,11 @@ async function extractReqAddressCli(args, filepath) {
 async function extractForAddressCli(args, filepath) {
     const data = await inspectCertificate(filepath);
     console.log(data.certificate.forAddress);
+}
+
+async function extractCertHashCli(args, filepath) {
+    const data = await getCertificateHash(filepath);
+    console.log(data);
 }
 
 module.exports = {
@@ -81,4 +91,5 @@ module.exports = {
     'image-hash': extractActualHashCli,
     'requestor-address': extractReqAddressCli,
     'for-address': extractForAddressCli,
+    'cert-hash': extractCertHashCli,
 };
