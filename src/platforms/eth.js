@@ -74,14 +74,7 @@ async function signMessage(key, msg) {
     return EthCrypto.sign(key, ethers.utils.hashMessage(msg));
 }
 
-/**
- * Given a private key and data fields, generates an authorization signature.
- * @param {string} action The action being allowed by the authorization.
- * @param {Array} fields The data fields.
- * @param {string} key The private key.
- * @returns {string} A digital signature.
- */
-async function signAuthorization(action, fields, key) {
+function generateAuthorizationMessage(action, fields) {
     let data;
     if (action === 'mint') {
         const [recipient, path, version, hash] = fields;
@@ -93,9 +86,19 @@ async function signAuthorization(action, fields, key) {
     } else {
         data = fields;
     }
-    const msg = Buffer.concat([keccak256(action), ...data]
+    return Buffer.concat([keccak256(action), ...data]
         .filter((i) => i).map((i) => Buffer.from(i.replace('0x', ''), 'hex')));
-    return signMessage(key, msg);
+}
+
+/**
+ * Given a private key and data fields, generates an authorization signature.
+ * @param {string} action The action being allowed by the authorization.
+ * @param {Array} fields The data fields.
+ * @param {string} key The private key.
+ * @returns {string} A digital signature.
+ */
+async function signAuthorization(action, fields, key) {
+    return signMessage(key, generateAuthorizationMessage(action, fields));
 }
 
 /**
@@ -112,6 +115,17 @@ function recoverAddress(sig, msg, nonce = undefined) {
         return getContractAddress(result, nonce);
     }
     return result;
+}
+
+/**
+ * Given a signature and authorization message details, recovers the authorization's address.
+ * @param {string} sig The signature.
+ * @param {string} action The action to authorize.
+ * @param {Array} fields The parameters of the action.
+ * @returns The recovered address.
+ */
+async function recoverAuthorizationAddress(sig, action, fields) {
+    return recoverAddress(sig, generateAuthorizationMessage(action, fields));
 }
 
 async function encryptMessage(publicKey, msg) {
@@ -153,6 +167,7 @@ module.exports = {
     signMessage,
     signAuthorization,
     recoverAddress,
+    recoverAuthorizationAddress,
     encryptMessage,
     decryptMessage,
     addressesAreEqual,

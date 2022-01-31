@@ -293,7 +293,7 @@ async function validateCertificate(filepath, addr) {
  * @param {string} output (optional) The output file.
  * @returns {Promise<string>} The name of the installed certificate.
  */
-async function installCertificate(cert, image, options) {
+async function installCertificate(cert, image, options = {}) {
     await encodeImageData(image, JSON.stringify(cert), options.output || image);
     const data = await inspectCertificate(options.output || image);
     const { error } = await validateCertificate(data);
