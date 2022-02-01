@@ -24,7 +24,7 @@ function displayCertificate({
     });
     console.log(`        Email: ${certificate.email}`);
     console.log(`        Date Requested: ${new Date(certificate.dateRequested * 1000).toISOString()}`);
-    if (certificate.type !== certTypeMapping.ca && imageHash) {
+    if (certificate.type !== certTypeMapping.ca) {
         console.log('    Issuer:');
         _.keys(certificate.issuer).forEach((s) => {
             console.log(`        ${_.startCase(s)}: ${certificate.issuer[s]}`);
@@ -33,7 +33,7 @@ function displayCertificate({
     }
     console.log(`        Date Issued: ${new Date(certificate.dateIssued * 1000).toISOString()}`);
     if (certificate.imageHash) {
-        console.log('    Image Hash::');
+        console.log('    Image Hash:');
         console.log(`        ${certificate.imageHash}`);
     }
     console.log('    Requestor Signature:');
