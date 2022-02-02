@@ -4,53 +4,51 @@ While NFTLS certificates don't expire like SSL or x509 certificates, there may b
 
 ## Address and Contract Certificates
 
-To re-issue an address certificate, you first need the original certificate file. Then, create a CSR and token image for the new certificate and process the reissue through the registrar.
+To re-issue an address certificate, you need to create a CSR for the new certificate and process the reissue through the registrar.
 
 ### Example 1: Re-issuing an Address Certificate
 ```bash
-# the original certificate that is being invalidated (can be JSON or a PNG).
-ORIGINAL_CERT="compromised.cert.json"
+# the version number of the replacement certificate
+NEW_VERSION=1
 
-# the CSR file signed by the new private key.
-CSR_FILE="replacement_cert.csr.json"
+# your blockchain platform (eth, polygon, etc.)
+PLATFORM=eth
 
 # your blockchain private key (be careful...)
 YOUR_KEY=0x......
 
-# The FQDN from the parent certificate associated with your signing key.
-YOUR_FQDN="..."
+# the contract address for your NFT (must match a signature)
+YOUR_NFT_ADDRESS=0x......
 
-# The address from where the NFT for this certificate will be minted.
-# This MUST match the signing key or "for" address in your domain certificate.
-NFT_ADDRESS=0x....
+# your NFT image.
+YOUR_NFT_IMAGE=my_nft.png
 
-# The token number of the NFT that will be associated with this certificate.
-NFT_TOKEN_ID=123
+# the token ID for your NFT.
+YOUR_NFT_TOKENID=999
 
-# organization name (or your name if an individual)
-YOUR_NAME="Certificate Registrar Company"
+# the Fully Qualified Token Name (FQTN)
+YOUR_FQTN="$YOUR_NFT_ADDRESS#$YOUR_NFT_TOKENID@$PLATFORM"
+
+# your name (or organization name)
+YOUR_NAME="Bobby Tables"
 
 # your email contact information
 YOUR_EMAIL="your email address"
 
 # you can specify your information using the same field names as in an SSL CSR.
-YOUR_INFO="CN=$YOUR_FQDN, O=$YOUR_NAME, C=US, S=California, L=San Francisco"
+YOUR_INFO="CN=$YOUR_FQTN, O=$YOUR_NAME, C=US, S=Florida, L=Orlando"
 
-# The ISO date/time at which the previous certificate should be considered "compromised".
-COMPROMISED_TIME="2022-01-14T17:22:43.013Z"
-
-nftls reissue $ORIGINAL_CERT $CSR_FILE $YOUR_KEY \
-    --id "$NFT_ADDRESS#$NFT_TOKEN_ID" \
-    --issuer "$YOUR_INFO" \
-    --email $NFTLS_EMAIL \
-    --starting-at $COMPROMISED_TIME \
-    -o new_cert.cert.json
+nftls request token $YOUR_KEY \
+    --version $NEW_VERSION \
+    --image $YOUR_NFT_IMAGE \
+    --subject "$YOUR_INFO" \
+    --email $YOUR_EMAIL \
+    -o csr.json
 ```
-
-After issuing the certificate, you must install it into the new token image and mint the specified NFT address and ID. Once minted, it needs to be owned by the parent signing key's address in order to be valid, since all child keys are considered compromised. For the purposes of certificate chain verification, any certificates issued by the compromised certificate after the `starting-at` time are considered void. It is the responsibility of the registrar to ensure that this value is appropriate and won't "change history" in an inappropriate way, as this would affect the reputation of the registrar and have a negative impact on peoples' trust of the entire certificate system.
+After issuing the certificate, you must install it into the new token image and mint the specified NFT address and ID. Once minted, it needs to be owned by the parent signing key's address in order to be valid, since all child keys are considered compromised.
 
 ## Domain Certificates
 The process of re-issuing domain certificates is identical to that of address certificates. The ability to re-issue certificates in the case of a security breach is why CA certificates are not used directly to process CSRs, so that if the root domain certificate were compromised it would still be possible to recover the CA and "fix" the compromised key.
 
 ## CA Certificates
-Unfortunately, CA certificates themselves cannot be re-issued. Once a CA private key is compromised, then the entire CA and all child certificates are compromised. This is why CA certificates are not managed through the blockchain directly, why a root domain certificate is always issued from the CA to sign CSRs on its behalf, and why the security procedures for CA private keys are so extreme. The process for re-issuing a certificate always depends on a higher authority being able to sign off on the new certificate, and since CAs by definition have to be self-signed there isn't a way to prove whether any newly issued certificates are from the original owner or an unauthorized person who has access to the key. It may be possible in the future to "revoke" a certificate without re-issuing it, but hopefully the need to invalidate an entire CA will never be required.
+Unfortunately, CA certificates themselves cannot be re-issued. Once a CA private key is compromised, then the entire CA and all child certificates are compromised. This is why CA certificates are not managed through the blockchain directly, why a root domain certificate is always issued from the CA to sign CSRs on its behalf, and why the security procedures for CA private keys are so extreme. The process for re-issuing a certificate always depends on a higher authority being able to sign off on the new certificate, and since CAs by definition have to be self-signed there isn't a way to prove whether any newly issued certificates are from the original owner or an unauthorized person who has access to the key.

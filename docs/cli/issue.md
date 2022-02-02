@@ -32,7 +32,7 @@ nftls issue $CSR_FILE $YOUR_KEY \
 
 ## Address and Contract Certificates
 
-While the NFT certicicate is installed directly into an NFT image and then ultimately written to the blockchain by the requestor, address and domain certificates must be minted into an NFT by the registrar and then transferred to the requestor's address in order for the certificate to be considered valid. When you issue the certificate, you will need to add the token address and ID which also must match your signing key or "for" address in your parent certificate that you're signing on behalf of.
+While the NFT certicicate is installed directly into an NFT image and then ultimately written to the blockchain by the requestor, address and domain certificates must be minted into an NFT by the registrar and then transferred to the requestor's address in order for the certificate to be considered valid. When you issue the certificate, you will need to add the token address which also must match your signing key or "for" address in your parent certificate that you're signing on behalf of.
 
 ### Example 2: Issuing an Address Certificate
 ```bash
@@ -62,7 +62,7 @@ YOUR_EMAIL="your email address"
 YOUR_INFO="CN=$YOUR_FQDN, O=$YOUR_NAME, C=US, S=California, L=San Francisco"
 
 nftls issue $CSR_FILE $YOUR_KEY \
-    --id "$NFT_ADDRESS#$NFT_TOKEN_ID" \
+    --token "$NFT_ADDRESS" \
     --issuer "$YOUR_INFO" \
     --email $NFTLS_EMAIL \
     -o address.cert.json
