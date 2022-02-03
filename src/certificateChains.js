@@ -147,7 +147,9 @@ async function validateCertificateChain(context, certData) {
 async function createSessionContext(platformOptions, storageOptions = null) {
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {
-        platformConnectors[platform] = await connectors[platform](platformOptions[platform]);
+        const options = platformOptions[platform];
+        const [platformName, network] = platform.split(':');
+        platformConnectors[platform] = await connectors[platformName](network, options);
     }));
     return {
         platforms: platformConnectors,

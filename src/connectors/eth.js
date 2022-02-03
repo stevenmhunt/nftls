@@ -6,7 +6,7 @@ const { getCertHash, calculatePath } = require('../utils');
 /**
  * Builds an Ethereum connector object.
  */
-module.exports = async function ethConnector(options = {}) {
+module.exports = async function ethConnector(network, options = {}) {
     const ethers = options.ethers || ethersLocal;
     // const provider = options.provider || eth.getDefaultProvider(options.defaultProvider);
     const contractValue = options.contract;
