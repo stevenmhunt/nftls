@@ -20,6 +20,12 @@ const MARK_H = 6;
 
 const HEADER_FONT = path.join(__dirname, '../../fonts', 'OpenSansCondensed-Bold.fnt');
 
+/**
+ * Renders an image to use for a domain token.
+ * It includes specific information about the domain.
+ * @param {*} token The token to render from.
+ * @param {*} output The output file.
+ */
 async function renderDomainTokenImage(token, output) {
     let image = await Jimp.read(token.image);
     const font = await Jimp.loadFont(HEADER_FONT);
@@ -72,6 +78,12 @@ async function renderDomainTokenImage(token, output) {
     return output;
 }
 
+/**
+ * Calculates the baseline image hash of the target.
+ * @param {*} filepath The target image file.
+ * @param {*} useTempFile Whether or not to use a temporary file to avoid modifying the image.
+ * @returns {Promise<string>} The resultant baseline hash.
+ */
 async function extractImageHash(filepath, useTempFile = true) {
     const isTmp = useTempFile || _.isBuffer(filepath);
     const tmpfile = isTmp ? getTempFilePath() : filepath;
@@ -90,11 +102,17 @@ async function extractImageHash(filepath, useTempFile = true) {
     return keccak256(image);
 }
 
+/**
+ * Extracts the signature mark from the domain token image.
+ */
 async function extractImageSignature(filepath) {
     const image = await Jimp.read(filepath);
     return extractSignatureMark(image, MARK_X, MARK_Y, MARK_W, MARK_H);
 }
 
+/**
+ * Extracts the security code from the domain token image.
+ */
 async function extractImageCode(filepath) {
     const image = await Jimp.read(filepath);
     return image.getPixelColor(TOKEN_WIDTH - PADDING * 2, TOKEN_HEIGHT - PADDING * 2);

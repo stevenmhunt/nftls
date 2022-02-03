@@ -37,9 +37,9 @@ async function addCertificateAuthority(context, filepath, isOverwrite = true) {
 }
 
 /**
- * Removes a trusted CA, either by name or address/for.
+ * Removes a trusted CA by name.
  * @param {object} context The session context.
- * @param {string} name (optional) The name of the CA to remove.
+ * @param {string} name The name of the CA to remove.
  * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
  */
 async function removeCertificateAuthority(context, name) {

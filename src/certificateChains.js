@@ -138,6 +138,12 @@ async function validateCertificateChain(context, certData) {
     return { status: 'Invalid', error: status };
 }
 
+/**
+ * Creates a session context for performing lookups against a blockchain.
+ * @param {*} platformOptions The platform(s) to use.
+ * @param {*} storageOptions Storage and caching options.
+ * @returns {Promise<object>} A session context.
+ */
 async function createSessionContext(platformOptions, storageOptions = null) {
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {

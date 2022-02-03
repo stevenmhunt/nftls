@@ -4,9 +4,9 @@ const { CERT_KEY } = require('./constants');
 /**
  * Adds a cached certificate for the current session.
  * @param {object} context The session context.
- * @param {string} filepath The CA certificate.
+ * @param {string} filepath The certificate.
  * @param {boolean} isOverwrite Whether or not to overwrite a certificate with the same name.
- * @returns {Promise<boolean>} Whether or not the CA was written successfully.
+ * @returns {Promise<boolean>} Whether or not the certificate was written successfully.
  */
 async function addCachedCertificate(context, filepath, isOverwrite = true) {
     // validate the certificate before adding it.
@@ -16,22 +16,23 @@ async function addCachedCertificate(context, filepath, isOverwrite = true) {
         throw new Error(error);
     }
 
-    // check overwrite settings and whether or not there is an existing CA.
+    // check overwrite settings and whether or not there is an existing certificate.
     const key = `${data.certificate.subject.name};${data.signatureAddress}`;
     if (!isOverwrite && await context.storage.getKeyItem(CERT_KEY, key)) {
         return null;
     }
 
-    // add the CA and also cache the certificate.
+    // add the certificate.
     await context.storage.addKeyItem(CERT_KEY, key, Buffer.from(JSON.stringify(data)).toString('base64'));
     return key;
 }
 
 /**
- * Removes a trusted CA, either by name or address/for.
+ * Removes a certificate by name/address.
  * @param {object} context The session context.
- * @param {string} name (optional) The name of the CA to remove.
- * @returns {Promise<boolean>} Whether or not the CA was removed successfully.
+ * @param {string} name The name of the certificate to remove.
+ * @param {string} address The address of the certificate to remove.
+ * @returns {Promise<boolean>} Whether or not the certificate was removed successfully.
  */
 async function removeCachedCertificate(context, name, address) {
     const key = !address ? name : `${name};${address}`;
@@ -40,9 +41,9 @@ async function removeCachedCertificate(context, name, address) {
 }
 
 /**
- * Retrieves a list of all trusted CAs.
+ * Retrieves a cached certificate if available.
  * @param {object} context The session context.
- * @returns {Promise<Array>}
+ * @returns {Promise<object>}
  */
 async function getCachedCertificate(context, name, address) {
     const key = !address ? name : `${name};${address}`;

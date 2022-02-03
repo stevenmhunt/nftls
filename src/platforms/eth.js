@@ -74,6 +74,13 @@ async function signMessage(key, msg) {
     return EthCrypto.sign(key, ethers.utils.hashMessage(msg));
 }
 
+/**
+ * @private
+ * Generates an authorization message to use for a signature.
+ * @param {*} action The action to perform.
+ * @param {*} fields The parameters for the action.
+ * @returns {string}
+ */
 function generateAuthorizationMessage(action, fields) {
     let data;
     if (action === 'mint') {
@@ -128,10 +135,22 @@ async function recoverAuthorizationAddress(sig, action, fields) {
     return recoverAddress(sig, generateAuthorizationMessage(action, fields));
 }
 
+/**
+ * Use a public key to encrypt a message.
+ * @param {*} publicKey The public key.
+ * @param {*} msg The message to encrypt.
+ * @returns {Promise<object>}
+ */
 async function encryptMessage(publicKey, msg) {
     return EthCrypto.encryptWithPublicKey(publicKey, msg);
 }
 
+/**
+ * Decrypts a message using a private key.
+ * @param {*} key The private key.
+ * @param {*} cipher The encrypted message components.
+ * @returns {Promise<string>}
+ */
 async function decryptMessage(key, {
     iv, ephemPublicKey, ciphertext, mac,
 }) {
@@ -140,6 +159,10 @@ async function decryptMessage(key, {
     });
 }
 
+/**
+ * Compares two addresses (or contract address) for equality.
+ * @returns {boolean}
+ */
 function addressesAreEqual(sigAddr, knownAddr, nonce = undefined) {
     if (!sigAddr || !knownAddr) {
         return false;

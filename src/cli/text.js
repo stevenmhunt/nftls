@@ -2,6 +2,9 @@
 const _ = require('lodash');
 const { certTypeMapping } = require('../constants');
 
+/**
+ * Converts a certificate into text output to display on the screen.
+ */
 function displayCertificate({
     certificate, imageHash, signature, signatureAddress, code, signatureMark, signatureMarkAddress,
 }, number = null) {

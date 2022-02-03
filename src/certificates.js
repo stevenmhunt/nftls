@@ -14,6 +14,11 @@ const { runCertificateRequestValidation, runCertificateValidation } = require('.
 
 const NO_IMAGE_HASH = 'N/A';
 
+/**
+ * Calculates a hash for a certificate.
+ * @param {string} filepath The certificate file.
+ * @returns {Promise<string>}
+ */
 async function getCertificateHash(filepath) {
     let data;
     if (_.isString(filepath)) {
@@ -153,6 +158,7 @@ async function issueCertificate(request, {
             id = `${token}#${calculatePath(pathName, request.version)}`;
         }
     }
+    // Note: certification validation will take care of checking the fields before issuing a cert.
 
     // build and validate the certificate object.
     const certificateData = {

@@ -7,6 +7,9 @@ const { Spinner } = require('cli-spinner');
 const { parseX509Fields } = require('../utils');
 const { userProfile } = require('../storage');
 
+/**
+ * Manages standard input prompts.
+ */
 async function readLine(prompt, isSecure) {
     return new Promise((resolve) => {
         const rl = readline.createInterface({
@@ -33,10 +36,16 @@ async function readLine(prompt, isSecure) {
     });
 }
 
+/**
+ * Processes the coordinates argument from the command-line.
+ */
 function processCoordinatesArg(argv) {
     return (argv.coordinates || '6,6,6,6').split(',').filter((i) => i).map((i) => parseInt(i, 10));
 }
 
+/**
+ * Processes the identity information from the command-line.
+ */
 async function processIdentityArg(data) {
     if (!_.isString(data)) {
         return data;
@@ -47,6 +56,9 @@ async function processIdentityArg(data) {
     return parseX509Fields(data);
 }
 
+/**
+ * Renders the validation status.
+ */
 function displayStatus(result, expected = 'Valid') {
     if (_.isString(result)) {
         console.log(` ${(expected === true ? clc.green('✓') : clc.red('✗'))} ${result}`);
@@ -56,6 +68,10 @@ function displayStatus(result, expected = 'Valid') {
     console.log(` ${(expected === null || status === expected ? clc.green('✓') : clc.red('✗'))} ${status || error}`);
 }
 
+/**
+ * Captures the output of a function and pipes it into the appropriate file descriptor
+ * based on the --output or -o command-line argument.
+ */
 async function withOutput(result, output) {
     if (output === 'stdout') {
         if (_.isBuffer(result)) { console.log(result.toString('base64')); } else if (_.isObject(result)) { console.log(JSON.stringify(result, null, 4)); } else { console.log(result); }
@@ -70,6 +86,9 @@ async function withOutput(result, output) {
     return fs.writeFile(output, result, 'utf8');
 }
 
+/**
+ * Displays a progress spinner until the operation is completed.
+ */
 async function withProgress(fn, message) {
     const spinner = new Spinner({
         text: `%s ${message}`,
@@ -86,6 +105,7 @@ async function withProgress(fn, message) {
     return result;
 }
 
+// TODO: integrate live blockchain session context.
 let session;
 async function getSessionContext() {
     if (!session) {

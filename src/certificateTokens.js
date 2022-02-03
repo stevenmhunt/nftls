@@ -27,6 +27,12 @@ async function renderCertificateToken(type, { name, image, noCode }, key, output
     return { code };
 }
 
+/**
+ * Generates an authoriation signature for minting an NFTLS token.
+ * @param {*} certData The certificate to mint.
+ * @param {*} signingKey The key to approve the request.
+ * @returns {Promise<object>}
+ */
 async function authorizeCertificateToken(certData, signingKey) {
     const data = await inspectCertificate(certData, true);
     const { error } = await validateCertificate(data);

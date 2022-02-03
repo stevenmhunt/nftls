@@ -4,7 +4,6 @@
   "description": "A command-line tool and NodeJS library for working with NFTLS certificates.",
   "bin": {
     "nftls": "./bin/nftls.js",
-    "nftls-keygen": "./bin/nftls-keygen.js",
     "nftls-lookup": "./bin/nftls-lookup.js"
   },
   "scripts": {

@@ -3,12 +3,21 @@ const ethersLocal = require('ethers');
 const axios = require('axios').default;
 const { getCertHash, calculatePath } = require('../utils');
 
+/**
+ * Builds an Ethereum connector object.
+ */
 module.exports = async function ethConnector(options = {}) {
     const ethers = options.ethers || ethersLocal;
     // const provider = options.provider || eth.getDefaultProvider(options.defaultProvider);
     const contractValue = options.contract;
     let current = contractValue;
 
+    /**
+     * Sets the current token contract address to use.
+     * The address change if a wildcard domain certificate issues its own tokens.
+     * @param {*} contractId The address of the contract.
+     * @returns {Promise<string>} The resolved contract address.
+     */
     async function setTokenContract(contractId) {
         const addresses = [];
         async function setTokenContractInternal(c) {
@@ -17,12 +26,18 @@ module.exports = async function ethConnector(options = {}) {
             if (result !== ethers.constants.AddressZero) {
                 assert.equal(addresses.indexOf(c), -1, `Infinite recursion detected in deployment address '${c}'.`);
                 addresses.push(c);
-                await setTokenContractInternal(result);
+                return setTokenContractInternal(result);
             }
+            return c;
         }
         return setTokenContractInternal(contractId);
     }
 
+    /**
+     * Locates an NFTLS token in the blockchain and downloads the required certificate.
+     * @param {*} pathName The path of the certificate.
+     * @returns {Promise} The certificate.
+     */
     async function downloadCertificate(pathName) {
         const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? calculatePath(pathName) : 0);
         const { certificate, revokeTime } = await current.getCertificate(tokenId, true);
