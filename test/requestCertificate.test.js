@@ -13,10 +13,10 @@ const {
 
 const validRequestTypes = _.keys(csrTypeMapping);
 const validNames = {
-    ca: '@eth',
-    domain: 'something.wallet@eth',
-    address: `${validAddress1}@eth`,
-    token: `${validAddress1}#5@eth`,
+    ca: '@eth:local',
+    domain: 'something.wallet@eth:local',
+    address: `${validAddress1}@eth:local`,
+    token: `${validAddress1}#5@eth:local`,
 };
 const validSubject = 'O=nftls.io, OU=QA Department, C=US, S=New York, L=Rochester';
 const validEmail = 'test@nftls.io';
@@ -25,10 +25,10 @@ const validVersion = 5;
 
 const invalidRequestTypes = ['other', undefined, 0, null, ''];
 const invalidNames = {
-    ca: ['whatever@eth', '*.*@eth', `${validAddress1}@eth`, `${validAddress1}#5@eth`],
-    domain: ['@eth', '*.*@eth', `${validAddress1}@eth`, `${validAddress1}#5@eth`],
-    address: ['@eth', 'whatever@eth', '*.*@eth', `${validAddress1}#5@eth`],
-    token: ['@eth', 'whatever@eth', '*.*@eth', `${validAddress1}@eth`],
+    ca: ['whatever@eth:local', '*.*@eth:local', `${validAddress1}@eth:local`, `${validAddress1}#5@eth:local`],
+    domain: ['@eth:local', '*.*@eth:local', `${validAddress1}@eth:local`, `${validAddress1}#5@eth:local`],
+    address: ['@eth:local', 'whatever@eth:local', '*.*@eth:local', `${validAddress1}#5@eth:local`],
+    token: ['@eth:local', 'whatever@eth:local', '*.*@eth:local', `${validAddress1}@eth:local`],
 };
 const invalidPlatformNames = {
     ca: '@blah',
@@ -134,7 +134,7 @@ describe('requestCertificate', () => {
             // assert
             expect(result).is.not.null;
             expect(result.type).to.equal('encrypted');
-            expect(result.platformName).to.equal('eth');
+            expect(result.platformName).to.equal('eth:local');
             expect(result.requestAddress).to.be.undefined;
             expect(result.forAddress).to.be.undefined;
             expect(result.subject).to.be.undefined;

@@ -11,8 +11,8 @@ module.exports = (platform) => Joi.object({
     dateRequested: Joi.date().timestamp('unix').required(),
     data: Joi.string(),
     contractNonce: Joi.number(),
-    signature: platforms[platform].signature().required(),
-    forSignature: platforms[platform].signature(),
-    requestAddress: platforms[platform].address().required(),
-    forAddress: platforms[platform].address(),
+    signature: platforms(platform).signature().required(),
+    forSignature: platforms(platform).signature(),
+    requestAddress: platforms(platform).address().required(),
+    forAddress: platforms(platform).address(),
 });

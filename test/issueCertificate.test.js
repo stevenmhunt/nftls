@@ -6,7 +6,7 @@ const { issueCertificate } = require('../src/certificates');
 const { generateWallet, recoverAddress, signMessage } = require('../src/platforms/eth');
 const validRequests = require('./data/validRequests.json');
 
-const validIssuer = 'CN=@eth, O=nftls.io, OU=QA Department, C=US, S=New York, L=Rochester';
+const validIssuer = 'CN=@eth:local, O=nftls.io, OU=QA Department, C=US, S=New York, L=Rochester';
 const validEmail = 'test@nftls.io';
 const validTokenContract = '0x69eE797592aF3B5B3a3aD49e0ddC222210dA0CBA';
 const validTokenArgs = {
@@ -106,7 +106,7 @@ describe('issueCertificate', () => {
     // invalid subject name.
     invalidCSRTestCase('characters in subject name', (request) => {
         const req = request;
-        req.subject.name = '*.*@eth';
+        req.subject.name = '*.*@eth:local';
         return req;
     });
 
@@ -160,7 +160,7 @@ describe('issueCertificate', () => {
 
     invalidParametersTestCase('issuer name', (data) => {
         const d = data;
-        d.issuer = d.issuer.replace('CN=@eth, ', '');
+        d.issuer = d.issuer.replace('CN=@eth:local, ', '');
         return d;
     }, 'An issuer name must be provided.');
 

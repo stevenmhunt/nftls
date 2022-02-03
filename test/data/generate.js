@@ -22,16 +22,16 @@ async function main() {
         token,
     ] = await Promise.all([
         requestCertificate({
-            requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail, contractNonce: validNonce,
+            requestType: 'ca', subject: `CN=@eth:local, ${validSubject}`, email: validEmail, contractNonce: validNonce,
         }, { signingKey: validKey1 }),
         requestCertificate({
-            requestType: 'ca', subject: `CN=@eth, ${validSubject}`, email: validEmail, contractNonce: validNonce,
+            requestType: 'ca', subject: `CN=@eth:local, ${validSubject}`, email: validEmail, contractNonce: validNonce,
         }, { signingKey: validKey1, forKey: validKey2 }),
-        requestCertificate({ requestType: 'domain', subject: `CN=*@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
-        requestCertificate({ requestType: 'domain', subject: `CN=*.tld@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
-        requestCertificate({ requestType: 'domain', subject: `CN=name.tld@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
-        requestCertificate({ requestType: 'address', subject: `CN=${validAddress1}@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
-        requestCertificate({ requestType: 'token', subject: `CN=${validAddress1}#123@eth, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
+        requestCertificate({ requestType: 'domain', subject: `CN=*@eth:local, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
+        requestCertificate({ requestType: 'domain', subject: `CN=*.tld@eth:local, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
+        requestCertificate({ requestType: 'domain', subject: `CN=name.tld@eth:local, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
+        requestCertificate({ requestType: 'address', subject: `CN=${validAddress1}@eth:local, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
+        requestCertificate({ requestType: 'token', subject: `CN=${validAddress1}#123@eth:local, ${validSubject}`, email: validEmail }, { signingKey: validKey1 }),
     ]);
 
     await fs.writeJSON('./validRequests.json', {

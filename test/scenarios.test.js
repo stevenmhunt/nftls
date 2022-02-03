@@ -22,9 +22,9 @@ describe('Scenarios', () => {
         const contractNonce = 10;
         const { privateKey: caKey } = generateWallet();
         const { address: rootAddress, privateKey: rootKey } = generateWallet();
-        const caSubject = parseX509Fields(`CN=@eth, ${NFTLS_SUBJECT}`);
+        const caSubject = parseX509Fields(`CN=@eth:local, ${NFTLS_SUBJECT}`);
         const rootPath = '*';
-        const rootSubject = parseX509Fields(`CN=${rootPath}@eth, ${NFTLS_SUBJECT}`);
+        const rootSubject = parseX509Fields(`CN=${rootPath}@eth:local, ${NFTLS_SUBJECT}`);
 
         // act
         const caRequest = await requestCertificate({
@@ -32,7 +32,7 @@ describe('Scenarios', () => {
         }, { signingKey: caKey, forKey: rootKey });
 
         const caCertificate = await issueCertificate(caRequest, {
-            issuer: parseX509Fields(`CN=@eth, ${NFTLS_SUBJECT}`), email: NFTLS_EMAIL,
+            issuer: parseX509Fields(`CN=@eth:local, ${NFTLS_SUBJECT}`), email: NFTLS_EMAIL,
         }, caKey);
 
         const caCertData = await inspectCertificate(caCertificate);
@@ -44,7 +44,7 @@ describe('Scenarios', () => {
         const rootCertificate = await issueCertificate(rootRequest, {
             token: caCertData.certificate.forAddress,
             isTokenRoot: true,
-            issuer: parseX509Fields(`CN=@eth, ${NFTLS_SUBJECT}`),
+            issuer: parseX509Fields(`CN=@eth:local, ${NFTLS_SUBJECT}`),
             email: NFTLS_EMAIL,
         }, caKey);
 

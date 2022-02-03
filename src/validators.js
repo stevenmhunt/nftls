@@ -44,7 +44,7 @@ function runCertificateRequestValidation(request, isSigned = true) {
     if (currentType === 'ca' && version > 0) { throw new Error('CA certificates cannot be re-issued.'); }
     if (currentType === 'ca' && contractNonce === undefined) { throw new Error('CA certificates must specify a contract nonce to establish a token.'); }
     if (currentType !== 'ca') {
-        const schema = platformSchemas[platformName][currentType];
+        const schema = platformSchemas(platformName)[currentType];
         const { error } = schema().validate(pathName);
         if (error) { throw new Error(`CSR${error}`); }
     }
