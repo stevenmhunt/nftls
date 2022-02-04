@@ -138,6 +138,24 @@ async function validateCertificateChain(context, certData) {
     return { status: 'Invalid', error: status };
 }
 
+async function downloadCertificate(context, path) {
+    const [pathName, platformName] = path.split('@');
+    const CAs = (await getCertificateAuthorities(context))
+        .filter((i) => i.platform === platformName
+        || platforms[platformName].getCompatiblePlatforms().indexOf(i.platform) >= 0);
+        // TODO: reseach whether this process could be performed in parallel safely.
+    for (let i = 0; i < CAs.length; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await context.platforms[platformName].setTokenContract(CAs[i].forAddress);
+        // eslint-disable-next-line no-await-in-loop
+        const result = await context.platforms[platformName].downloadCertificate(pathName);
+        if (result) {
+            return result;
+        }
+    }
+    return null;
+}
+
 /**
  * Creates a session context for performing lookups against a blockchain.
  * @param {*} platformOptions The platform(s) to use.
@@ -160,5 +178,6 @@ async function createSessionContext(platformOptions, storage = null) {
 module.exports = {
     inspectCertificateChain,
     validateCertificateChain,
+    downloadCertificate,
     createSessionContext,
 };

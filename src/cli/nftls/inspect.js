@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
+const fs = require('fs');
 const { inspectCertificate } = require('../../certificates');
 const { displayCertificate } = require('../text');
+const { stdinToString } = require('../utils');
 
 function getHelpText() {
     return 'Inspects the contents of a certificate or signed token.';
@@ -16,7 +18,8 @@ async function helpCommand() {
 
 async function defaultCommand(args) {
     const format = args.f || args.format || 'text';
-    const cert = await inspectCertificate(args.target);
+    const target = args.target === 'stdin' ? JSON.parse(stdinToString()) : args.target;
+    const cert = await inspectCertificate(target);
     if (format === 'json') {
         console.log(JSON.stringify(cert, null, 4));
     }
