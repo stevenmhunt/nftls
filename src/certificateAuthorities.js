@@ -23,7 +23,7 @@ async function addCertificateAuthority(context, filepath, isOverwrite = true) {
 
     // check overwrite settings and whether or not there is an existing CA.
     const { forAddress } = ca.certificate;
-    const caName = ca.certificate.subject.organization;
+    const caName = `${ca.certificate.subject.organization} (${platformName})`;
     if (!isOverwrite && await context.storage.getKeyItem(CA_KEY, caName)) {
         return null;
     }
@@ -44,6 +44,7 @@ async function addCertificateAuthority(context, filepath, isOverwrite = true) {
  */
 async function removeCertificateAuthority(context, name) {
     const item = await context.storage.getKeyItem(CA_KEY, name);
+    if (!item) { return false; }
     await context.storage.removeKeyItem(CA_KEY, name);
     await removeCachedCertificate(item.key);
     return true;

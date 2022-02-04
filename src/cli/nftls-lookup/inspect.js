@@ -23,7 +23,7 @@ async function defaultCommand(args) {
     const context = await getSessionContext();
     const { chain, status } = await withProgress(
         () => inspectCertificateChain(context, args.target),
-        'Scanning the blockhain...',
+        'Scanning the target blockchain platform...',
     );
     if (format === 'tree') {
         console.log('┌ NFTLS Certificate Chain:');

@@ -39,9 +39,9 @@ async function addRootCli(args, filepath) {
     } else { process.exit(1); }
 }
 
-async function removeRootCli(args) {
+async function removeRootCli(args, filepath) {
     const context = await getSessionContext();
-    const name = args.n || args.name;
+    const name = args.n || args.name || filepath;
     await removeCertificateAuthority(context, name);
     displayStatus(`Successfully removed certificate authority '${name}'.`, true);
 }

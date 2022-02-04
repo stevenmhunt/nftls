@@ -38,7 +38,7 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, isCo
             const cert = await context.platforms[platformName].downloadCertificate(pathName);
             data = await inspectCertificate(cert);
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             // if we can't get data from the blockchain, then the chain validation is incomplete.
         }
     }
@@ -141,19 +141,19 @@ async function validateCertificateChain(context, certData) {
 /**
  * Creates a session context for performing lookups against a blockchain.
  * @param {*} platformOptions The platform(s) to use.
- * @param {*} storageOptions Storage and caching options.
+ * @param {*} storage Storage and caching options.
  * @returns {Promise<object>} A session context.
  */
-async function createSessionContext(platformOptions, storageOptions = null) {
+async function createSessionContext(platformOptions, storage = null) {
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {
-        const options = platformOptions[platform];
+        const options = platformOptions[platform] || [];
         const [platformName, network] = platform.split(':');
-        platformConnectors[platform] = await connectors[platformName](network, options);
+        platformConnectors[platform] = await connectors[platformName](network, {}, ...options);
     }));
     return {
         platforms: platformConnectors,
-        storage: storageOptions || await inMemory(),
+        storage: storage || await inMemory(),
     };
 }
 

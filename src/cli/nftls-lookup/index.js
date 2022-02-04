@@ -1,13 +1,13 @@
 const ca = require('./ca');
 const cache = require('./cache');
-const connect = require('./connect');
+const platform = require('./platform');
 const inspect = require('./inspect');
 const validate = require('./validate');
 
 module.exports = {
     ca,
     cache,
-    connect,
+    platform,
     inspect,
     validate,
 };

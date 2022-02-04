@@ -8,6 +8,7 @@ const SEPARATOR = '\r\n';
 
 const CA_KEY = 'certificateAuthorities';
 const CERT_KEY = 'certificateCache';
+const PLATFORMS_KEY = 'platforms';
 const ROOT_CERT_PATH = '*';
 
 /**
@@ -54,6 +55,7 @@ module.exports = {
     SEPARATOR,
     CA_KEY,
     CERT_KEY,
+    PLATFORMS_KEY,
     ROOT_CERT_PATH,
     csrTypeMapping,
     certTypeMapping,

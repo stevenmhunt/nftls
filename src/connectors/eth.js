@@ -2,14 +2,31 @@ const assert = require('assert');
 const ethersLocal = require('ethers');
 const axios = require('axios').default;
 const { getCertHash, calculatePath } = require('../utils');
+const { abi } = require('./NftlsToken.json');
+
+ethersLocal.utils.Logger.setLogLevel('error');
 
 /**
  * Builds an Ethereum connector object.
  */
-module.exports = async function ethConnector(network, options = {}) {
+module.exports = async function ethConnector(network, options, providerType, typeParam) {
+    // eslint-disable-next-line no-param-reassign
+    network = network === 'local' ? 'http://localhost:8545' : network;
     const ethers = options.ethers || ethersLocal;
-    // const provider = options.provider || eth.getDefaultProvider(options.defaultProvider);
-    const contractValue = options.contract;
+
+    function getProvider() {
+        if (!network) {
+            return ethers.getDefaultProvider();
+        }
+        if (!providerType) {
+            return ethers.getDefaultProvider(network);
+        }
+        return new ethers.providers[`${providerType}Provider`](network, typeParam);
+    }
+
+    const provider = options.provider || getProvider();
+    const contractValue = options.contract
+        || new ethers.Contract(ethers.constants.AddressZero, abi, provider);
     let current = contractValue;
 
     /**
@@ -42,7 +59,7 @@ module.exports = async function ethConnector(network, options = {}) {
         const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? calculatePath(pathName) : 0);
         const { certificate, revokeTime } = await current.getCertificate(tokenId, true);
         const uri = await current.tokenURI(tokenId);
-        const { data } = await axios.get(`${uri}/json`);
+        const { data } = await axios.get(uri);
 
         // we don't trust the downloaded certificate unless it matches the hash from blockchain.
         assert.ok(revokeTime.isZero(), 'The requested certificate was revoked and not re-minted.');

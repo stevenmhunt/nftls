@@ -6,6 +6,8 @@ const clc = require('cli-color');
 const { Spinner } = require('cli-spinner');
 const { parseX509Fields } = require('../utils');
 const { userProfile } = require('../storage');
+const { createSessionContext } = require('../certificateChains');
+const { PLATFORMS_KEY } = require('../constants');
 
 /**
  * Manages standard input prompts.
@@ -109,15 +111,9 @@ async function withProgress(fn, message) {
 let session;
 async function getSessionContext() {
     if (!session) {
-        session = {
-            platforms: {
-                eth: {
-                    setTokenContract() { },
-                    downloadCertificate() { },
-                },
-            },
-            storage: await userProfile(),
-        };
+        const storage = await userProfile();
+        const platformOptions = await storage.getItems(PLATFORMS_KEY);
+        session = await createSessionContext(platformOptions, storage);
     }
     return session;
 }
