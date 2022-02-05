@@ -38,11 +38,9 @@ async function defaultCommand(args, key) {
         key = stdinToString();
     }
 
-    const output = args.o || args.output || STDIO_ARG;
-
     return withOutput(await issueCertificate(request, {
         token, isTokenRoot, issuer, email,
-    }, key), output);
+    }, key), args);
 }
 
 module.exports = {

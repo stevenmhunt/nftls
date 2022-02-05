@@ -20,7 +20,7 @@ const {
 } = require('./src/certificateAuthorities');
 
 const {
-    inspectCertificateChain,
+    resolveCertificateChain,
     validateCertificateChain,
     createSessionContext,
 } = require('./src/certificateChains');
@@ -52,7 +52,7 @@ const library = {
     addCertificateAuthority,
     removeCertificateAuthority,
     getCertificateAuthorities,
-    inspectCertificateChain,
+    resolveCertificateChain,
     validateCertificateChain,
     createSessionContext,
     renderCertificateToken,

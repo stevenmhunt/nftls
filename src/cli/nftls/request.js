@@ -56,11 +56,9 @@ function generateRequestCli(requestType) {
             forKey = await readLine(PRIVATE_KEY_PROMPT, true);
         }
 
-        const output = args.o || args.output || STDIO_ARG;
-
         return withOutput(await requestCertificate({
             requestType, version, image, subject, email, contractNonce,
-        }, { signingKey, forKey, encryptForKey }), output);
+        }, { signingKey, forKey, encryptForKey }), args);
     };
 }
 
@@ -81,11 +79,9 @@ async function requestCACli(args, signingKey) {
         signingKey = stdinToString();
     }
 
-    const output = args.o || args.output || STDIO_ARG;
-
     return withOutput(await requestCertificate({
         requestType, subject, email, contractNonce,
-    }, { signingKey, forKey, encryptForKey }), output);
+    }, { signingKey, forKey, encryptForKey }), args);
 }
 
 module.exports = {

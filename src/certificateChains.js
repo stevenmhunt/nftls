@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const _ = require('lodash');
 const platforms = require('./platforms');
 const connectors = require('./connectors');
@@ -19,7 +20,8 @@ const { getCachedCertificate, addCachedCertificate } = require('./cachedCertific
  * @param {string} target The target address we're trying to reach.
  * @returns {Array} A list of all acquired certificates.
  */
-async function resolveCertificateChain(context, paths, name, addr, forAddr, isContract, target) {
+async function _resolveCertificateChain(context, paths, name, addr, forAddr, isContract, options) {
+    const { target, cache } = options;
     const { pathName, platformName } = extractPath(name);
     if (paths.length === 0 || (addr === target && paths[0] !== ROOT_CERT_PATH)) {
         // if we ran out of paths to validate, then we successfully walked across the chain.
@@ -32,14 +34,20 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, isCo
     }
 
     // acquire certificate.
-    let data = await getCachedCertificate(context, name, addr);
+    let data;
+    if (cache || name.startsWith('@')) {
+        data = await getCachedCertificate(context, name);
+    }
     if (!data) {
         try {
             const cert = await context.platforms[platformName].downloadCertificate(pathName);
             data = await inspectCertificate(cert);
-            await addCachedCertificate(context, cert, true);
+            if (cache) {
+                await addCachedCertificate(context, cert, true);
+            }
         } catch (err) {
             // if we can't get data from the blockchain, then the chain validation is incomplete.
+            return [null];
         }
     }
 
@@ -66,27 +74,27 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, isCo
     }
 
     return [data,
-        ...await resolveCertificateChain(
+        ...(await _resolveCertificateChain(
             context,
             paths.slice(1),
             `${paths[0]}@${platformName}`,
             nextAddress,
             nextfor,
             nextIsContract,
-            target,
-        ),
+            options,
+        )),
     ];
     // TODO: add cycle detection.
 }
 
 /**
- * Inspects certificate chain information for a given certificate.
+ * Resolves certificate chain information for a given certificate.
  * Note: requires an Internet connection.
  * @param {object} context The session context.
  * @param {*} certData The certificate to inspect chain data from.
  * @returns {Promise<object>} Any located certificates, as well as whether the chain status.
  */
-async function inspectCertificateChain(context, certData) {
+async function resolveCertificateChain(context, certData, options) {
     const data = await inspectCertificate(certData);
     if ((await validateCertificate(data)).error) {
         throw new Error('The provided certificate is not valid.');
@@ -105,14 +113,14 @@ async function inspectCertificateChain(context, certData) {
     // TODO: reseach whether this process could be performed in parallel safely.
     for (let i = 0; i < CAs.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop
-        const chain = await resolveCertificateChain(
+        const chain = await _resolveCertificateChain(
             context,
             paths,
             `@${certPlatform}`,
             CAs[i].address,
             CAs[i].forAddress,
             true,
-            targetAddress,
+            { target: targetAddress, ...options },
         );
         if (chain.length === 0 || chain[chain.length - 1]) {
             return { status: 'Complete', chain };
@@ -131,14 +139,14 @@ async function inspectCertificateChain(context, certData) {
  * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
 async function validateCertificateChain(context, certData) {
-    const { status } = await inspectCertificateChain(context, certData);
+    const { status } = await resolveCertificateChain(context, certData);
     if (status === 'Complete') {
         return { status: 'Valid' };
     }
     return { status: 'Invalid', error: status };
 }
 
-async function downloadCertificate(context, path) {
+async function downloadCertificate(context, path, { cache }) {
     const [pathName, platformName] = path.split('@');
     const CAs = (await getCertificateAuthorities(context))
         .filter((i) => i.platform === platformName
@@ -147,6 +155,13 @@ async function downloadCertificate(context, path) {
     for (let i = 0; i < CAs.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop
         await context.platforms[platformName].setTokenContract(CAs[i].forAddress);
+        if (cache) {
+            // eslint-disable-next-line no-await-in-loop
+            const data = await getCachedCertificate(context, path);
+            if (data) {
+                return data;
+            }
+        }
         // eslint-disable-next-line no-await-in-loop
         const result = await context.platforms[platformName].downloadCertificate(pathName);
         if (result) {
@@ -183,7 +198,7 @@ async function createSessionContext(platformOptions, storage = null) {
 }
 
 module.exports = {
-    inspectCertificateChain,
+    resolveCertificateChain,
     validateCertificateChain,
     downloadCertificate,
     createSessionContext,

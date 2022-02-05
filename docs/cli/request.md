@@ -41,7 +41,7 @@ nftls request token $YOUR_KEY \
     -o csr.json
 ```
 
-If you're concerned about exposing your private key by writing it to an environment variable, you can optionally omit the `<signing key>` parameter after `request token` or set it to `stdin` and the command-line tool will automatically prompt you to enter your key into a secure input prompt. NFTLS is also compatible with Ethereum wallet applications, so if you use [the web-based CSR order system on our website](https://nftls.io/account) you can let the wallet manage signing the CSR.
+If you're concerned about exposing your private key by writing it to an environment variable, you can optionally omit the `<signing key>` parameter after `request token` or set it to `-` and the command-line tool will automatically prompt you to enter your key into a secure input prompt. NFTLS is also compatible with Ethereum wallet applications, so if you use [the web-based CSR order system on our website](https://nftls.io/account) you can let the wallet manage signing the CSR.
 
 Once you have successfully generated your CSR file you can provide it to a registrar who can verify your information and then issue a certificate through the Certificate Authority (CA).
 

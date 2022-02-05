@@ -74,7 +74,8 @@ function displayStatus(result, expected = 'Valid') {
  * Captures the output of a function and pipes it into the appropriate file descriptor
  * based on the --output or -o command-line argument.
  */
-async function withOutput(result, output) {
+async function withOutput(result, args) {
+    const output = args.o || args.output || STDIO_ARG;
     if (output === STDIO_ARG) {
         if (_.isBuffer(result)) { console.log(result.toString('base64')); } else if (_.isObject(result)) { console.log(JSON.stringify(result, null, 4)); } else { console.log(result); }
         return null;

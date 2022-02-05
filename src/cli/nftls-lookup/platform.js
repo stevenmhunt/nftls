@@ -4,7 +4,7 @@ const { getSessionContext } = require('../utils');
 const { PLATFORMS_KEY } = require('../../constants');
 
 function getHelpText() {
-    return 'Connect to a blockchain network in order to perform lookups.';
+    return 'Manages available blockchain network in order to perform lookups.';
 }
 
 async function helpCommand() {
@@ -20,9 +20,17 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
+const ethPlatforms = ['eth', 'eth:goerli', 'eth:kovan', 'eth:rinkeby', 'eth:ropsten'];
+
 async function addPlatformCli(args, platform, ...options) {
     const context = await getSessionContext();
-    context.storage.addKeyItem(PLATFORMS_KEY, platform, options);
+    if (platform === 'eth:*') {
+        await Promise.all(ethPlatforms.map(
+            (p) => context.storage.addKeyItem(PLATFORMS_KEY, p, options),
+        ));
+    } else {
+        await context.storage.addKeyItem(PLATFORMS_KEY, platform, options);
+    }
 }
 
 async function removePlatformCli(args, platform) {

@@ -4,9 +4,9 @@ Once a certificate has been written to the blockchain, other people or programs 
 
 ## Connecting to the Blockchain
 
-The `nftls-lookup` command needs to be able to connect to the correct blockchain in order to validate certificate chains. In order to connect, you'll need an [etherscan.io API key](https://etherscan.io/apis). Once you've generated your API key, you can connect.
+The `nftls-lookup` command needs to be able to connect to the correct blockchain in order to validate certificate chains. While the program comes pre-configured with the default providers from [ethers.js](https://docs.ethers.io/v5/), you will likely want to add an API key from your Ethereum service API of choice. For example, you can use an [etherscan.io API key](https://etherscan.io/apis) to connect:
 
-### Example 1: Connecting to Ethereum
+### Example 1: Connecting to Ethereum via Etherscan
 ```bash
 # Connect to Ethereum
 PLATFORM=eth
@@ -14,14 +14,8 @@ PLATFORM=eth
 # your etherscan.io API key
 API_KEY=...........
 
-# (optional) the Ethereum network that you want to use.
-# default: mainnet
-ENV=mainnet
-
-nftls-lookup connect $PLATFORM $API_KEY $ENV
+nftls-lookup platform add eth Etherscan $API_KEY
 ```
-
-Once you've entered the correct credentials, you'll be able to perform certificate chain lookups against the blockchain.
 
 ## Managing Certificate Authorities
 
@@ -32,17 +26,19 @@ In order to perform a lookup on a certificate chain, you need to have the requir
 # the new CA certificate to add.
 CA_CERT="new_ca.cert.json"
 
-# the name of the CA.
-CA_NAME="New CA"
-
-nftls-lookup ca add $CA_CERT \
-    --name $CA_NAME
+nftls-lookup ca add $CA_CERT
 ```
 
-## Inspecting a Certificate Chain
+You'll notice that all relevant information on the CA including network name is extracted from the certificate file and added to your local environment. CA certificates from nftls.io come pre-configured in the library so you won't need to perform this operation unless you have a custom CA certificate.
 
-You can visually inspect a certificate chain by running `nftls-lookup inspect <file>`, which will automatically download any required assets from the blockchain and then display a tree showing all certificates and their statuses in the chain.
+## Resolving a Certificate Chain
+
+You can visually inspect a certificate chain by running `nftls-lookup resolve <file>`, which will automatically download any required assets from the blockchain and then display a tree showing all certificates and their statuses in the chain.
 
 ## Validating a Certificate Chain
 
 You can also use `nftls-lookup validate <file>` to validate that a certificate chain is valid.
+
+## Downloading a Certificate
+
+You can also use `nftls-lookup download <FQDN or FQTN>` to download a certificate through the blockchain.

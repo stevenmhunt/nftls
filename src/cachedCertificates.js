@@ -17,7 +17,7 @@ async function addCachedCertificate(context, filepath, isOverwrite = true) {
     }
 
     // check overwrite settings and whether or not there is an existing certificate.
-    const key = `${data.certificate.subject.name};${data.signatureAddress}`;
+    const key = data.certificate.subject.name;
     if (!isOverwrite && await context.storage.getKeyItem(CERT_KEY, key)) {
         return null;
     }
@@ -28,15 +28,13 @@ async function addCachedCertificate(context, filepath, isOverwrite = true) {
 }
 
 /**
- * Removes a certificate by name/address.
+ * Removes a certificate by name.
  * @param {object} context The session context.
  * @param {string} name The name of the certificate to remove.
- * @param {string} address The address of the certificate to remove.
  * @returns {Promise<boolean>} Whether or not the certificate was removed successfully.
  */
-async function removeCachedCertificate(context, name, address) {
-    const key = !address ? name : `${name};${address}`;
-    await context.storage.removeKeyItem(CERT_KEY, key);
+async function removeCachedCertificate(context, name) {
+    await context.storage.removeKeyItem(CERT_KEY, name);
     return true;
 }
 
@@ -45,9 +43,8 @@ async function removeCachedCertificate(context, name, address) {
  * @param {object} context The session context.
  * @returns {Promise<object>}
  */
-async function getCachedCertificate(context, name, address) {
-    const key = !address ? name : `${name};${address}`;
-    const data = await context.storage.getKeyItem(CERT_KEY, key);
+async function getCachedCertificate(context, name) {
+    const data = await context.storage.getKeyItem(CERT_KEY, name);
     if (!data) {
         return null;
     }

@@ -25,9 +25,8 @@ async function defaultCommand(args, signingKey) {
         // eslint-disable-next-line no-param-reassign
         signingKey = stdinToString();
     }
-    const output = args.o || args.output || STDIO_ARG;
 
-    return withOutput(await authorizeCertificateToken(filepath, signingKey), output);
+    return withOutput(await authorizeCertificateToken(filepath, signingKey), args);
 }
 
 module.exports = {
