@@ -53,8 +53,7 @@ async function listRootCli(args) {
     if (format === 'text') {
         console.log('NFTLS Certificate Authorities:');
         data.forEach((ca) => {
-            console.log(`\n    ${ca.name}:`);
-            console.log(`        Platform: ${ca.platform}`);
+            console.log(`\n    ${ca.name}`);
             console.log(`        Address: ${ca.address}`);
             if (ca.forAddress) {
                 console.log(`        For: ${ca.forAddress}`);

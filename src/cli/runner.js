@@ -1,6 +1,12 @@
 /* eslint-disable no-console */
+// eslint-disable-next-line import/order
+const { STDIO_ARG } = require('../constants');
+
 const _ = require('lodash');
-const argv = require('mri')(process.argv.slice(2), {
+const argv = require('mri')(process.argv.slice(2).map((arg) => {
+    if (arg === '-') { return STDIO_ARG; }
+    return arg;
+}), {
     string: ['token', 'for', 'encrypt-for'],
 });
 const pkg = require('../../package.json');
@@ -69,6 +75,8 @@ async function main({ app, cli }) {
             console.log(`Error: Invalid command target '${target}'.`);
             process.exit(1);
         }
+    } else if (cli[command].helpCommand) {
+        await cli[command].helpCommand(argv);
     }
 }
 

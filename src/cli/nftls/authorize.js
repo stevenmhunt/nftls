@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const { readLine, withOutput } = require('../utils');
+const { readLine, withOutput, stdinToString } = require('../utils');
 const { authorizeCertificateToken } = require('../../certificateTokens');
-const { PRIVATE_KEY_PROMPT } = require('../../constants');
+const { PRIVATE_KEY_PROMPT, STDIO_ARG } = require('../../constants');
 
 function getHelpText() {
     return 'Generates authorization signatures for minting and re-minting.';
@@ -11,8 +11,8 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls authorize <certificate file> <signing key>');
-    console.log('        output file:    (--output [-o] <file | [stdout]>)');
+    console.log('     nftls authorize <certificate file> <signing key | [-]>');
+    console.log('        output file:    (--output [-o] <file | [-]>)');
 }
 
 async function defaultCommand(args, signingKey) {
@@ -21,8 +21,11 @@ async function defaultCommand(args, signingKey) {
     if (!signingKey) {
         // eslint-disable-next-line no-param-reassign
         signingKey = await readLine(PRIVATE_KEY_PROMPT, true);
+    } else if (signingKey === STDIO_ARG) {
+        // eslint-disable-next-line no-param-reassign
+        signingKey = stdinToString();
     }
-    const output = args.o || args.output || 'stdout';
+    const output = args.o || args.output || STDIO_ARG;
 
     return withOutput(await authorizeCertificateToken(filepath, signingKey), output);
 }

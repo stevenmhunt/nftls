@@ -7,7 +7,7 @@ const { Spinner } = require('cli-spinner');
 const { parseX509Fields } = require('../utils');
 const { userProfile } = require('../storage');
 const { createSessionContext } = require('../certificateChains');
-const { PLATFORMS_KEY } = require('../constants');
+const { PLATFORMS_KEY, STDIO_ARG } = require('../constants');
 
 /**
  * Manages standard input prompts.
@@ -75,7 +75,7 @@ function displayStatus(result, expected = 'Valid') {
  * based on the --output or -o command-line argument.
  */
 async function withOutput(result, output) {
-    if (output === 'stdout') {
+    if (output === STDIO_ARG) {
         if (_.isBuffer(result)) { console.log(result.toString('base64')); } else if (_.isObject(result)) { console.log(JSON.stringify(result, null, 4)); } else { console.log(result); }
         return null;
     }

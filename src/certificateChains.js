@@ -6,7 +6,7 @@ const { getCertificateAuthorities } = require('./certificateAuthorities');
 const { calculateChainPaths, extractPath } = require('./utils');
 const { inMemory } = require('./storage');
 const { ROOT_CERT_PATH } = require('./constants');
-const { getCachedCertificate } = require('./cachedCertificates');
+const { getCachedCertificate, addCachedCertificate } = require('./cachedCertificates');
 
 /**
  * @private
@@ -37,8 +37,8 @@ async function resolveCertificateChain(context, paths, name, addr, forAddr, isCo
         try {
             const cert = await context.platforms[platformName].downloadCertificate(pathName);
             data = await inspectCertificate(cert);
+            await addCachedCertificate(context, cert, true);
         } catch (err) {
-            console.log(err);
             // if we can't get data from the blockchain, then the chain validation is incomplete.
         }
     }
@@ -165,13 +165,20 @@ async function downloadCertificate(context, path) {
 async function createSessionContext(platformOptions, storage = null) {
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {
-        const options = platformOptions[platform] || [];
+        let options = {}; let args = [];
+        if (platformOptions[platform]) {
+            if (_.isArray(platformOptions[platform])) {
+                args = platformOptions[platform];
+            } else {
+                options = platformOptions[platform];
+            }
+        }
         const [platformName, network] = platform.split(':');
-        platformConnectors[platform] = await connectors[platformName](network, {}, ...options);
+        platformConnectors[platform] = await connectors[platformName](network, options, ...args);
     }));
     return {
         platforms: platformConnectors,
-        storage: storage || await inMemory(),
+        storage: storage || (await inMemory()),
     };
 }
 

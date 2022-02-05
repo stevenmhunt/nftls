@@ -11,7 +11,7 @@ async function helpCommand() {
     console.log('\nDescription:');
     console.log(`    ${getHelpText()}`);
     console.log('\nUsage:');
-    console.log('     nftls-lookup connect <platform> (options...)');
+    console.log('     nftls-lookup platform <add | remove | list | providers> (<blockchain>:<network> <provider> <options...>)');
 }
 
 async function defaultCommand(args) {
@@ -47,6 +47,26 @@ async function listPlatformCli(args) {
     }
 }
 
+async function providersPlatformCli() {
+    const providers = [
+        '',
+        ' Platform   Name             Argument(s)',
+        ' ---------------------------------------',
+        '  eth:*      Alchemy          <api key>',
+        '  eth:*      AlchemyWebSocket <api key>',
+        '  eth        Cloudflare',
+        '  eth:*      Etherscan        <api key>',
+        '  eth:*      Infura           <api key>',
+        '  eth:*      InfuraWebSocket  <api key>',
+        '  eth:*      JsonRpc          <url>',
+        '  eth:*      Nodesmith        <api key>',
+        '  eth:*      Pocket           <api key>',
+        '  eth:*      WebSocket        <url>',
+        '  eth:*      (default)',
+    ];
+    console.log(providers.join('\n'));
+}
+
 module.exports = {
     getHelpText,
     defaultCommand,
@@ -54,4 +74,5 @@ module.exports = {
     add: addPlatformCli,
     remove: removePlatformCli,
     list: listPlatformCli,
+    providers: providersPlatformCli,
 };

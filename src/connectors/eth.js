@@ -18,36 +18,44 @@ module.exports = async function ethConnector(network, options, providerType, typ
         if (!network) {
             return ethers.getDefaultProvider();
         }
-        if (!providerType) {
+        if (!providerType || providerType === 'default') {
             return ethers.getDefaultProvider(network);
         }
         return new ethers.providers[`${providerType}Provider`](network, typeParam);
     }
-
-    const provider = options.provider || getProvider();
+    const addr = ethers.constants.AddressZero;
     const contractValue = options.contract
-        || new ethers.Contract(ethers.constants.AddressZero, abi, provider);
+        || new ethers.Contract(addr, abi, options.provider || getProvider());
     let current = contractValue;
+    let pendingContract = null;
 
     /**
+     * @private
      * Sets the current token contract address to use.
      * The address change if a wildcard domain certificate issues its own tokens.
      * @param {*} contractId The address of the contract.
      * @returns {Promise<string>} The resolved contract address.
      */
-    async function setTokenContract(contractId) {
+    async function setTokenContractInternal(contractId) {
         const addresses = [];
-        async function setTokenContractInternal(c) {
+        async function setTokenContractInternalPrivate(c) {
             current = await contractValue.attach(c);
             const result = await current.redeployedAddress();
             if (result !== ethers.constants.AddressZero) {
                 assert.equal(addresses.indexOf(c), -1, `Infinite recursion detected in deployment address '${c}'.`);
                 addresses.push(c);
-                return setTokenContractInternal(result);
+                return setTokenContractInternalPrivate(result);
             }
             return c;
         }
-        return setTokenContractInternal(contractId);
+        return setTokenContractInternalPrivate(contractId);
+    }
+
+    /**
+     * Sets the current token contract address to use.
+     */
+    async function setTokenContract(contractId) {
+        pendingContract = contractId;
     }
 
     /**
@@ -56,6 +64,10 @@ module.exports = async function ethConnector(network, options, providerType, typ
      * @returns {Promise} The certificate.
      */
     async function downloadCertificate(pathName) {
+        if (pendingContract) {
+            await setTokenContractInternal(pendingContract);
+            pendingContract = null;
+        }
         const tokenId = ethers.BigNumber.from(pathName && pathName !== '*' ? calculatePath(pathName) : 0);
         const { certificate, revokeTime } = await current.getCertificate(tokenId, true);
         const uri = await current.tokenURI(tokenId);

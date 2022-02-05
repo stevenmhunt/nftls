@@ -1,5 +1,7 @@
+const defaults = require('./defaults.json');
+
 async function initializeInMemoryStorage(initial) {
-    const storage = initial || {};
+    const storage = initial || JSON.parse(JSON.stringify(defaults));
 
     /**
      * @private

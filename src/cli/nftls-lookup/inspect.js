@@ -53,22 +53,22 @@ async function defaultCommand(args) {
         } else {
             console.log(`  [${clc.greenBright(chain.length + 1)}]┄┄ ${clc.yellow('(Target Certificate)')}`);
         }
-
-        return;
+        process.exit(0);
     }
     if (format === 'text') {
         console.log('NFTLS Certificate Chain:');
         chain.filter((i) => i).forEach((cert, index) => {
             displayCertificate(cert, index);
         });
-        return;
+        process.exit(0);
     }
     if (format === 'json') {
         console.log(JSON.stringify({ status, chain }, null, 4));
-        return;
+        process.exit(0);
     }
     if (format === 'compact-json') {
         console.log(JSON.stringify({ status, chain }));
+        process.exit(0);
     }
 }
 

@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const homedir = require('os').homedir();
+const defaults = require('./defaults.json');
 
 async function initializeUserProfileStorage() {
     const filepath = path.join(homedir, '.nftls');
@@ -9,6 +10,8 @@ async function initializeUserProfileStorage() {
     // automatically load the user configuration on startup.
     if (await fs.pathExists(filepath)) {
         storage = await fs.readJSON(filepath);
+    } else {
+        storage = JSON.parse(JSON.stringify(defaults));
     }
 
     /**

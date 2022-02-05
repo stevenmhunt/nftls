@@ -21,6 +21,7 @@ async function defaultCommand(args) {
     if (result.error) {
         process.exit(1);
     }
+    process.exit(0);
 }
 
 module.exports = {

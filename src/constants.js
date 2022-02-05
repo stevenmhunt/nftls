@@ -11,6 +11,8 @@ const CERT_KEY = 'certificateCache';
 const PLATFORMS_KEY = 'platforms';
 const ROOT_CERT_PATH = '*';
 
+const STDIO_ARG = '****STDIO****';
+
 /**
  * @private
  * Prompt text for requesting private key.
@@ -53,6 +55,7 @@ const certTypes = _.values(certTypeMapping);
 
 module.exports = {
     SEPARATOR,
+    STDIO_ARG,
     CA_KEY,
     CERT_KEY,
     PLATFORMS_KEY,
