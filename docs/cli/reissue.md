@@ -11,7 +11,7 @@ To re-issue an address certificate, you need to create a CSR for the new certifi
 # the version number of the replacement certificate
 NEW_VERSION=1
 
-# your blockchain platform (eth, polygon, etc.)
+# your blockchain platform (eth, eth:kovan, etc.)
 PLATFORM=eth
 
 # your blockchain private key (be careful...)
