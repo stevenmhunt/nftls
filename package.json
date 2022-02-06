@@ -9,8 +9,8 @@
   "scripts": {
     "test": "npx mocha",
     "lint": "npx eslint .",
-    "jsdoc": "npx jsdoc ./src README.md -d ../nftls-web/public/api-docs",
-    "browserify": "browserify --ignore fs-extra --standalone nftls index.js -o ../nftls-web/public/js/nftls.js"
+    "jsdoc": "mkdirp ./build/jsdoc && npx jsdoc ./src README.md -d ./build/jsdoc",
+    "browserify": "mkdirp ./build && browserify --ignore fs-extra --standalone nftls index.js -o ./build/nftls.js"
   },
   "dependencies": {
     "axios": "^0.24.0",
