@@ -10,7 +10,7 @@
     "test": "npx mocha",
     "lint": "npx eslint .",
     "jsdoc": "mkdirp ./build/jsdoc && npx jsdoc ./src README.md -d ./build/jsdoc",
-    "browserify": "mkdirp ./build && browserify --ignore fs-extra --standalone nftls index.js -o ./build/nftls.js"
+    "browserify": "mkdirp ./build && browserify --ignore fs-extra --ignore png-stash --ignore jimp --standalone nftls index.js -o ./build/nftls.js"
   },
   "dependencies": {
     "axios": "^0.24.0",
