@@ -71,7 +71,8 @@ async function signMessage(key, msg) {
     if (key.signMessage && _.isFunction(key.signMessage)) {
         return key.signMessage(msg);
     }
-    return EthCrypto.sign(key, ethers.utils.hashMessage(msg));
+    const hash = ethers.utils.hashMessage(msg);
+    return EthCrypto.sign(key, hash);
 }
 
 /**
@@ -105,7 +106,12 @@ function generateAuthorizationMessage(action, fields) {
  * @returns {string} A digital signature.
  */
 async function signAuthorization(action, fields, key) {
-    return signMessage(key, generateAuthorizationMessage(action, fields));
+    const msg = generateAuthorizationMessage(action, fields);
+    const signature = await signMessage(key, msg);
+    return {
+        signature,
+        msg,
+    };
 }
 
 /**

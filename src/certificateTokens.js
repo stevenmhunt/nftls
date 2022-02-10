@@ -45,7 +45,7 @@ async function authorizeCertificateToken(certData, signingKey) {
     const path = calculatePath(pathName);
     const { version } = data.certificate;
     const hash = await getCertificateHash(data);
-    const signature = await platform.signAuthorization('mint', [
+    const { signature } = await platform.signAuthorization('mint', [
         recipient,
         path,
         version,
