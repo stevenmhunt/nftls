@@ -1,31 +1,29 @@
 /* eslint-disable no-console */
-const silence = console.log;
-console.info = function info() {};
-
+// eslint-disable-next-line global-require
+const ethers = typeof window !== 'undefined' && window.ethers ? window.ethers : require('ethers');
 const _ = require('lodash');
-const EthCrypto = require('eth-crypto');
-const { ethers } = require('ethers');
+const ecies = require('../../lib/ecies');
 const { keccak256, toUInt32 } = require('../utils');
-
-// Note: the 'eth-crypto' library outputs to stdout. this code suppresses that output.
-console.info = silence;
 
 /**
  * Generates a new Ethereum private key and an Ethereum address.
  * @returns {object}
  */
 function generateWallet() {
-    return EthCrypto.createIdentity();
+    const { privateKey, publicKey, address } = ethers.Wallet.createRandom();
+    return {
+        privateKey, publicKey, address,
+    };
 }
 
 /**
  * Calculates the contract address from the creator address and nonce.
- * @param {string} address The creator address.
+ * @param {string} from The creator address.
  * @param {number} nonce The nonce.
  * @returns {string}
  */
-function getContractAddress(address, nonce) {
-    return EthCrypto.calculateContractAddress(address, nonce);
+function getContractAddress(from, nonce) {
+    return ethers.utils.getContractAddress({ from, nonce });
 }
 
 /**
@@ -33,7 +31,8 @@ function getContractAddress(address, nonce) {
  * @param {string} privateKey The private key.
  */
 function getPublicKey(privateKey) {
-    return EthCrypto.publicKeyByPrivateKey(privateKey);
+    return ethers.utils.computePublicKey(privateKey);
+    // return EthCrypto.publicKeyByPrivateKey(privateKey);
 }
 
 /**
@@ -50,7 +49,7 @@ async function getAddress(privateKey, nonce = undefined) {
     } else if (privateKey.getAddress && _.isFunction(privateKey.getAddress)) {
         result = await privateKey.getAddress();
     } else {
-        result = EthCrypto.publicKey.toAddress(EthCrypto.publicKeyByPrivateKey(privateKey));
+        result = (new ethers.Wallet(privateKey)).address;
     }
 
     // eslint-disable-next-line no-restricted-globals
@@ -71,8 +70,8 @@ async function signMessage(key, msg) {
     if (key.signMessage && _.isFunction(key.signMessage)) {
         return key.signMessage(msg);
     }
-    const hash = ethers.utils.hashMessage(msg);
-    return EthCrypto.sign(key, hash);
+    return (new ethers.Wallet(key)).signMessage(msg);
+    // return EthCrypto.sign(key, hash);
 }
 
 /**
@@ -148,7 +147,9 @@ async function recoverAuthorizationAddress(sig, action, fields) {
  * @returns {Promise<object>}
  */
 async function encryptMessage(publicKey, msg) {
-    return EthCrypto.encryptWithPublicKey(publicKey, msg);
+    return ecies.encrypt(Buffer.from(publicKey.replace('0x', ''), 'hex'), _.isBuffer(msg) ? msg : Buffer.from(msg), {
+        curveName: 'secp256k1',
+    });
 }
 
 /**
@@ -160,8 +161,10 @@ async function encryptMessage(publicKey, msg) {
 async function decryptMessage(key, {
     iv, ephemPublicKey, ciphertext, mac,
 }) {
-    return EthCrypto.decryptWithPrivateKey(key, {
+    return ecies.decrypt(Buffer.from(key.replace('0x', ''), 'hex'), {
         iv, ephemPublicKey, ciphertext, mac,
+    }, {
+        curveName: 'secp256k1',
     });
 }
 

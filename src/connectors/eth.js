@@ -1,5 +1,6 @@
+// eslint-disable-next-line global-require
+const ethersLocal = typeof window !== 'undefined' && window.ethers ? window.ethers : require('ethers');
 const assert = require('assert');
-const ethersLocal = require('ethers');
 const axios = require('axios').default;
 const { getCertHash, calculatePath } = require('../utils');
 const { abi } = require('./NftlsToken.json');
