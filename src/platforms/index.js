@@ -8,4 +8,6 @@ module.exports = {
     'eth:kovan': eth,
     'eth:rinkeby': eth,
     'eth:ropsten': eth,
+    polygon: eth,
+    'polygon:mumbai': eth,
 };

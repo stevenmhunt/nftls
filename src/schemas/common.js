@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const platforms = (p) => {
     const [name] = p.split(':');
-    if (name === 'eth') {
+    if (name === 'eth' || name === 'polygon') {
         return {
             name: () => Joi.string().regex(/^[*a-z^\d]?[a-z0-9.-]*[#]?[0-9]*[@][a-z]*:?[a-z0-9]*$/),
             domain: () => Joi.string().regex(/^[*a-z^\d]?[a-z0-9.-]*$/),

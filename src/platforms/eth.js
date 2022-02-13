@@ -183,14 +183,6 @@ function addressesAreEqual(sigAddr, knownAddr, nonce = undefined) {
     return sigAddr.toLowerCase() === knownAddr.toLowerCase();
 }
 
-/**
- * Returns a list of other blockchain platforms that Ethereum is compatible with.
- * @returns {Array}
- */
-function getCompatiblePlatforms() {
-    return [];
-}
-
 module.exports = {
     generateWallet,
     getAddress,
@@ -203,5 +195,4 @@ module.exports = {
     encryptMessage,
     decryptMessage,
     addressesAreEqual,
-    getCompatiblePlatforms,
 };

@@ -1,6 +1,5 @@
 /* eslint-disable no-underscore-dangle */
 const _ = require('lodash');
-const platforms = require('./platforms');
 const connectors = require('./connectors');
 const { inspectCertificate, validateCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
@@ -108,8 +107,7 @@ async function resolveCertificateChain(context, certData, options) {
         ...calculateChainPaths(certPath),
     ].reverse().slice(1);
     const CAs = (await getCertificateAuthorities(context))
-        .filter((i) => i.platform === certPlatform
-            || platforms[certPlatform].getCompatiblePlatforms().indexOf(i.platform) >= 0);
+        .filter((i) => i.platform === certPlatform);
     // TODO: reseach whether this process could be performed in parallel safely.
     for (let i = 0; i < CAs.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop
@@ -149,8 +147,7 @@ async function validateCertificateChain(context, certData) {
 async function downloadCertificate(context, path, { cache }) {
     const [pathName, platformName] = path.split('@');
     const CAs = (await getCertificateAuthorities(context))
-        .filter((i) => i.platform === platformName
-        || platforms[platformName].getCompatiblePlatforms().indexOf(i.platform) >= 0);
+        .filter((i) => i.platform === platformName);
         // TODO: reseach whether this process could be performed in parallel safely.
     for (let i = 0; i < CAs.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop

@@ -181,9 +181,7 @@ function runCertificateValidation(certificate, data = null, addr = null) {
         }
 
         // validate the issuer's blockchain platform.
-        const compatiblePlatforms = platforms[subjectPlatform].getCompatiblePlatforms();
-        if (subjectPlatform !== issuerPlatform
-            && compatiblePlatforms.indexOf(issuerPlatform) === -1) {
+        if (subjectPlatform !== issuerPlatform) {
             throw new Error(`The issuer platform '${issuerPlatform}' is not compatible with subject platform '${subjectPlatform}'.`);
         }
     }

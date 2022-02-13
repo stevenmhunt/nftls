@@ -1,7 +1,9 @@
 const path = require('path');
+const _ = require('lodash');
 const fs = require('fs-extra');
 const homedir = require('os').homedir();
-const defaults = require('./defaults.json');
+const initialConfig = require('./config-initial.json');
+const baselineConfig = require('../../config.json');
 
 async function initializeUserProfileStorage() {
     const filepath = path.join(homedir, '.nftls');
@@ -9,9 +11,17 @@ async function initializeUserProfileStorage() {
 
     // automatically load the user configuration on startup.
     if (await fs.pathExists(filepath)) {
-        storage = await fs.readJSON(filepath);
+        storage = _.merge(
+            {},
+            JSON.parse(JSON.stringify(baselineConfig)),
+            await fs.readJSON(filepath),
+        );
     } else {
-        storage = JSON.parse(JSON.stringify(defaults));
+        storage = _.merge(
+            {},
+            JSON.parse(JSON.stringify(baselineConfig)),
+            JSON.parse(JSON.stringify(initialConfig)),
+        );
     }
 
     /**

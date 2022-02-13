@@ -1,7 +1,13 @@
-const defaults = require('./defaults.json');
+const _ = require('lodash');
+const initialConfig = require('./config-initial.json');
+const baselineConfig = require('../../config.json');
 
 async function initializeInMemoryStorage(initial) {
-    const storage = initial || JSON.parse(JSON.stringify(defaults));
+    const storage = _.merge(
+        {},
+        JSON.parse(JSON.stringify(baselineConfig)),
+        initial || JSON.parse(JSON.stringify(initialConfig)),
+    );
 
     /**
      * @private

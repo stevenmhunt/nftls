@@ -1,0 +1,14 @@
+{
+    "platforms": {
+        "eth": [],
+        "eth:goerli": [],
+        "eth:ropsten": [],
+        "eth:rinkeby": [],
+        "eth:local": []
+    },
+    "certificateCache": {},
+    "certificateAuthorities": {},
+    "config": {
+        "useCache": true
+    }
+}

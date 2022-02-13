@@ -7,7 +7,7 @@ You can request a certificate for a specific NFT, allowing you to authenticate t
 
 ### Example 1: Token CSR
 ```bash
-# your blockchain platform (eth, eth:kovan, etc.)
+# your blockchain platform (eth, eth:rinkeby, etc.)
 PLATFORM=eth
 
 # your blockchain private key (be careful...)
@@ -52,7 +52,7 @@ Unlike an NFT certificate which is installed directly into the image content its
 
 ### Example 2: Address CSR
 ```bash
-# your blockchain platform (eth, eth:kovan, etc.)
+# your blockchain platform (eth, eth:rinkeby, etc.)
 PLATFORM=eth
 
 # your blockchain private key (be careful...)
@@ -94,7 +94,7 @@ If you have a blockchain domain name or TLD, you may want to verify your identit
 
 ### Example 3: Domain CSR
 ```bash
-# your blockchain platform (eth, eth:kovan, etc.)
+# your blockchain platform (eth, eth:rinkeby, etc.)
 PLATFORM=eth
 
 # your blockchain private key (be careful...)
@@ -130,7 +130,7 @@ nftls request domain $YOUR_KEY \
 
 ### Example 4: TLD Wildcard CSR
 ```bash
-# your blockchain platform (eth, eth:kovan, etc.)
+# your blockchain platform (eth, eth:rinkeby, etc.)
 PLATFORM=eth
 
 # your blockchain private key (be careful...)

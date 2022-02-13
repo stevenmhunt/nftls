@@ -1,5 +1,6 @@
-const eth = require('./eth');
+const ethWrapper = require('./eth');
 
 module.exports = {
-    eth,
+    eth: ethWrapper('eth'),
+    polygon: ethWrapper('polygon'),
 };

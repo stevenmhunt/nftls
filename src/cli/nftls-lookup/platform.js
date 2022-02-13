@@ -20,7 +20,7 @@ async function defaultCommand(args) {
     process.exit(1);
 }
 
-const ethPlatforms = ['eth', 'eth:goerli', 'eth:kovan', 'eth:rinkeby', 'eth:ropsten'];
+const ethPlatforms = ['eth', 'eth:goerli', 'eth:rinkeby', 'eth:ropsten'];
 
 async function addPlatformCli(args, platform, ...options) {
     const context = await getSessionContext();
