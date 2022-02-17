@@ -10,9 +10,7 @@
     "test": "npx mocha",
     "lint": "npx eslint .",
     "jsdoc": "mkdirp ./build/jsdoc && npx jsdoc ./src README.md -d ./build/jsdoc",
-    "browserify:nftls": "mkdirp ./build && npx browserify --ignore fs-extra --ignore jimp --ignore ethers --standalone nftls nftls.browser.js -o ./build/nftls.js && npx minify ./build/nftls.js > ./build/nftls.min.js",
-    "browserify:nftls-lookup": "mkdirp ./build && npx browserify --ignore fs-extra --ignore jimp --ignore ethers --standalone nftlsLookup nftls-lookup.browser.js -o ./build/nftls-lookup.js && npx minify ./build/nftls-lookup.js > ./build/nftls-lookup.min.js",
-    "browserify": "npm run browserify:nftls && npm run browserify:nftls-lookup"
+    "browserify": "mkdirp ./build && npx browserify --ignore fs-extra --ignore jimp --ignore ethers --standalone nftls nftls.browser.js -o ./build/nftls.js && npx minify ./build/nftls.js > ./build/nftls.min.js"
   },
   "dependencies": {
     "axios": "^0.24.0",

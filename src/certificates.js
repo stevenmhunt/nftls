@@ -200,6 +200,10 @@ async function inspectCertificate(filepath, includeData = false) {
     } else if (filepath.endsWith('.png')) {
         certData = JSON.parse(await decodeImageData(filepath));
         hash = await extractImageHash(filepath);
+    } else if (filepath.length >= 1024) {
+        const buf = Buffer.from(filepath, 'base64');
+        certData = JSON.parse(await decodeImageData(buf));
+        hash = await extractImageHash(buf);
     } else {
         certData = await fs.readJSON(filepath);
         hash = certData.imageHash || NO_IMAGE_HASH;

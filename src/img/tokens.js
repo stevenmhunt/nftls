@@ -88,7 +88,7 @@ async function extractImageHash(filepath) {
     let data;
     if (_.isBuffer(filepath)) {
         data = filepath;
-    } else if (filepath.length > 256) {
+    } else if (filepath.length >= 1024) {
         data = Buffer.from(filepath, 'base64');
     } else { data = await fs.readFile(filepath); }
     const image = await encodeImageData(data, null);

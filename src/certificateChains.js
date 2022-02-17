@@ -5,7 +5,7 @@ const { inspectCertificate, validateCertificate } = require('./certificates');
 const { getCertificateAuthorities } = require('./certificateAuthorities');
 const { calculateChainPaths, extractPath } = require('./utils');
 const { inMemory } = require('./storage');
-const { ROOT_CERT_PATH } = require('./constants');
+const { ROOT_CERT_PATH, PLATFORMS_KEY } = require('./constants');
 const { getCachedCertificate, addCachedCertificate } = require('./cachedCertificates');
 
 /**
@@ -175,6 +175,11 @@ async function downloadCertificate(context, path, { cache }) {
  * @returns {Promise<object>} A session context.
  */
 async function createSessionContext(platformOptions, storage = null) {
+    if (!platformOptions && !storage) {
+        const memStorage = await inMemory();
+        const options = await memStorage.getItems(PLATFORMS_KEY);
+        return createSessionContext(options, memStorage);
+    }
     const platformConnectors = {};
     await Promise.all(_.keys(platformOptions).map(async (platform) => {
         let options = {}; let args = [];
