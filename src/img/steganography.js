@@ -1,5 +1,5 @@
 const fs = require('fs-extra');
-const pngStash = require('png-stash');
+const pngStash = require('../../lib/pngStash');
 const { keccak256 } = require('../utils');
 
 const HASH_LENGTH = 64;
@@ -51,8 +51,9 @@ async function encodeImageData(filepath, message, output = null) {
                 const b1 = message.length & 0xff;
                 stash.setByte(offset + 0, b0);
                 stash.setByte(offset + 1, b1);
-                return stash.save((err2) => {
+                return stash.save((err2, data) => {
                     if (err2) return reject(err2);
+                    if (data) { return resolve(data); }
                     return resolve(newfile);
                 });
             } catch (internalErr) {

@@ -8,7 +8,10 @@ const {
 } = require('./src/certificates');
 
 const utils = require('./src/utils');
+const { extractImageHash } = require('./src/img/tokens');
 const platforms = require('./src/platforms');
+
+utils.extractImageHash = extractImageHash;
 
 /**
  * NFTLS functions

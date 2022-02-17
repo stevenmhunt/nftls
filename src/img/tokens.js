@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 
 const { drawSignatureMark, extractSignatureMark } = require('eth-signature-mark');
 const { fillWithColor } = require('./utils');
-const { keccak256, getTempFilePath } = require('../utils');
+const { keccak256 } = require('../utils');
 const { encodeImageData, decodeImageData } = require('./steganography');
 
 const TOKEN_WIDTH = 512;
@@ -84,22 +84,16 @@ async function renderDomainTokenImage(token, output) {
  * @param {*} useTempFile Whether or not to use a temporary file to avoid modifying the image.
  * @returns {Promise<string>} The resultant baseline hash.
  */
-async function extractImageHash(filepath, useTempFile = true) {
-    const isTmp = useTempFile || _.isBuffer(filepath);
-    const tmpfile = isTmp ? getTempFilePath() : filepath;
-    if (isTmp) {
-        if (_.isBuffer(filepath)) {
-            await fs.writeFile(tmpfile, filepath);
-        } else {
-            await fs.copyFile(filepath, tmpfile);
-        }
-    }
-    await encodeImageData(tmpfile, null, false);
-    const image = await fs.readFile(tmpfile);
-    if (isTmp) {
-        await fs.unlink(tmpfile);
-    }
-    return keccak256(image);
+async function extractImageHash(filepath) {
+    let data;
+    if (_.isBuffer(filepath)) {
+        data = filepath;
+    } else if (filepath.length > 256) {
+        data = Buffer.from(filepath, 'base64');
+    } else { data = await fs.readFile(filepath); }
+    const image = await encodeImageData(data, null);
+    const result = keccak256(image);
+    return result;
 }
 
 /**
