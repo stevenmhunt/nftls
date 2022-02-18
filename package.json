@@ -1,6 +1,6 @@
 {
   "name": "nftls",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A command-line tool and NodeJS library for working with NFTLS certificates.",
   "bin": {
     "nftls": "./bin/nftls.js",
