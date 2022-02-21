@@ -137,7 +137,7 @@ async function resolveCertificateChain(context, certData, options) {
  * @returns {Promise<string>} Returns "Verified" if verified, otherwise returns an error message.
  */
 async function validateCertificateChain(context, certData) {
-    const { status } = await resolveCertificateChain(context, certData);
+    const { status } = await resolveCertificateChain(context, certData, { cache: true });
     if (status === 'Complete') {
         return { status: 'Valid' };
     }
